@@ -1,5 +1,5 @@
 /*
- * libppcemu - PowerPC Instruction handling - Bitwise operations
+ * libppcemu - PowerPC Instruction handling - SPR handling
  *
  * Copyright (C) 2026 Techflash
  */
