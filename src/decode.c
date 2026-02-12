@@ -53,6 +53,7 @@
 #include "instr/bitwise.c"
 #include "instr/spr.c"
 #include "instr/sync.c"
+#include "instr/branch.c"
 
 static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 	(void)inst;
@@ -135,7 +136,7 @@ static void (*opc19_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 48 */   do_illegal, do_illegal, do_rfi,     do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 80 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 96 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
