@@ -12,6 +12,7 @@
 #include "../spr.h"
 #include "../state.h"
 
+/* TODO: check MSR[PR] on SPR R/W */
 static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 	switch (sprn) {
 	case PPCEMU_SPRN_LR:
@@ -24,7 +25,8 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 	case PPCEMU_SPRN_SPRG0:
 	case PPCEMU_SPRN_SPRG1:
 	case PPCEMU_SPRN_SPRG2:
-	case PPCEMU_SPRN_SPRG3: {
+	case PPCEMU_SPRN_SPRG3:
+	case PPCEMU_SPRN_HID0: {
 		state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
 		break;
 	}
@@ -48,8 +50,11 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 
 		break;
 	}
-	default:
-		assert(!"Unknown SPR");
+	default: {
+		printf("Unknown SPR write %d\r\n", sprn);
+		exception_fire(state, EXCEPTION_PROGRAM);
+		break;
+	}
 	}
 }
 
@@ -65,7 +70,8 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 	case PPCEMU_SPRN_SPRG0:
 	case PPCEMU_SPRN_SPRG1:
 	case PPCEMU_SPRN_SPRG2:
-	case PPCEMU_SPRN_SPRG3: {
+	case PPCEMU_SPRN_SPRG3:
+	case PPCEMU_SPRN_HID0: {
 		state->gpr[rS] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 		break;
 	}
@@ -89,7 +95,10 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 
 		break;
 	}
-	default:
-		assert(!"Unknown SPR");
+	default: {
+		printf("Unknown SPR read %d\r\n", sprn);
+		exception_fire(state, EXCEPTION_PROGRAM);
+		break;
+	}
 	}
 }

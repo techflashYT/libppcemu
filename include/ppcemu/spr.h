@@ -78,6 +78,13 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_HID2_GEKKO = 920,
 
 	/*
+	 * Hardware Implementation Dependent Register 0
+	 *
+	 * Available in: 750CXe, Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_HID0 = 1008,
+
+	/*
 	 * Hardware Implementation Dependent Register 4
 	 *
 	 * Available in: 750CL, Broadway, Espresso
