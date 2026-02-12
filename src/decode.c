@@ -12,6 +12,11 @@
 /* mix of https://www.ibm.com/docs/en/aix/7.1.0?topic=overview-instruction-forms and the 750CL user manual */
 #define INST_OPCD(inst)      (((inst) & 0xfc000000) >> 26)
 
+/* 0..5 = Opcode; 6..29 = LI; 30 = AA; 31 = LK */
+#define INST_I_LI(inst)      (((inst) & 0x03fffffc) >> 2)
+#define INST_I_AA(inst)      (((inst) & 0x00000002) >> 1)
+#define INST_I_LK(inst)      (((inst) & 0x00000001) >> 0)
+
 /* 0..5 = Opcode; 6..10 = rD/rS; 11..15 = rA; 16..20 = rB; 21 = OE; 22..30 = XO; 31 = Rc */
 #define INST_XO_rD(inst)     (((inst) & 0x03e00000) >> 21)
 #define INST_XO_rS(inst)     INST_XO_rD(inst)
@@ -220,6 +225,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 15: { /* addis */
 		do_addis(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));
+		break;
+	}
+	case 18: { /* branch */
+		do_branch(state, INST_I_LI(inst), INST_I_AA(inst), INST_I_LK(inst));
 		break;
 	}
 	case 19: { /* X form instructions */
