@@ -4,6 +4,7 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <ppcemu/spr.h>
 #include "../caps.h"
@@ -47,6 +48,8 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 
 		break;
 	}
+	default:
+		assert(!"Unknown MSR");
 	}
 }
 
@@ -86,5 +89,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 
 		break;
 	}
+	default:
+		assert(!"Unknown MSR");
 	}
 }
