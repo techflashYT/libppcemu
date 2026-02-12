@@ -49,7 +49,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 		break;
 	}
 	default:
-		assert(!"Unknown MSR");
+		assert(!"Unknown SPR");
 	}
 }
 
@@ -90,6 +90,6 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn, uint Rc) {
 		break;
 	}
 	default:
-		assert(!"Unknown MSR");
+		assert(!"Unknown SPR");
 	}
 }
