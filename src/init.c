@@ -43,7 +43,7 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	case PPCEMU_CPU_MODEL_BROADWAY:
 		/* fallthrough */
 	case PPCEMU_CPU_MODEL_ESPRESSO: {
-		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS;
+		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE;
 		break;
 	}
 	}

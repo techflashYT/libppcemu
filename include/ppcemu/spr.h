@@ -136,4 +136,25 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_HID4 = 1011
 };
 
+#define PPCEMU_HID4_L2CFI          (1 << 20)
+#define PPCEMU_HID4_L2MUM          (1 << 21)
+#define PPCEMU_HID4_DBP            (1 << 22)
+/* this is reserved on 750CL, "LPE" (?) on Broadway/Espresso */
+#define PPCEMU_HID4_BW_LPE         (1 << 23)
+/* this is Paired-singles control bit 1 on 750CL, "ST0" (STore 0?) on Broadway/Espresso */
+#define PPCEMU_HID4_BW_ST0         (1 << 24)
+#define PPCEMU_HID4_750CL_PS1_CTL  (1 << 24)
+#define PPCEMU_HID4_SBE            (1 << 25)
+/* this is L2 second castout buffer enable on 750CL, reserved on Broadway/Espresso */
+#define PPCEMU_HID4_750CL_BCO      (1 << 26)
+#define PPCEMU_HID4_BPD            (3 << 27)
+#define PPCEMU_HID4_L2FM           (3 << 29)
+
+/* reserved bits that must be 0 on Broadway/Espresso */
+#define PPCEMU_HID4_BW_RSRVD0      (0xfffff | (1 << 26))
+/* reserved bits that must be 0 on 750CL */
+#define PPCEMU_HID4_750CL_RSRVD0   (0x7ffff | (1 << 23))
+/* reserved bits that must be 1 on all implementations */
+#define PPCEMU_HID4_RSRVD1         (1 << 31)
+
 #endif /* _LIBPPCEMU_SPR_H */
