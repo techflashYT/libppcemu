@@ -7,9 +7,11 @@
 #ifndef _LIBPPCEMU_INTERNAL_EXCEPTION_H
 #define _LIBPPCEMU_INTERNAL_EXCEPTION_H
 
+#include "spr.h"
 #include "state.h"
 #include "types.h"
 #include <ppcemu/msr.h>
+#include <ppcemu/spr.h>
 
 #define EXCEPTION_RESET   0x0100
 #define EXCEPTION_MCHK    0x0200
@@ -37,8 +39,13 @@ static inline void exception_fire(struct _ppcemu_state *state, uint idx) {
 	else
 		prefix = 0x00000000;
 
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)] = state->pc;
+	/* TODO: seems right?  750CL UM is kinda vague... */
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)] = state->msr & ~PPCEMU_MSR_RSRVD_PF;
+	state->msr &= ~(PPCEMU_MSR_IR | PPCEMU_MSR_DR);
 	state->pc = prefix | (u32)idx;
 	state->branched = true;
+
 }
 
 #endif /* _LIBPPCEMU_INTERNAL_EXCEPTION_H */
