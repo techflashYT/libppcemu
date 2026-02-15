@@ -18,7 +18,7 @@
 static bool _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr) {
 	u32 phys;
 
-	if (!ppcemu_virt2phys(state->pc, &phys, true))
+	if (!ppcemu_virt2phys(state, state->pc, &phys, true))
 		return false;
 
 	state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
