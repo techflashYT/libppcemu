@@ -62,6 +62,7 @@
 #include "instr/branch.c"
 #include "instr/msr.c"
 #include "instr/segmentreg.c"
+#include "instr/loadstore.c"
 
 static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 	(void)inst;
@@ -260,6 +261,18 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	case 31: { /* X form instructions */
 		printf("XO opcode: %d\r\n", INST_XO_XO(inst));
 		opc31_handlers[INST_XO_XO(inst)](state, inst);
+		break;
+	}
+	case 36: { /* stw */
+		do_basic_store(state, 4, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 38: { /* stb */
+		do_basic_store(state, 1, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 44: { /* sth */
+		do_basic_store(state, 2, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	default: {
