@@ -102,7 +102,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	}
 }
 
-static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn) {
+static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	switch (sprn) {
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
@@ -116,7 +116,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_SPRG2:
 	case PPCEMU_SPRN_SPRG3:
 	case PPCEMU_SPRN_HID0: {
-		state->gpr[rS] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+		state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 		break;
 	}
 	case PPCEMU_SPRN_HID2_GEKKO: {
@@ -125,7 +125,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
-			state->gpr[rS] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 
 		break;
 	}
@@ -135,7 +135,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
-			state->gpr[rS] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 
 		break;
 	}
@@ -155,7 +155,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_DBAT2L:
 	case PPCEMU_SPRN_DBAT3U:
 	case PPCEMU_SPRN_DBAT3L: {
-		state->gpr[rS] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+		state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 		break;
 	}
 	case PPCEMU_SPRN_IBAT4U:
@@ -179,7 +179,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
-			state->gpr[rS] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 
 		break;
 	}
