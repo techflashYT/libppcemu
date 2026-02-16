@@ -263,12 +263,24 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		opc31_handlers[INST_XO_XO(inst)](state, inst);
 		break;
 	}
+	case 32: { /* lwz */
+		do_basic_load(state, 4, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 34: { /* lbz */
+		do_basic_load(state, 1, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
 	case 36: { /* stw */
 		do_basic_store(state, 4, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 38: { /* stb */
 		do_basic_store(state, 1, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 40: { /* lhz */
+		do_basic_load(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 44: { /* sth */
