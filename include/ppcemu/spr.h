@@ -136,6 +136,9 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_HID4 = 1011
 };
 
+/*
+ * HID4 bits
+ */
 #define PPCEMU_HID4_L2CFI          (1 << 20)
 #define PPCEMU_HID4_L2MUM          (1 << 21)
 #define PPCEMU_HID4_DBP            (1 << 22)
@@ -156,5 +159,44 @@ enum ppcemu_sprn {
 #define PPCEMU_HID4_750CL_RSRVD0   (0x7ffff | (1 << 23))
 /* reserved bits that must be 1 on all implementations */
 #define PPCEMU_HID4_RSRVD1         (1 << 31)
+
+
+/*
+ * BATU bits
+ */
+#define PPCEMU_BATU_VP_SHIFT   0
+#define PPCEMU_BATU_VP         (1 << PPCEMU_BATU_VP_SHIFT)
+#define PPCEMU_BATU_VS_SHIFT   1
+#define PPCEMU_BATU_VS         (1 << PPCEMU_BATU_VS_SHIFT)
+#define PPCEMU_BATU_BL_SHIFT   2
+#define PPCEMU_BATU_BL         (2047 << PPCEMU_BATU_BL_SHIFT)
+#define PPCEMU_BATU_BL_128KB   0x000
+#define PPCEMU_BATU_BL_256KB   0x001
+#define PPCEMU_BATU_BL_512KB   0x003
+#define PPCEMU_BATU_BL_1MB     0x007
+#define PPCEMU_BATU_BL_2MB     0x00F
+#define PPCEMU_BATU_BL_4MB     0x01F
+#define PPCEMU_BATU_BL_8MB     0x03F
+#define PPCEMU_BATU_BL_16MB    0x07F
+#define PPCEMU_BATU_BL_32MB    0x0FF
+#define PPCEMU_BATU_BL_64MB    0x1FF
+#define PPCEMU_BATU_BL_128MB   0x3FF
+#define PPCEMU_BATU_BL_256MB   0x7FF
+#define PPCEMU_BATU_BEPI_SHIFT 17
+#define PPCEMU_BATU_BEPI       (32767 << PPCEMU_BATU_BEPI_SHIFT)
+
+/*
+ * BATL bits
+ */
+#define PPCEMU_BATL_PP_SHIFT   0
+#define PPCEMU_BATL_PP         (3 << PPCEMU_BATL_PP_SHIFT)
+#define PPCEMU_BATL_PP___      0 /* No access */
+#define PPCEMU_BATL_PP_R_      1 /* Read-only */
+#define PPCEMU_BATL_PP_RW      2 /* Read-write */
+#define PPCEMU_BATL_WIMG_SHIFT 3
+#define PPCEMU_BATL_WIMG       (15 << PPCEMU_BATL_WIMG_SHIFT)
+#define PPCEMU_BATL_BPRN_SHIFT 17
+#define PPCEMU_BATL_BPRN       (32767 << PPCEMU_BATL_BPRN_SHIFT)
+
 
 #endif /* _LIBPPCEMU_SPR_H */

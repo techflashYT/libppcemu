@@ -9,6 +9,7 @@
 #include "../exception.h"
 
 static void do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
+	enum virt2phys_err err;
 	u32 b, ea, phys;
 	u8 v8;
 	u16 v16;
@@ -21,7 +22,9 @@ static void do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint 
 	/* TODO: sign-extend */
 	ea = b + d;
 
-	if (!ppcemu_virt2phys(state, ea, &phys, true)) {
+	err = ppcemu_virt2phys(state, ea, &phys, false, true);
+	if (err != V2P_SUCCESS) {
+		/* TODO: need to set other info? */
 		exception_fire(state, EXCEPTION_DSI);
 		return;
 	}
