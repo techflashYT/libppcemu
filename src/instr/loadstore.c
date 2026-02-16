@@ -53,7 +53,7 @@ static void do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint 
 
 static void do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
 	enum virt2phys_err err;
-	u32 b, ea, phys;
+	u32 b, ea, phys, v32;
 	u8 v8;
 	u16 v16;
 
@@ -82,11 +82,12 @@ static void do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint r
 	case 2: {
 		state->bus_hook((struct ppcemu_state *)state, phys, 2, &v16, false);
 		state->gpr[rD] &= 0x0000ffff;
-		state->gpr[rD] |= (v16 << 16);
+		state->gpr[rD] |= (ntohl(v16) << 16);
 		break;
 	}
 	case 4: {
-		state->bus_hook((struct ppcemu_state *)state, phys, 4, &state->gpr[rD], false);
+		state->bus_hook((struct ppcemu_state *)state, phys, 4, &v32, false);
+		state->gpr[rD] = ntohl(v32);
 		break;
 	}
 	default: {
