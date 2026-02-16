@@ -68,6 +68,7 @@
 #include "instr/msr.c"
 #include "instr/segmentreg.c"
 #include "instr/loadstore.c"
+#include "instr/cond.c"
 
 static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 	(void)inst;
@@ -90,6 +91,7 @@ static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr
 static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
 static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0b0000011111) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
+
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -230,6 +232,16 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 
 	printf("top-level opcode: %d\r\n", INST_OPCD(inst));
 	switch (INST_OPCD(inst)) {
+	case 11: { /* cmpwi */
+		uint rD, crfD;
+		rD = INST_D_rD(inst);
+		crfD = rD >> 2;
+		if (rD & 3) { /* forced-zero bit or L bit */
+			exception_fire(state, EXCEPTION_PROGRAM);
+			return;
+		}
+		do_cmpi(state, crfD, INST_D_rA(inst), INST_D_SIMM(inst));
+	}
 	#if 0
 	case 12: { /* addic */
 		do_addic(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));

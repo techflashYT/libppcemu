@@ -9,6 +9,13 @@
 
 enum ppcemu_sprn {
 	/*
+	 * integer eXEception Register
+	 *
+	 * Available in: All
+	 */
+	PPCEMU_SPRN_XER = 1,
+
+	/*
 	 * Link Register
 	 *
 	 * Available in: All
@@ -135,6 +142,14 @@ enum ppcemu_sprn {
 	 */
 	PPCEMU_SPRN_HID4 = 1011
 };
+
+/*
+ * XER bits
+ */
+#define PPCEMU_XER_SO    (1 << 31)
+#define PPCEMU_XER_OV    (1 << 30)
+#define PPCEMU_XER_CA    (1 << 29)
+#define PPCEMU_XER_COUNT (127 << 0)
 
 /*
  * HID4 bits

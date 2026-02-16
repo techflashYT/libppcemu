@@ -24,4 +24,10 @@ static void cr_set_bit(struct _ppcemu_state *state, uint bit, bool set) {
 	state->cr = set ? (state->cr | mask) : (state->cr & ~mask);
 }
 
+static void cr_set_field(struct _ppcemu_state *state, uint field, u32 val) {
+	u32 mask = 15 << (field * 4);
+	state->cr &= mask;
+	state->cr |= ((val & 15) << (field * 4));
+}
+
 #endif /* _LIBPPCEMU_INTERNAL_CR_H */
