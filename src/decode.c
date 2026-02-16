@@ -74,6 +74,7 @@ static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 	exception_fire(state, EXCEPTION_PROGRAM);
 }
 static void _do_xor(struct _ppcemu_state *state, u32 inst) { do_xor(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
+static void _do_or(struct _ppcemu_state *state, u32 inst) { do_or(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_mtspr(struct _ppcemu_state *state, u32 inst) { /* fucking IBM.... */
 	u32 sprn = ((INST_XFX_I(inst) & 0b0000011111) << 5) | ((INST_XFX_I(inst) & 0b1111100000) >> 5);
 	NO_RC();
@@ -113,7 +114,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 384 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 400 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 416 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 432 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 432 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_or,     do_illegal, do_illegal, do_illegal,
 	/* 448 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 464 */  do_illegal, do_illegal, do_illegal, _do_mtspr,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 480 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
