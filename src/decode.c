@@ -55,6 +55,8 @@
 #define INST_D_SIMM(inst)    INST_D_D(inst)
 #define INST_D_UIMM(inst)    INST_D_D(inst)
 
+#define NO_RC() if (INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
+
 #include "instr/add.c"
 #include "instr/bitwise.c"
 #include "instr/spr.c"
@@ -71,12 +73,13 @@ static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 static void _do_xor(struct _ppcemu_state *state, u32 inst) { do_xor(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_mtspr(struct _ppcemu_state *state, u32 inst) { /* fucking IBM.... */
 	u32 sprn = ((INST_XFX_I(inst) & 0b0000011111) << 5) | ((INST_XFX_I(inst) & 0b1111100000) >> 5);
-	do_mtspr(state, INST_XFX_rS(inst), sprn, INST_XFX_Rc(inst));
+	NO_RC();
+	do_mtspr(state, INST_XFX_rS(inst), sprn);
 }
-static void _do_mtmsr(struct _ppcemu_state *state, u32 inst) { do_mtmsr(state, INST_XO_rS(inst)); }
-static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { do_mfmsr(state, INST_XO_rD(inst)); }
-static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
-static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
+static void _do_mtmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtmsr(state, INST_XO_rS(inst)); }
+static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr(state, INST_XO_rD(inst)); }
+static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
+static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,

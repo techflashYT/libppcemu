@@ -8,6 +8,8 @@
 #include <ppcemu/spr.h>
 
 static void do_rfi(struct _ppcemu_state *state, u32 inst) {
+	NO_RC();
+
 	state->pc = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)];
 	/* TODO: mask MSR */
 	state->msr = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)];

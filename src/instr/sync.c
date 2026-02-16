@@ -8,9 +8,11 @@
 
 
 static void do_isync(struct _ppcemu_state *state, u32 inst) {
+	NO_RC();
 	/* TODO: actually syncronize something */
 }
 
 static void do_sync(struct _ppcemu_state *state, u32 inst) {
+	NO_RC();
 	/* TODO: actually syncronize something */
 }
