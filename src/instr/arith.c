@@ -1,5 +1,5 @@
 /*
- * libppcemu - PowerPC Instruction handling - Addition
+ * libppcemu - PowerPC Instruction handling - Arithmetic
  *
  * Copyright (C) 2026 Techflash
  */

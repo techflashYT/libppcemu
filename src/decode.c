@@ -60,7 +60,7 @@
 
 #define NO_RC() if (INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
 
-#include "instr/add.c"
+#include "instr/arith.c"
 #include "instr/bitwise.c"
 #include "instr/spr.c"
 #include "instr/sync.c"
