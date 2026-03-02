@@ -22,3 +22,7 @@ static void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
 
 	cr_set_field(state, crfD, c);
 }
+
+static void do_mfcr(struct _ppcemu_state *state, uint rD) {
+	state->gpr[rD] = state->cr;
+}
