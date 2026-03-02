@@ -322,6 +322,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		opc19_handlers[INST_XL_XO(inst)](state, inst);
 		break;
 	}
+	case 21: { /* rlwinm */
+		do_rlwinm(state, INST_M_rS(inst), INST_M_rA(inst), INST_M_SH(inst), INST_M_MB(inst), INST_M_ME(inst), INST_M_Rc(inst));
+		break;
+	}
 	case 24: { /* ori */
 		do_ori(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_UIMM(inst));
 		break;
