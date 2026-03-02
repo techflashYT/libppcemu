@@ -146,10 +146,11 @@ enum ppcemu_sprn {
 /*
  * XER bits
  */
-#define PPCEMU_XER_SO    (1 << 31)
-#define PPCEMU_XER_OV    (1 << 30)
-#define PPCEMU_XER_CA    (1 << 29)
-#define PPCEMU_XER_COUNT (127 << 0)
+#define PPCEMU_XER_SO_SHIFT 31
+#define PPCEMU_XER_SO       (1 << PPCEMU_XER_SO_SHIFT)
+#define PPCEMU_XER_OV       (1 << 30)
+#define PPCEMU_XER_CA       (1 << 29)
+#define PPCEMU_XER_COUNT    (127 << 0)
 
 /*
  * HID4 bits
