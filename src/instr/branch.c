@@ -60,7 +60,7 @@ static void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint 
 		ctr_ok = (--state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)] == 0) && !!(bo & 0x2);
 
 	if (!cond_ignore)
-		cond_ok = (cr_get_bit(state, bi) == !!(bo & 0x8));
+		cond_ok = (cr_get_bit(state, (31 - bi)) == !!(bo & 0x8));
 
 	oldpc = state->pc;
 	if (ctr_ok && cond_ok) {
