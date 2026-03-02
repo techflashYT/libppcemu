@@ -8,7 +8,7 @@
 #include "../mem.h"
 #include "../exception.h"
 
-static void do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
+static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
 	enum virt2phys_err err;
 	u32 b, ea, phys;
 	u8 v8;
@@ -26,7 +26,7 @@ static void do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint 
 	if (err != V2P_SUCCESS) {
 		/* TODO: need to set other info? */
 		exception_fire(state, EXCEPTION_DSI);
-		return;
+		return ea;
 	}
 
 	switch (len) {
@@ -49,6 +49,13 @@ static void do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint 
 		break;
 	}
 	}
+
+	return ea;
+}
+
+static void do_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
+	u32 ea = do_basic_store(state, len, rS, rA, d);
+	state->gpr[rA] = ea;
 }
 
 static void do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {

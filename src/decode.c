@@ -301,8 +301,16 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_basic_store(state, 4, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
+	case 37: { /* stwu */
+		do_store_update(state, 4, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
 	case 38: { /* stb */
 		do_basic_store(state, 1, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 39: { /* stbu */
+		do_store_update(state, 1, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 40: { /* lhz */
@@ -311,6 +319,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 44: { /* sth */
 		do_basic_store(state, 2, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 45: { /* sthu */
+		do_store_update(state, 2, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	default: {
