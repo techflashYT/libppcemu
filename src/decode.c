@@ -326,6 +326,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_store_update(state, 2, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
+	case 47: { /* stmw */
+		do_stmw(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
 	default: {
 		printf("Illegal instruction: 0x%08x\r\n", inst);
 		do_illegal(state, inst);
