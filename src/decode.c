@@ -91,12 +91,13 @@ static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr
 static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
 static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0b0000011111) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
+static void _do_subf(struct _ppcemu_state *state, u32 inst) { do_subf(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subf,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 80 */   do_illegal, do_illegal, do_illegal, _do_mfmsr,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
