@@ -9,6 +9,15 @@
 #include "../state.h"
 #include "../mem.h"
 #include "../exception.h"
+#include "../../config.h"
+
+#ifdef DEBUG_LOADSTORE
+#define mem_debug printf
+#else
+static void mem_debug(const char *fmt, ...) {
+	(void)fmt;
+}
+#endif
 
 static void _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
@@ -17,7 +26,7 @@ static void _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void 
 	err = ppcemu_virt2phys(state, ea, &phys, false, true);
 	if (err != V2P_SUCCESS) {
 		/* TODO: need to set other info? */
-		printf("_do_basic_store: virt2phys error: %d\r\n", err);
+		warn("_do_basic_store: virt2phys error: %s (%d)\r\n", v2p_strerror(err), err);
 		exception_fire(state, EXCEPTION_DSI);
 		return;
 	}
@@ -36,6 +45,7 @@ static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint r
 		b = state->gpr[rA];
 
 	ea = b + (i32)(i16)d;
+	mem_debug("basic store: len=%u, rS=%u, rA=%u, b=0x%08x, d=%d, ea=0x%08x\r\n", len, rS, rA, b, (i32)(i16)d, ea);
 
 	switch (len) {
 	case 1: {
@@ -73,6 +83,7 @@ static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint
 		b = state->gpr[rA];
 
 	ea = b + (i32)state->gpr[rB];
+	mem_debug("indexed store: len=%u, rS=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x\r\n", len, rS, rA, b, rB, (i32)state->gpr[rB], ea);
 
 	switch (len) {
 	case 1: {
@@ -132,6 +143,7 @@ static void _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea, void *
 	err = ppcemu_virt2phys(state, ea, &phys, false, false);
 	if (err != V2P_SUCCESS) {
 		/* TODO: need to set other info? */
+		warn("_do_basic_load: virt2phys error: %s (%d)\r\n", v2p_strerror(err), err);
 		exception_fire(state, EXCEPTION_DSI);
 		return;
 	}
@@ -172,6 +184,7 @@ static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA
 		break;
 	}
 	}
+	mem_debug("basic load: len=%u, rD=%u, rA=%u, b=0x%08x, d=%d, ea=0x%08x, result=0x%08x\r\n", len, rD, rA, b, (i32)(i16)d, ea, state->gpr[rD]);
 
 	return ea;
 }
@@ -209,6 +222,7 @@ static u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint 
 		break;
 	}
 	}
+	mem_debug("indexed load: len=%u, rD=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x, result=0x%08x\r\n", len, rD, rA, rB, (i32)(i16)state->gpr[rB], b, ea, state->gpr[rD]);
 
 	return ea;
 }

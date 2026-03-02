@@ -27,6 +27,9 @@
 /* enable register dumps before and after an instruction executes */
 #define DEBUG_REGDUMP
 
+/* enable load/store debugging */
+#define DEBUG_LOADSTORE
+
 /* comment this out in combination with disabling the above to disable all logging, even genuine warnings and errors */
 #define ALLOW_WARN_ERROR
 
