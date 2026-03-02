@@ -60,8 +60,49 @@ static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint r
 	return ea;
 }
 
-static void do_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
+static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
+	u32 b, ea;
+	u16 v16;
+	u8 v8;
+
+	if (rA == 0)
+		b = 0;
+	else
+		b = state->gpr[rA];
+
+	ea = b + (i32)state->gpr[rB];
+
+	switch (len) {
+	case 1: {
+		v8 = (u8)((state->gpr[rS] & 0xff000000) >> 24);
+		_do_basic_store(state, len, ea, &v8);
+		break;
+	}
+	case 2: {
+		v16 = (u16)((state->gpr[rS] & 0xffff0000) >> 16);
+		_do_basic_store(state, len, ea, &v16);
+		break;
+	}
+	case 4: {
+		_do_basic_store(state, len, ea, &state->gpr[rS]);
+		break;
+	}
+	default: {
+		assert(!"Unreachable");
+		break;
+	}
+	}
+
+	return ea;
+}
+
+static void do_basic_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
 	state->gpr[rA] = do_basic_store(state, len, rS, rA, d);
+}
+
+
+static void do_indexed_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint rB) {
+	state->gpr[rA] = do_indexed_store(state, len, rS, rA, rB);
 }
 
 static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
@@ -81,19 +122,9 @@ static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 	}
 }
 
-static void do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+static void _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
-	u32 b, ea, phys, v32;
-	u8 v8;
-	u16 v16;
-
-	if (rA == 0)
-		b = 0;
-	else
-		b = state->gpr[rA];
-
-	/* TODO: sign-extend */
-	ea = b + d;
+	u32 phys;
 
 	err = ppcemu_virt2phys(state, ea, &phys, false, false);
 	if (err != V2P_SUCCESS) {
@@ -102,21 +133,36 @@ static void do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint r
 		return;
 	}
 
+	state->bus_hook((struct ppcemu_state *)state, phys, len, val, false);
+}
+
+static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	u32 b, ea, v32;
+	u8 v8;
+	u16 v16;
+
+	if (rA == 0)
+		b = 0;
+	else
+		b = state->gpr[rA];
+
+	ea = b + (i32)(i16)d;
+
 	switch (len) {
 	case 1: {
-		state->bus_hook((struct ppcemu_state *)state, phys, 1, &v8, false);
+		_do_basic_load(state, len, ea, &v8);
 		state->gpr[rD] &= 0x00ffffff;
 		state->gpr[rD] |= (v8 << 24);
 		break;
 	}
 	case 2: {
-		state->bus_hook((struct ppcemu_state *)state, phys, 2, &v16, false);
+		_do_basic_load(state, len, ea, &v16);
 		state->gpr[rD] &= 0x0000ffff;
 		state->gpr[rD] |= (ntohl(v16) << 16);
 		break;
 	}
 	case 4: {
-		state->bus_hook((struct ppcemu_state *)state, phys, 4, &v32, false);
+		_do_basic_load(state, len, ea, &v32);
 		state->gpr[rD] = ntohl(v32);
 		break;
 	}
@@ -125,4 +171,53 @@ static void do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint r
 		break;
 	}
 	}
+
+	return ea;
+}
+
+static u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	u32 b, ea, v32;
+	u8 v8;
+	u16 v16;
+
+	if (rA == 0)
+		b = 0;
+	else
+		b = state->gpr[rA];
+
+	ea = b + (i32)state->gpr[rB];
+
+	switch (len) {
+	case 1: {
+		_do_basic_load(state, len, ea, &v8);
+		state->gpr[rD] &= 0x00ffffff;
+		state->gpr[rD] |= (v8 << 24);
+		break;
+	}
+	case 2: {
+		_do_basic_load(state, len, ea, &v16);
+		state->gpr[rD] &= 0x0000ffff;
+		state->gpr[rD] |= (ntohl(v16) << 16);
+		break;
+	}
+	case 4: {
+		_do_basic_load(state, len, ea, &v32);
+		state->gpr[rD] = ntohl(v32);
+		break;
+	}
+	default: {
+		assert(!"Unreachable");
+		break;
+	}
+	}
+
+	return ea;
+}
+
+static void do_basic_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	state->gpr[rA] = do_basic_load(state, len, rD, rA, d);
+}
+
+static void do_indexed_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	state->gpr[rA] = do_indexed_load(state, len, rD, rA, rB);
 }
