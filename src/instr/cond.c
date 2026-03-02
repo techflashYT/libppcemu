@@ -38,6 +38,36 @@ static void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) 
 	cr_set_field(state, crfD, c);
 }
 
+static void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
+	u32 c, a = state->gpr[rA], b = state->gpr[rB];
+
+	if ((i32)a < (i32)b)
+		c = 0b1000;
+	else if ((i32)a > (i32)b)
+		c = 0b0100;
+	else /* equal */
+		c = 0b0010;
+
+	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
+
+	cr_set_field(state, crfD, c);
+}
+
+static void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
+	u32 c, a = state->gpr[rA], b = state->gpr[rB];
+
+	if (a < b)
+		c = 0b1000;
+	else if (a > b)
+		c = 0b0100;
+	else /* equal */
+		c = 0b0010;
+
+	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
+
+	cr_set_field(state, crfD, c);
+}
+
 static void do_mfcr(struct _ppcemu_state *state, uint rD) {
 	state->gpr[rD] = state->cr;
 }
