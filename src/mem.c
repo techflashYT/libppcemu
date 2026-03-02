@@ -126,3 +126,12 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 	/* No matching BAT */
 	return V2P_NOT_MAPPED;
 }
+
+const char *v2p_strerror(enum virt2phys_err err) {
+	switch (err) {
+	case V2P_SUCCESS: return "Success";
+	case V2P_NOT_MAPPED: return "Not Mapped";
+	case V2P_NO_PERMS: return "Invalid Permissions";
+	default: return "???";
+	}
+}

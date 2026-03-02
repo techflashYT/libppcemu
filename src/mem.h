@@ -18,5 +18,6 @@ enum virt2phys_err {
 
 /* converts a virtual address to a physical one, returning various values if it failed */
 enum virt2phys_err ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool ifetch, bool write);
+const char *v2p_strerror(enum virt2phys_err err);
 
 #endif /* _LIBPPCEMU_INTERNAL_MEM_H */
