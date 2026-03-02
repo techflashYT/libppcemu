@@ -18,6 +18,15 @@ static void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, u32 simm
 #define do_addi(s, rD, rA, simm) generic_addi(s, rD, rA, simm)
 #define do_addis(s, rD, rA, simm) generic_addi(s, rD, rA, (simm << 16))
 
+static void do_add(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
+	state->gpr[rD] = state->gpr[rA] + state->gpr[rB];
+
+	/* TODO: update XER if OE */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
 static void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
 	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + 1;
 
