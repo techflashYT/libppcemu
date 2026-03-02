@@ -262,7 +262,17 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 
 	printf("top-level opcode: %d\r\n", INST_OPCD(inst));
 	switch (INST_OPCD(inst)) {
-	case 11: { /* cmpwi */
+	case 10: { /* cmpli */
+		uint rD, crfD;
+		rD = INST_D_rD(inst);
+		crfD = rD >> 2;
+		if (rD & 3) { /* forced-zero bit or L bit */
+			exception_fire(state, EXCEPTION_PROGRAM);
+			return;
+		}
+		do_cmpli(state, crfD, INST_D_rA(inst), INST_D_UIMM(inst));
+	}
+	case 11: { /* cmpi */
 		uint rD, crfD;
 		rD = INST_D_rD(inst);
 		crfD = rD >> 2;
