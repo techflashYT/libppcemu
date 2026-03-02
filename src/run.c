@@ -36,7 +36,7 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 	}
 
 	state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
-	ifetch_debug("Fetched instruction: %08x\r\n", ntohl(*instr));
+	ifetch_debug("Fetched instruction @ 0x%08x: %08x\r\n", state->pc, ntohl(*instr));
 
 	return err;
 }
