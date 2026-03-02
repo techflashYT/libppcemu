@@ -7,6 +7,7 @@
 #ifndef _LIBPPCEMU_INTERNAL_CR_H
 #define _LIBPPCEMU_INTERNAL_CR_H
 
+#include <ppcemu/spr.h>
 #include "types.h"
 #include "state.h"
 
@@ -29,5 +30,19 @@ static void cr_set_field(struct _ppcemu_state *state, uint field, u32 val) {
 	state->cr &= mask;
 	state->cr |= ((val & 15) << (field * 4));
 }
+
+static void update_cr0(struct _ppcemu_state *state, u32 val) {
+	u8 cr0, xer_so;
+	u32 xer = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)];
+	xer_so = (xer & PPCEMU_XER_SO) >> PPCEMU_XER_SO_SHIFT;
+
+	cr0 = /* LT */ (((i32)val < 0) << 3) |
+	      /* GT */ (((i32)val > 0) << 2) |
+	      /* EQ */ ((val == 0) << 1)     |
+	      /* SO */ xer_so;
+
+	cr_set_field(state, 0, cr0);
+}
+
 
 #endif /* _LIBPPCEMU_INTERNAL_CR_H */

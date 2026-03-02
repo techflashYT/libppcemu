@@ -4,14 +4,14 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include "../cr.h"
 #include "../state.h"
 
 static void do_xor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] ^ state->gpr[rB];
 
-	if (Rc) {
-		/* TODO: update CR0 */
-	}
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
 }
 
 static void ori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
@@ -24,7 +24,6 @@ static void ori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) 
 static void do_or(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc)  {
 	state->gpr[rA] = state->gpr[rS] | state->gpr[rB];
 
-	if (Rc) {
-		/* TODO: update CR0 */
-	}
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
 }
