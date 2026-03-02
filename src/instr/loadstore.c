@@ -4,6 +4,7 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include <arpa/inet.h>
 #include <stdio.h>
 #include "../state.h"
 #include "../mem.h"
@@ -25,7 +26,7 @@ static void _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void 
 }
 
 static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d) {
-	u32 b, ea;
+	u32 b, ea, v32;
 	u16 v16;
 	u8 v8;
 
@@ -38,17 +39,18 @@ static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint r
 
 	switch (len) {
 	case 1: {
-		v8 = (u8)((state->gpr[rS] & 0xff000000) >> 24);
+		v8 = (u8)state->gpr[rS];
 		_do_basic_store(state, len, ea, &v8);
 		break;
 	}
 	case 2: {
-		v16 = (u16)((state->gpr[rS] & 0xffff0000) >> 16);
+		v16 = htons((u16)state->gpr[rS]);
 		_do_basic_store(state, len, ea, &v16);
 		break;
 	}
 	case 4: {
-		_do_basic_store(state, len, ea, &state->gpr[rS]);
+		v32 = htonl(state->gpr[rS]);
+		_do_basic_store(state, len, ea, &v32);
 		break;
 	}
 	default: {
@@ -61,7 +63,7 @@ static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint r
 }
 
 static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
-	u32 b, ea;
+	u32 b, ea, v32;
 	u16 v16;
 	u8 v8;
 
@@ -74,17 +76,18 @@ static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint
 
 	switch (len) {
 	case 1: {
-		v8 = (u8)((state->gpr[rS] & 0xff000000) >> 24);
+		v8 = (u8)state->gpr[rS];
 		_do_basic_store(state, len, ea, &v8);
 		break;
 	}
 	case 2: {
-		v16 = (u16)((state->gpr[rS] & 0xffff0000) >> 16);
+		v16 = htons((u16)state->gpr[rS]);
 		_do_basic_store(state, len, ea, &v16);
 		break;
 	}
 	case 4: {
-		_do_basic_store(state, len, ea, &state->gpr[rS]);
+		v32 = htonl(state->gpr[rS]);
+		_do_basic_store(state, len, ea, &v32);
 		break;
 	}
 	default: {
@@ -151,14 +154,12 @@ static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA
 	switch (len) {
 	case 1: {
 		_do_basic_load(state, len, ea, &v8);
-		state->gpr[rD] &= 0x00ffffff;
-		state->gpr[rD] |= (v8 << 24);
+		state->gpr[rD] = (u32)v8;
 		break;
 	}
 	case 2: {
 		_do_basic_load(state, len, ea, &v16);
-		state->gpr[rD] &= 0x0000ffff;
-		state->gpr[rD] |= (ntohl(v16) << 16);
+		state->gpr[rD] = (u32)ntohs(v16);
 		break;
 	}
 	case 4: {
@@ -190,14 +191,12 @@ static u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint 
 	switch (len) {
 	case 1: {
 		_do_basic_load(state, len, ea, &v8);
-		state->gpr[rD] &= 0x00ffffff;
-		state->gpr[rD] |= (v8 << 24);
+		state->gpr[rD] = (u32)v8;
 		break;
 	}
 	case 2: {
 		_do_basic_load(state, len, ea, &v16);
-		state->gpr[rD] &= 0x0000ffff;
-		state->gpr[rD] |= (ntohl(v16) << 16);
+		state->gpr[rD] = (u32)ntohs(v16);
 		break;
 	}
 	case 4: {
