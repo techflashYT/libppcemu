@@ -6,6 +6,7 @@
 
 #include "../cr.h"
 #include "../state.h"
+#include "ppcemu/spr.h"
 
 
 static void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, u32 simm) {
@@ -47,6 +48,16 @@ static void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint
 
 static void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
 	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + 1;
+
+	/* TODO: update XER.CA */
+	/* TODO: update XER if OE */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
+static void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
+	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
 
 	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
