@@ -127,6 +127,7 @@ static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst
 
 /* arithmetic wrappers */
 static void _do_subf(struct _ppcemu_state *state, u32 inst) { do_subf(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
+static void _do_subfc(struct _ppcemu_state *state, u32 inst) { do_subfc(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_add(struct _ppcemu_state *state, u32 inst) { do_add(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 
 /* load/store wrappers */
@@ -174,7 +175,7 @@ static void _do_cmp(struct _ppcemu_state *state, u32 inst) {
 }
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
-	/* 0  */   _do_cmp,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 0  */   _do_cmp,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subfc,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   do_illegal, do_illegal, do_illegal, _do_mfcr,   do_illegal, do_illegal, do_illegal, _do_lwzx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 32 */   _do_cmpl,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subf,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_dcbst,  _do_lwzux , do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
