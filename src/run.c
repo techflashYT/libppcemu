@@ -11,9 +11,18 @@
 #include "state.h"
 #include "mem.h"
 
+#include "../config.h"
 
 /* for aggressive inlining */
 #include "decode.c"
+
+#ifdef DEBUG_IFETCH
+#define ifetch_debug printf
+#else
+static void ifetch_debug(const char *fmt, ...) {
+	(void)fmt;
+}
+#endif
 
 static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr) {
 	u32 phys;
@@ -22,12 +31,12 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 	err = ppcemu_virt2phys(state, state->pc, &phys, true, false);
 
 	if (err != V2P_SUCCESS) {
-		printf("Instr fetch failed @ 0x%08x\r\n", state->pc);
+		ifetch_debug("Instr fetch failed @ 0x%08x due to virt2phys err %d\r\n", state->pc, err);
 		return err;
 	}
 
 	state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
-	printf("Fetched instruction: %08x\r\n", ntohl(*instr));
+	ifetch_debug("Fetched instruction: %08x\r\n", ntohl(*instr));
 
 	return err;
 }

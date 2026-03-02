@@ -85,8 +85,18 @@
 #include "instr/loadstore.c"
 #include "instr/cond.c"
 
+#include "../config.h"
+
+#ifdef DEBUG_INSTR_DECODE
+#define decode_debug printf
+#else
+static void decode_debug(const char *fmt, ...) {
+	(void)fmt;
+}
+#endif
+
 static void do_illegal(struct _ppcemu_state *state, u32 inst) {
-	(void)inst;
+	warn("Illegal instruction: 0x%08x @ 0x%08x\r\n", inst, state->pc);
 	exception_fire(state, EXCEPTION_PROGRAM);
 }
 
@@ -277,7 +287,7 @@ static void (*opc19_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	state->branched = false;
 
-	printf("top-level opcode: %d\r\n", INST_OPCD(inst));
+	decode_debug("top-level opcode: %d\r\n", INST_OPCD(inst));
 	switch (INST_OPCD(inst)) {
 	case 10: { /* cmpli */
 		uint rD, crfD;
@@ -326,7 +336,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 19: { /* X form instructions */
-		printf("XO opcode: %d\r\n", INST_XL_XO(inst));
+		decode_debug("XO opcode: %d\r\n", INST_XL_XO(inst));
 		opc19_handlers[INST_XL_XO(inst)](state, inst);
 		break;
 	}
@@ -357,7 +367,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	#endif
 	case 31: { /* X form instructions */
-		printf("XO opcode: %d\r\n", INST_XO_XO(inst));
+		decode_debug("XO opcode: %d\r\n", INST_XO_XO(inst));
 		opc31_handlers[INST_XO_XO(inst)](state, inst);
 		break;
 	}
@@ -414,7 +424,6 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	default: {
-		printf("Illegal instruction: 0x%08x\r\n", inst);
 		do_illegal(state, inst);
 		break;
 	}

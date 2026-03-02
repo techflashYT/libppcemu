@@ -15,6 +15,15 @@
 #include "spr.h"
 #include "state.h"
 #include "types.h"
+#include "../config.h"
+
+#ifdef DEBUG_VIRT2PHYS
+#define mem_debug printf
+#else
+static void mem_debug(const char *fmt, ...) {
+	(void)fmt;
+}
+#endif
 
 static uint bat_to_spr_idx(uint batnum, bool ibat, bool upper) {
 	uint base, off;
@@ -94,11 +103,11 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 
 		/* Compute virtual base */
 		bepi = (batu & PPCEMU_BATU_BEPI);
-		printf("MEM: Checking if vaddr 0x%08x lives in %cBAT%d (%d bytes @ 0x%08x)...\n", virt, ifetch ? 'I' : 'D', i, size, bepi);
+		mem_debug("MEM: Checking if vaddr 0x%08x lives in %cBAT%d (%d bytes @ 0x%08x)...\r\n", virt, ifetch ? 'I' : 'D', i, size, bepi);
 
 		/* Check if VA falls in this BAT */
 		if (virt >= bepi && virt < bepi + size) {
-			puts("MEM: It does!");
+			mem_debug("MEM: It does!\r\n");
 			/* Compute physical base */
 			*phys = ((batl & PPCEMU_BATL_BPRN) & ~(size - 1)) + (virt - bepi);
 
@@ -111,7 +120,7 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 
 			return V2P_SUCCESS;
 		}
-		puts("MEM: It does not, continuing...");
+		mem_debug("MEM: It does not, continuing...\r\n");
 	}
 
 	/* No matching BAT */
