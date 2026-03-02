@@ -7,6 +7,13 @@
 #include "../cr.h"
 #include "../state.h"
 
+static void xori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
+	state->gpr[rA] = state->gpr[rS] ^ uimm;
+}
+
+#define do_xori(s, rS, rA, uimm) xori_common(s, rS, rA, uimm)
+#define do_xoris(s, rS, rA, uimm) xori_common(s, rS, rA, (uimm << 16))
+
 static void do_xor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] ^ state->gpr[rB];
 
