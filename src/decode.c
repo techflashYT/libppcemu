@@ -44,7 +44,7 @@
 #define INST_XL_Rc(inst)     INST_XFX_Rc(inst)
 #define INST_XL_LK(inst)     INST_XL_Rc(inst)
 
-/* 0..5 = Opcode; 6..10 = rD/rS/frD/frS/TO/BF/I/L; 16..31 = D/SIMM/UIMM */
+/* 0..5 = Opcode; 6..10 = rD/rS/frD/frS/TO/BF/I/L/BI; 11..15 = rA/BO; 16..31 = D/SIMM/UIMM/BD+AA+LK */
 #define INST_D_rD(inst)      (((inst) & 0x03e00000) >> 21)
 #define INST_D_rS(inst)      INST_D_rD(inst)
 #define INST_D_frD(inst)     INST_D_rD(inst)
@@ -53,10 +53,15 @@
 #define INST_D_BF(inst)      INST_D_rD(inst)
 #define INST_D_I(inst)       INST_D_rD(inst)
 #define INST_D_L(inst)       INST_D_rD(inst)
+#define INST_D_BO(inst)      INST_D_rD(inst)
 #define INST_D_rA(inst)      (((inst) & 0x001f0000) >> 16)
+#define INST_D_BI(inst)      INST_D_rA(inst)
 #define INST_D_D(inst)       (((inst) & 0x0000ffff) >> 0)
 #define INST_D_SIMM(inst)    INST_D_D(inst)
 #define INST_D_UIMM(inst)    INST_D_D(inst)
+#define INST_D_BD(inst)      (((inst) & 0x0000fffc) >> 2)
+#define INST_D_AA(inst)      (((inst) & 0x00000002) >> 1)
+#define INST_D_LK(inst)      (((inst) & 0x00000001) >> 0)
 
 #define NO_RC() if (INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
 
@@ -260,6 +265,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 15: { /* addis */
 		do_addis(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));
+		break;
+	}
+	case 16: { /* bc */
+		do_bc(state, INST_D_BO(inst), INST_D_BI(inst), INST_D_BD(inst), INST_D_AA(inst), INST_D_LK(inst));
 		break;
 	}
 	case 18: { /* branch */

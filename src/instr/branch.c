@@ -6,6 +6,7 @@
 
 #include "../state.h"
 #include "../cr.h"
+#include <stdio.h>
 #include <ppcemu/spr.h>
 
 static void do_rfi(struct _ppcemu_state *state, u32 inst) {
@@ -22,9 +23,9 @@ static void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	u32 oldpc = state->pc;
 
 	if (aa)
-		state->pc = li << 2; /* TODO: sign-extend */
+		state->pc = (u32)(i32)(i16)(li << 2);
 	else
-		state->pc += (li << 2); /* TODO: sign-extend */
+		state->pc += (u32)(i32)(i16)(li << 2);
 
 	if (lk)
 		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)] = oldpc + 4;
@@ -32,7 +33,7 @@ static void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	state->branched = true;
 }
 
-static void do_bclr(struct _ppcemu_state *state, uint bo, uint bi, uint lk) {
+static void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint lk, u32 target_addr) {
 	bool ctr_ignore, cond_ignore, ctr_ok, cond_ok;
 	u32 oldpc;
 
@@ -49,9 +50,22 @@ static void do_bclr(struct _ppcemu_state *state, uint bo, uint bi, uint lk) {
 
 	if (ctr_ok && cond_ok) {
 		oldpc = state->pc;
-		state->pc = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)];
+		state->pc = target_addr;
 		state->branched = true;
 		if (lk)
 			state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)] = oldpc + 4;
 	}
+}
+
+#define do_bclr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)])
+
+static void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint aa, uint lk) {
+	u32 ea;
+
+	if (aa)
+		ea = (u32)(i32)(i16)(bd << 2);
+	else
+		ea = state->pc + (i32)(i16)(bd << 2);
+
+	_do_cond_branch(state, bo, bi, lk, ea);
 }
