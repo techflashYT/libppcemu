@@ -63,6 +63,15 @@
 #define INST_D_AA(inst)      (((inst) & 0x00000002) >> 1)
 #define INST_D_LK(inst)      (((inst) & 0x00000001) >> 0)
 
+/* 0..5 = Opcode; 6..10 = rS; 11..15 = rA; 16..20 = rB/SH; 21..25 = MB; 26..30 = ME; 31 = Rc */
+#define INST_M_rS(inst)      (((inst) & 0x03e00000) >> 21)
+#define INST_M_rA(inst)      (((inst) & 0x001f0000) >> 16)
+#define INST_M_rB(inst)      (((inst) & 0x0000f800) >> 11)
+#define INST_M_SH(inst)      INST_M_rB(inst)
+#define INST_M_MB(inst)      (((inst) & 0x000007c0) >> 6)
+#define INST_M_ME(inst)      (((inst) & 0x0000003e) >> 1)
+#define INST_M_Rc(inst)      (((inst) & 0x00000001) >> 0)
+
 #define NO_RC() if (INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
 
 #include "instr/arith.c"
