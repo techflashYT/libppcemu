@@ -79,8 +79,12 @@ static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 	(void)inst;
 	exception_fire(state, EXCEPTION_PROGRAM);
 }
+
+/* bitwise wrappers */
 static void _do_xor(struct _ppcemu_state *state, u32 inst) { do_xor(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_or(struct _ppcemu_state *state, u32 inst) { do_or(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
+
+/* special wrappers */
 static void _do_mtspr(struct _ppcemu_state *state, u32 inst) { /* fucking IBM.... */
 	u32 sprn = ((INST_XFX_I(inst) & 0b0000011111) << 5) | ((INST_XFX_I(inst) & 0b1111100000) >> 5);
 	NO_RC();
@@ -95,10 +99,16 @@ static void _do_mtmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtmsr
 static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr(state, INST_XO_rD(inst)); }
 static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
+static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_mfcr(state, INST_XO_rD(inst)); }
+
+/* branch wrappers */
 static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0b0000011111) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
+
+/* arithmetic wrappers */
 static void _do_subf(struct _ppcemu_state *state, u32 inst) { do_subf(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_add(struct _ppcemu_state *state, u32 inst) { do_add(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
-static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_mfcr(state, INST_XO_rD(inst)); }
+
+/* load/store wrappers */
 static void _do_lwzx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lhzx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lbzx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
