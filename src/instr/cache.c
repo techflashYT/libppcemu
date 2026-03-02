@@ -1,5 +1,5 @@
 /*
- * libppcemu - PowerPC Instruction handling - Syncronization
+ * libppcemu - PowerPC Instruction handling - Syncronization/Cache
  *
  * Copyright (C) 2026 Techflash
  */

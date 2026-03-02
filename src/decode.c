@@ -77,7 +77,7 @@
 #include "instr/arith.c"
 #include "instr/bitwise.c"
 #include "instr/spr.c"
-#include "instr/sync.c"
+#include "instr/cache.c"
 #include "instr/branch.c"
 #include "instr/msr.c"
 #include "instr/segmentreg.c"
