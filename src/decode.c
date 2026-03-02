@@ -332,16 +332,14 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		}
 		do_cmpi(state, crfD, INST_D_rA(inst), INST_D_SIMM(inst));
 	}
-	#if 0
 	case 12: { /* addic */
-		do_addic(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));
+		do_addic(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst), 0);
 		break;
 	}
 	case 13: { /* addic. */
-		do_addic_rec(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));
+		do_addic(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst), 1);
 		break;
 	}
-	#endif
 	case 14: { /* addi */
 		do_addi(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));
 		break;
