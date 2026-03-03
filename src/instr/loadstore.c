@@ -19,21 +19,6 @@ static void mem_debug(const char *fmt, ...) {
 }
 #endif
 
-static void _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
-	enum virt2phys_err err;
-	u32 phys;
-
-	err = ppcemu_virt2phys(state, ea, &phys, false, true);
-	if (err != V2P_SUCCESS) {
-		/* TODO: need to set other info? */
-		warn("_do_basic_store: virt2phys error: %s (%d)\r\n", v2p_strerror(err), err);
-		exception_fire(state, EXCEPTION_DSI);
-		return;
-	}
-
-	state->bus_hook((struct ppcemu_state *)state, phys, len, val, true);
-}
-
 static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d) {
 	u32 b, ea, v32;
 	u16 v16;
@@ -134,21 +119,6 @@ static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 		_do_basic_store(state, 4, ea, &state->gpr[r]);
 		ea += 4;
 	}
-}
-
-static void _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
-	enum virt2phys_err err;
-	u32 phys;
-
-	err = ppcemu_virt2phys(state, ea, &phys, false, false);
-	if (err != V2P_SUCCESS) {
-		/* TODO: need to set other info? */
-		warn("_do_basic_load: virt2phys error: %s (%d)\r\n", v2p_strerror(err), err);
-		exception_fire(state, EXCEPTION_DSI);
-		return;
-	}
-
-	state->bus_hook((struct ppcemu_state *)state, phys, len, val, false);
 }
 
 static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
