@@ -143,6 +143,45 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_HID2_GEKKO = 920,
 
 	/*
+	 * Monitor Control Register 0
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_MMCR0 = 952,
+
+	/*
+	 * Performance Counters 1-2
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_PMC1 = 953,
+	PPCEMU_SPRN_PMC2 = 954,
+
+	/*
+	 * Sampled Instruction Address Register
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_SIA = 955,
+
+
+	/*
+	 * Monitor Control Register 1
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_MMCR1 = 956,
+
+
+	/*
+	 * Performance Counters 3-4
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_PMC3 = 957,
+	PPCEMU_SPRN_PMC4 = 958,
+
+	/*
 	 * Hardware Implementation Dependent Register 0
 	 *
 	 * Available in: 750CXe, Gekko, 750CL, Broadway, Espresso

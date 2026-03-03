@@ -15,5 +15,6 @@
 #define CAPS_HID4_BDWAY_LIKE (1 << 4)
 #define CAPS_UPPER_BATS      (1 << 5)
 #define CAPS_L2CR            (1 << 6)
+#define CAPS_PERF_MON        (1 << 7)
 
 #endif /* _LIBPPCEMU_INTERNAL_CAPS_H */

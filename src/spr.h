@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <ppcemu/spr.h>
 
-#define MAX_SPR_COUNT 56
+#define MAX_SPR_COUNT 62
 static inline int ppcemu_sprn_to_idx(int sprn) {
 	switch (sprn) {
 	case PPCEMU_SPRN_XER: return 0;
@@ -71,6 +71,12 @@ static inline int ppcemu_sprn_to_idx(int sprn) {
 	case PPCEMU_SPRN_GQR6: return 53;
 	case PPCEMU_SPRN_GQR7: return 54;
 	case PPCEMU_SPRN_L2CR: return 55;
+	case PPCEMU_SPRN_MMCR0: return 56;
+	case PPCEMU_SPRN_MMCR1: return 57;
+	case PPCEMU_SPRN_PMC1: return 58;
+	case PPCEMU_SPRN_PMC2: return 59;
+	case PPCEMU_SPRN_PMC3: return 60;
+	case PPCEMU_SPRN_PMC4: return 61;
 	default: assert(!"Unreachable");
 	}
 }
