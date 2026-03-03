@@ -24,7 +24,7 @@ struct _ppcemu_state {
 
 	/* CPU state */
 	u32 gpr[32];
-	u32 fpr[32];
+	u64 fpr[32];
 	u32 fpcsr;
 	u32 cr;
 	u32 pc;
