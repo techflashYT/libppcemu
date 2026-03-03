@@ -38,6 +38,13 @@
 #define INST_XFX_XO(inst)    (((inst) & 0x000007fe) >> 1)
 #define INST_XFX_Rc(inst)    (((inst) & 0x00000001) >> 0)
 
+/* 0..5 = Opcode; 6..15 = I/FM; 16..20 = frB; 21..30 = XO; 31 = Rc */
+#define INST_XFL_FM(inst)    (((inst) & 0x01fe0000) >> 17)
+#define INST_XFL_I(inst)     (((inst) & 0x03ff0000) >> 16)
+#define INST_XFL_frB(inst)   (((inst) & 0x0000f800) >> 11)
+#define INST_XFL_XO(inst)    (((inst) & 0x000007fe) >> 1)
+#define INST_XFL_Rc(inst)    (((inst) & 0x00000001) >> 0)
+
 /* same as XFX */
 #define INST_XL_rD(inst)     INST_XFX_rD(inst)
 #define INST_XL_rS(inst)     INST_XFX_rS(inst)
@@ -195,6 +202,7 @@ static void _do_ps_mr(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(in
 
 /* Floating Point wrappers */
 static void _do_fmr(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fmr(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
+static void _do_mtfsf(struct _ppcemu_state *state, u32 inst) { if (INST_XFL_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsf(state, INST_XFL_FM(inst), INST_XFL_frB(inst), INST_XFL_Rc(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -241,7 +249,7 @@ static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 656 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 672 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 688 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 704 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 704 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsf,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 720 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 736 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 752 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -618,8 +626,8 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 63: { /* X form instructions */
-		decode_debug("XO opcode: %d\r\n", INST_XO_XO(inst));
-		opc63_handlers[INST_XO_XO(inst)](state, inst);
+		decode_debug("XO opcode: %d\r\n", INST_XFL_XO(inst));
+		opc63_handlers[INST_XFL_XO(inst)](state, inst);
 		break;
 	}
 	default: {

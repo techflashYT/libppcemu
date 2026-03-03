@@ -50,3 +50,22 @@ static void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 
 	/* TODO: Update CR1 if Rc */
 }
+
+static void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
+	u32 mask;
+	uint i;
+
+	if (FM == 0xff) /* fast path for "set all" */
+		state->fpcsr = state->fpr[frB];
+	else {
+		/* actually mask it */
+		mask = 0;
+		for (i = 0; i < 8; i++) {
+			if (FM & (1 << i))
+				mask |= (0xf << (i * 4));
+		}
+
+		state->fpcsr &= ~mask;
+		state->fpcsr |= (state->fpr[frB] & mask);
+	}
+}
