@@ -30,6 +30,9 @@
 /* enable load/store debugging */
 #define DEBUG_LOADSTORE
 
+/* enable conditional debugging */
+#define DEBUG_COND
+
 /* comment this out in combination with disabling the above to disable all logging, even genuine warnings and errors */
 #define ALLOW_WARN_ERROR
 
