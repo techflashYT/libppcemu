@@ -167,6 +167,26 @@ enum ppcemu_sprn {
 #define PPCEMU_XER_COUNT    (127 << 0)
 
 /*
+ * HID2 bits
+ */
+#define PPCEMU_HID2_750CL_RSRVD0   (0xffff | (1<< 31))
+#define PPCEMU_HID2_BW_RSRVD0      0xffff
+#define PPCEMU_HID2_DQOEE          (1 << 16)
+#define PPCEMU_HID2_DCMEE          (1 << 17)
+#define PPCEMU_HID2_DNCEE          (1 << 18)
+#define PPCEMU_HID2_DCHEE          (1 << 19)
+#define PPCEMU_HID2_DQOERR         (1 << 20)
+#define PPCEMU_HID2_DCMERR         (1 << 21)
+#define PPCEMU_HID2_DNCERR         (1 << 22)
+#define PPCEMU_HID2_DCHERR         (1 << 23)
+#define PPCEMU_HID2_DMAQL          (15 << 24)
+#define PPCEMU_HID2_LCE            (1 << 28)
+#define PPCEMU_HID2_PSE            (1 << 29)
+#define PPCEMU_HID2_WPE            (1 << 30)
+/* reserved on 750CL, "LSQE" (Load/Store Quantized Enable?) on Broadway/Espresso */
+#define PPCEMU_HID2_BW_LSQE        (1 << 31)
+
+/*
  * HID4 bits
  */
 #define PPCEMU_HID4_L2CFI          (1 << 20)
