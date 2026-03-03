@@ -39,6 +39,7 @@
 
 /* don't touch the below unless you know what you're doing */
 #ifdef ALLOW_WARN_ERROR
+#include <stdio.h>
 #define warn printf
 #define error printf
 #else
