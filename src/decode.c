@@ -93,6 +93,7 @@
 #include "instr/segmentreg.c"
 #include "instr/loadstore.c"
 #include "instr/cond.c"
+#include "instr/paired_singles.c"
 
 #include "../config.h"
 
@@ -456,6 +457,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 47: { /* stmw */
 		do_stmw(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 56: { /* psq_l */
+		do_psq_l(state, INST_PS_frD(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
 		break;
 	}
 	default: {
