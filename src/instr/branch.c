@@ -76,6 +76,7 @@ static void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint 
 }
 
 #define do_bclr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)])
+#define do_bcctr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)])
 
 static void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint aa, uint lk) {
 	u32 ea;
