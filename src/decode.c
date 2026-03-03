@@ -97,6 +97,7 @@
 #include "instr/loadstore.c"
 #include "instr/cond.c"
 #include "instr/paired_singles.c"
+#include "instr/floating_point.c"
 
 #include "../config.h"
 
@@ -536,6 +537,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 47: { /* stmw */
 		do_stmw(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 50: { /* lfd */
+		do_lfd(state, INST_D_frD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 56: { /* psq_l */
