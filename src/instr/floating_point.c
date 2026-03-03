@@ -69,3 +69,15 @@ static void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 		state->fpcsr |= (state->fpr[frB] & mask);
 	}
 }
+
+
+static void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
+	u32 mask = 1 << (31 - crbD);
+	if (set)
+		state->fpcsr |= mask;
+	else
+		state->fpcsr &= ~mask;
+}
+
+#define do_mtfsb0(state, crbD, Rc) do_mtfsbN(state, crbD, 0, Rc)
+#define do_mtfsb1(state, crbD, Rc) do_mtfsbN(state, crbD, 1, Rc)

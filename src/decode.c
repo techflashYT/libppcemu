@@ -21,6 +21,7 @@
 #define INST_XO_rD(inst)     (((inst) & 0x03e00000) >> 21)
 #define INST_XO_rS(inst)     INST_XO_rD(inst)
 #define INST_XO_frD(inst)    INST_XO_rD(inst)
+#define INST_XO_crbD(inst)   INST_XO_rD(inst)
 #define INST_XO_frS(inst)    INST_XO_rD(inst)
 #define INST_XO_SR(inst)     INST_XO_rD(inst)
 #define INST_XO_rA(inst)     (((inst) & 0x001f0000) >> 16)
@@ -203,13 +204,15 @@ static void _do_ps_mr(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(in
 /* Floating Point wrappers */
 static void _do_fmr(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fmr(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 static void _do_mtfsf(struct _ppcemu_state *state, u32 inst) { if (INST_XFL_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsf(state, INST_XFL_FM(inst), INST_XFL_frB(inst), INST_XFL_Rc(inst)); }
+static void _do_mtfsb0(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsb0(state, INST_XO_crbD(inst), INST_XO_Rc(inst)); }
+static void _do_mtfsb1(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsb1(state, INST_XO_crbD(inst), INST_XO_Rc(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb1, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_fmr,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb0, do_illegal, _do_fmr,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 80 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 96 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 112 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
