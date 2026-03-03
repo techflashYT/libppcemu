@@ -40,3 +40,13 @@ static void do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 	state->fpr[frD] = (u64)ppcemu_be32_to_cpu(val_hi) << 32;
 	state->fpr[frD] |= ppcemu_be32_to_cpu(val_lo);
 }
+
+static void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	u32 hid2;
+
+	ENFORCE_MSR_FP();
+
+	state->fpr[frD] = state->gpr[frB];
+
+	/* TODO: Update CR1 if Rc */
+}
