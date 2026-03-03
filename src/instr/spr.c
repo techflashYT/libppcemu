@@ -94,6 +94,23 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 
 		break;
 	}
+	case PPCEMU_SPRN_GQR0:
+	case PPCEMU_SPRN_GQR1:
+	case PPCEMU_SPRN_GQR2:
+	case PPCEMU_SPRN_GQR3:
+	case PPCEMU_SPRN_GQR4:
+	case PPCEMU_SPRN_GQR5:
+	case PPCEMU_SPRN_GQR6:
+	case PPCEMU_SPRN_GQR7: {
+		if (!(state->caps & CAPS_PS_IDX)) {
+			puts("Attempted to write to GQRs on an unsupported CPU");
+			exception_fire(state, EXCEPTION_PROGRAM);
+		}
+		else
+			state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+
+		break;
+	}
 	default: {
 		printf("Unknown SPR write %d\r\n", sprn);
 		exception_fire(state, EXCEPTION_PROGRAM);
@@ -176,6 +193,23 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_DBAT7L: {
 		if (!(state->caps & CAPS_UPPER_BATS)) {
 			puts("Attempted to read the upper BATs on an unsupported CPU");
+			exception_fire(state, EXCEPTION_PROGRAM);
+		}
+		else
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+
+		break;
+	}
+	case PPCEMU_SPRN_GQR0:
+	case PPCEMU_SPRN_GQR1:
+	case PPCEMU_SPRN_GQR2:
+	case PPCEMU_SPRN_GQR3:
+	case PPCEMU_SPRN_GQR4:
+	case PPCEMU_SPRN_GQR5:
+	case PPCEMU_SPRN_GQR6:
+	case PPCEMU_SPRN_GQR7: {
+		if (!(state->caps & CAPS_PS_IDX)) {
+			puts("Attempted to read the GQRs on an unsupported CPU");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else

@@ -122,6 +122,20 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_DBAT7L = 575,
 
 	/*
+	 * Graphics Quantization Registers
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_GQR0 = 912,
+	PPCEMU_SPRN_GQR1 = 913,
+	PPCEMU_SPRN_GQR2 = 914,
+	PPCEMU_SPRN_GQR3 = 915,
+	PPCEMU_SPRN_GQR4 = 916,
+	PPCEMU_SPRN_GQR5 = 917,
+	PPCEMU_SPRN_GQR6 = 918,
+	PPCEMU_SPRN_GQR7 = 919,
+
+	/*
 	 * Hardware Implementation Dependent Register 2 - Gekko
 	 *
 	 * Available in: Gekko, 750CL, Broadway, Espresso
