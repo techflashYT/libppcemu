@@ -49,18 +49,27 @@ static void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 
 static void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint lk, u32 target_addr) {
 	bool ctr_ignore, cond_ignore, ctr_ok, cond_ok;
-	u32 oldpc;
+	u32 oldpc, *ctr, oldctr;
 
 	ctr_ignore = !!(bo & 0x4);
 	cond_ignore = !!(bo & 0x10);
 	ctr_ok = true;
 	cond_ok = true;
 
-	if (!ctr_ignore)
-		ctr_ok = (--state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)] == 0) && !!(bo & 0x2);
+	ctr = &state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)];
+	oldctr = *ctr;
+	if (!ctr_ignore) {
+		(*ctr)--;
+
+		if (bo & 2)
+			ctr_ok = *ctr == 0;
+		else
+			ctr_ok = *ctr != 0;
+	}
 
 	if (!cond_ignore)
 		cond_ok = (cr_get_bit(state, (31 - bi)) == !!(bo & 0x8));
+	branch_debug("_do_cond_branch: BO=0x%x, BI=0x%x, ctr_ignore=%d, cond_ignore=%d, ctr_ok=%d, cond_ok=%d, CR=0x%08x, oldCTR=0x%08x, CTR=0x%08x\r\n", bo, bi, ctr_ignore, cond_ignore, ctr_ok, cond_ok, state->cr, oldctr, *ctr);
 
 	oldpc = state->pc;
 	if (ctr_ok && cond_ok) {
