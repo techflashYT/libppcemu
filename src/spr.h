@@ -74,4 +74,18 @@ static inline int ppcemu_sprn_to_idx(int sprn) {
 	}
 }
 
+static inline int ppcemu_gqrn_to_spr_idx(int gqrn) {
+	switch (gqrn) {
+	case 0: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR0);
+	case 1: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR1);
+	case 2: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR2);
+	case 3: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR3);
+	case 4: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR4);
+	case 5: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR5);
+	case 6: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR6);
+	case 7: return ppcemu_sprn_to_idx(PPCEMU_SPRN_GQR7);
+	default: assert(!"Unreachable");
+	}
+}
+
 #endif /* _LIBPPCEMU_INTERNAL_SPR_H */
