@@ -4,12 +4,22 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include <stdio.h>
+#include <ppcemu/spr.h>
 #include "../state.h"
 #include "../cr.h"
-#include <ppcemu/spr.h>
+#include "../../config.h"
+
+#ifdef DEBUG_COND
+#define cond_debug printf
+#else
+static void cond_debug(const char *fmt, ...) {
+	(void)fmt;
+}
+#endif
 
 static void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
-	u32 c, a = state->gpr[rA];
+	u32 c, a = state->gpr[rA], oldCR;
 
 	if ((i32)a < (i32)(i16)simm)
 		c = 0b1000;
@@ -19,12 +29,14 @@ static void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
 		c = 0b0010;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
+	oldCR = state->cr;
 
 	cr_set_field(state, crfD, c);
+	cond_debug("cmpi: crfD=%u, rA=%u, rA(val)=0x%08x, simm=0x%04x, (i32)(i16)simm=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, simm, (i32)(i16)simm, c, oldCR, state->cr);
 }
 
 static void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) {
-	u32 c, a = state->gpr[rA];
+	u32 c, a = state->gpr[rA], oldCR;
 
 	if (a < (u32)uimm)
 		c = 0b1000;
@@ -34,12 +46,14 @@ static void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) 
 		c = 0b0010;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
+	oldCR = state->cr;
 
 	cr_set_field(state, crfD, c);
+	cond_debug("cmpli: crfD=%u, rA=%u, rA(val)=0x%08x, uimm=0x%04x, (u32)uimm=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, uimm, (u32)uimm, c, oldCR, state->cr);
 }
 
 static void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
-	u32 c, a = state->gpr[rA], b = state->gpr[rB];
+	u32 c, a = state->gpr[rA], b = state->gpr[rB], oldCR;
 
 	if ((i32)a < (i32)b)
 		c = 0b1000;
@@ -49,12 +63,14 @@ static void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 		c = 0b0010;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
+	oldCR = state->cr;
 
 	cr_set_field(state, crfD, c);
+	cond_debug("cmp: crfD=%u, rA=%u, rA(val)=0x%08x, rB=%u, rB(val)=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, rB, b, c, oldCR, state->cr);
 }
 
 static void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
-	u32 c, a = state->gpr[rA], b = state->gpr[rB];
+	u32 c, a = state->gpr[rA], b = state->gpr[rB], oldCR;
 
 	if (a < b)
 		c = 0b1000;
@@ -64,8 +80,10 @@ static void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 		c = 0b0010;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
+	oldCR = state->cr;
 
 	cr_set_field(state, crfD, c);
+	cond_debug("cmpl: crfD=%u, rA=%u, rA(val)=0x%08x, rB=%u, rB(val)=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, rB, b, c, oldCR, state->cr);
 }
 
 static void do_mfcr(struct _ppcemu_state *state, uint rD) {
