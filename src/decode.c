@@ -73,6 +73,14 @@
 #define INST_M_ME(inst)      (((inst) & 0x0000003e) >> 1)
 #define INST_M_Rc(inst)      (((inst) & 0x00000001) >> 0)
 
+/* TODO: guessing based on what binutils does; this form isn't public */
+/* 0..5 = Opcode; 6..10 = frS/frD; 11..15 = rA; 16 = W; 17..19 = PSQ; 20..31 = D */
+#define INST_PS_rS(inst)     (((inst) & 0x03e00000) >> 21)
+#define INST_PS_rA(inst)     (((inst) & 0x001f0000) >> 16)
+#define INST_PS_W(inst)      (((inst) & 0x00008000) >> 15)
+#define INST_PS_PSQ(inst)    (((inst) & 0x00007000) >> 12)
+#define INST_PS_D(inst)      (((inst) & 0x00000fff) >> 0)
+
 #define NO_RC() if (INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
 
 #include "instr/arith.c"
