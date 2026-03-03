@@ -9,15 +9,15 @@
 #include "ppcemu/spr.h"
 
 
-static void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, u32 simm) {
+static void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, i32 simm) {
 	if (rA == 0)
 		state->gpr[rD] = simm;
 	else
 		state->gpr[rD] = simm + state->gpr[rA];
 }
 
-#define do_addi(s, rD, rA, simm) generic_addi(s, rD, rA, simm)
-#define do_addis(s, rD, rA, simm) generic_addi(s, rD, rA, (simm << 16))
+#define do_addi(s, rD, rA, simm) generic_addi(s, rD, rA, (i32)(i16)simm)
+#define do_addis(s, rD, rA, simm) generic_addi(s, rD, rA, (i32)((i16)simm << 16))
 
 static void do_add(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
 	state->gpr[rD] = state->gpr[rA] + state->gpr[rB];
