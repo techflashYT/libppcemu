@@ -324,6 +324,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 			return;
 		}
 		do_cmpli(state, crfD, INST_D_rA(inst), INST_D_UIMM(inst));
+		break;
 	}
 	case 11: { /* cmpi */
 		uint rD, crfD;
@@ -334,6 +335,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 			return;
 		}
 		do_cmpi(state, crfD, INST_D_rA(inst), INST_D_SIMM(inst));
+		break;
 	}
 	case 12: { /* addic */
 		do_addic(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst), 0);
