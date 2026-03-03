@@ -5,12 +5,12 @@
  */
 
 #include <assert.h>
-#include <stdio.h>
 #include <ppcemu/spr.h>
 #include "../caps.h"
 #include "../exception.h"
 #include "../spr.h"
 #include "../state.h"
+#include "../../config.h"
 
 /* TODO: check MSR[PR] on SPR R/W */
 static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
@@ -32,7 +32,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	}
 	case PPCEMU_SPRN_HID2_GEKKO: {
 		if (!(state->caps & CAPS_HID2_GEKKO)) {
-			puts("Attempted to write to HID2-Gekko on unsupported CPU");
+			warn("Attempted to write to HID2-Gekko on unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -42,7 +42,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	}
 	case PPCEMU_SPRN_HID4: {
 		if (!(state->caps & CAPS_HID4)) {
-			puts("Attempted to write to HID4 on unsupported CPU");
+			warn("Attempted to write to HID4 on unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -86,7 +86,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_DBAT7U:
 	case PPCEMU_SPRN_DBAT7L: {
 		if (!(state->caps & CAPS_UPPER_BATS)) {
-			puts("Attempted to write to upper BATs on an unsupported CPU");
+			warn("Attempted to write to upper BATs on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -103,7 +103,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_GQR6:
 	case PPCEMU_SPRN_GQR7: {
 		if (!(state->caps & CAPS_PS_IDX)) {
-			puts("Attempted to write to GQRs on an unsupported CPU");
+			warn("Attempted to write to GQRs on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -112,7 +112,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 		break;
 	}
 	default: {
-		printf("Unknown SPR write %d\r\n", sprn);
+		warn("Unknown SPR write %d\r\n", sprn);
 		exception_fire(state, EXCEPTION_PROGRAM);
 		break;
 	}
@@ -138,7 +138,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	}
 	case PPCEMU_SPRN_HID2_GEKKO: {
 		if (!(state->caps & CAPS_HID2_GEKKO)) {
-			puts("Attempted to read HID2-Gekko on unsupported CPU");
+			warn("Attempted to read HID2-Gekko on unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -148,7 +148,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	}
 	case PPCEMU_SPRN_HID4: {
 		if (!(state->caps & CAPS_HID4)) {
-			puts("Attempted to read HID4 on unsupported CPU");
+			warn("Attempted to read HID4 on unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -192,7 +192,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_DBAT7U:
 	case PPCEMU_SPRN_DBAT7L: {
 		if (!(state->caps & CAPS_UPPER_BATS)) {
-			puts("Attempted to read the upper BATs on an unsupported CPU");
+			warn("Attempted to read the upper BATs on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -209,7 +209,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_GQR6:
 	case PPCEMU_SPRN_GQR7: {
 		if (!(state->caps & CAPS_PS_IDX)) {
-			puts("Attempted to read the GQRs on an unsupported CPU");
+			warn("Attempted to read the GQRs on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
@@ -218,7 +218,7 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 		break;
 	}
 	default: {
-		printf("Unknown SPR read %d\r\n", sprn);
+		warn("Unknown SPR read %d\r\n", sprn);
 		exception_fire(state, EXCEPTION_PROGRAM);
 		break;
 	}
