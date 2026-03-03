@@ -111,6 +111,16 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 
 		break;
 	}
+	case PPCEMU_SPRN_L2CR: {
+		if (!(state->caps & CAPS_L2CR)) {
+			warn("Attempted to write to L2CR on an unsupported CPU\r\n");
+			exception_fire(state, EXCEPTION_PROGRAM);
+		}
+		else
+			state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+
+		break;
+	}
 	default: {
 		warn("Unknown SPR write %d\r\n", sprn);
 		exception_fire(state, EXCEPTION_PROGRAM);
@@ -210,6 +220,16 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_GQR7: {
 		if (!(state->caps & CAPS_PS_IDX)) {
 			warn("Attempted to read the GQRs on an unsupported CPU\r\n");
+			exception_fire(state, EXCEPTION_PROGRAM);
+		}
+		else
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+
+		break;
+	}
+	case PPCEMU_SPRN_L2CR: {
+		if (!(state->caps & CAPS_L2CR)) {
+			warn("Attempted to read L2CR on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else

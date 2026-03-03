@@ -14,5 +14,6 @@
 /* else it behaves like 750CL */
 #define CAPS_HID4_BDWAY_LIKE (1 << 4)
 #define CAPS_UPPER_BATS      (1 << 5)
+#define CAPS_L2CR            (1 << 6)
 
 #endif /* _LIBPPCEMU_INTERNAL_CAPS_H */

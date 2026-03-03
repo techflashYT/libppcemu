@@ -154,7 +154,14 @@ enum ppcemu_sprn {
 	 *
 	 * Available in: 750CL, Broadway, Espresso
 	 */
-	PPCEMU_SPRN_HID4 = 1011
+	PPCEMU_SPRN_HID4 = 1011,
+
+	/*
+	 * L2 Cache Control Register
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_L2CR = 1017
 };
 
 /*
