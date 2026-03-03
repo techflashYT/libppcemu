@@ -88,3 +88,12 @@ static void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uin
 		}
 	}
 }
+
+static void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	u32 hid2;
+
+	PS_ENFORCE_CAP_IDX("ps_mr");
+	state->fpr[frD] = state->gpr[frB]; /* technically it's broken up into 2 moves but this is functionally what it does */
+
+	/* TODO: Update CR1 if Rc */
+}
