@@ -4,11 +4,11 @@
  * Copyright (C) 2026 Techflash
  */
 
-#include <arpa/inet.h>
 #include <stdio.h>
-#include "../state.h"
-#include "../mem.h"
+#include <ppcemu/endian.h>
 #include "../exception.h"
+#include "../mem.h"
+#include "../state.h"
 #include "../../config.h"
 
 #ifdef DEBUG_LOADSTORE
@@ -39,12 +39,12 @@ static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint r
 		break;
 	}
 	case 2: {
-		v16 = htons((u16)state->gpr[rS]);
+		v16 = ppcemu_cpu_to_be16((u16)state->gpr[rS]);
 		_do_basic_store(state, len, ea, &v16);
 		break;
 	}
 	case 4: {
-		v32 = htonl(state->gpr[rS]);
+		v32 = ppcemu_cpu_to_be32(state->gpr[rS]);
 		_do_basic_store(state, len, ea, &v32);
 		break;
 	}
@@ -77,12 +77,12 @@ static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint
 		break;
 	}
 	case 2: {
-		v16 = htons((u16)state->gpr[rS]);
+		v16 = ppcemu_cpu_to_be16((u16)state->gpr[rS]);
 		_do_basic_store(state, len, ea, &v16);
 		break;
 	}
 	case 4: {
-		v32 = htonl(state->gpr[rS]);
+		v32 = ppcemu_cpu_to_be32(state->gpr[rS]);
 		_do_basic_store(state, len, ea, &v32);
 		break;
 	}
@@ -141,12 +141,12 @@ static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA
 	}
 	case 2: {
 		_do_basic_load(state, len, ea, &v16);
-		state->gpr[rD] = (u32)ntohs(v16);
+		state->gpr[rD] = (u32)ppcemu_be16_to_cpu(v16);
 		break;
 	}
 	case 4: {
 		_do_basic_load(state, len, ea, &v32);
-		state->gpr[rD] = ntohl(v32);
+		state->gpr[rD] = ppcemu_be32_to_cpu(v32);
 		break;
 	}
 	default: {
@@ -179,12 +179,12 @@ static u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint 
 	}
 	case 2: {
 		_do_basic_load(state, len, ea, &v16);
-		state->gpr[rD] = (u32)ntohs(v16);
+		state->gpr[rD] = (u32)ppcemu_be16_to_cpu(v16);
 		break;
 	}
 	case 4: {
 		_do_basic_load(state, len, ea, &v32);
-		state->gpr[rD] = ntohl(v32);
+		state->gpr[rD] = ppcemu_be32_to_cpu(v32);
 		break;
 	}
 	default: {

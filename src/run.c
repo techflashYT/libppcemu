@@ -5,11 +5,11 @@
  */
 
 #include <stdio.h>
-#include <arpa/inet.h>
-#include <ppcemu/types.h>
+#include <ppcemu/endian.h>
 #include <ppcemu/state.h>
-#include "state.h"
+#include <ppcemu/types.h>
 #include "mem.h"
+#include "state.h"
 
 #include "../config.h"
 
@@ -36,7 +36,8 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 	}
 
 	state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
-	ifetch_debug("Fetched instruction @ 0x%08x: %08x\r\n", state->pc, ntohl(*instr));
+	*instr = ppcemu_be32_to_cpu(*instr);
+	ifetch_debug("Fetched instruction @ 0x%08x: %08x\r\n", state->pc, *instr);
 
 	return err;
 }
@@ -57,5 +58,5 @@ void ppcemu_step(struct ppcemu_state *emu) {
 		return;
 	}
 
-	_ppcemu_decode_exec(state, htonl(instr));
+	_ppcemu_decode_exec(state, instr);
 }
