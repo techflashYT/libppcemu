@@ -105,7 +105,7 @@ static void do_indexed_store_update(struct _ppcemu_state *state, uint len, uint 
 }
 
 static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
-	u32 ea, b;
+	u32 ea, b, val;
 	int r;
 
 	if (rA == 0)
@@ -116,7 +116,8 @@ static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 	ea = b + (i32)(i16)d;
 
 	for (r = rS; r <= 31; r++) {
-		_do_basic_store(state, 4, ea, &state->gpr[r]);
+		val = ppcemu_cpu_to_be32(state->gpr[r]);
+		_do_basic_store(state, 4, ea, &val);
 		ea += 4;
 	}
 }
@@ -203,4 +204,22 @@ static void do_basic_load_update(struct _ppcemu_state *state, uint len, uint rD,
 
 static void do_indexed_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
 	state->gpr[rA] = do_indexed_load(state, len, rD, rA, rB);
+}
+
+static void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d) {
+	u32 ea, b, val;
+	int r;
+
+	if (rA == 0)
+		b = 0;
+	else
+		b = state->gpr[rA];
+
+	ea = b + (i32)(i16)d;
+
+	for (r = rD; r <= 31; r++) {
+		_do_basic_load(state, 4, ea, &val);
+		state->gpr[r] = ppcemu_be32_to_cpu(val);
+		ea += 4;
+	}
 }
