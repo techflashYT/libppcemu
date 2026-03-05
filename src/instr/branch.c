@@ -34,12 +34,13 @@ static void do_rfi(struct _ppcemu_state *state, u32 inst) {
 
 static void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	u32 oldpc = state->pc;
+	/* sign extend 24->32, but don't shift all the way back, to add back in the 2 omitted bits */
+	i32 target = ((i32)(li << 8) >> 6);
 
 	if (aa)
-		state->pc = (u32)(li << 2); /* left shift to add back in the 2 omitted bits */
+		state->pc = target;
 	else
-		state->pc += ((i32)(li << 8) >> 6); /* sign extend 24->32, but don't shift all the way back, to add back in the 2 omitted bits */
-
+		state->pc += target;
 	state->pc &= ~0x3;
 
 	if (lk)
