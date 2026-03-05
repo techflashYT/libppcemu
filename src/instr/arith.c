@@ -65,3 +65,21 @@ static void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uin
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
 }
+
+static void do_divw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
+	state->gpr[rD] = (i32)state->gpr[rA] / (i32)state->gpr[rB];
+
+	/* TODO: update XER if OE */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
+static void do_divwu(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
+	state->gpr[rD] = state->gpr[rA] / state->gpr[rB];
+
+	/* TODO: update XER if OE */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
