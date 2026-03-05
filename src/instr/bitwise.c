@@ -39,6 +39,15 @@ static void do_or(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint R
 		update_cr0(state, state->gpr[rA]);
 }
 
+static void andi_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
+	state->gpr[rA] = state->gpr[rS] & uimm;
+
+	update_cr0(state, state->gpr[rA]); /* andi(s) always updates CR0 */
+}
+
+#define do_andi(s, rS, rA, uimm) andi_common(s, rS, rA, uimm)
+#define do_andis(s, rS, rA, uimm) andi_common(s, rS, rA, (uimm << 16))
+
 static void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
 	u32 r, m;
 	uint b;

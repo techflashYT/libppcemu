@@ -557,12 +557,14 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_xori(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_UIMM(inst) << 16);
 		break;
 	}
-	#if 0
 	case 28: { /* andi. */
 		do_andi(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_UIMM(inst));
 		break;
 	}
-	#endif
+	case 29: { /* andis. */
+		do_andis(state, INST_D_rS(inst), INST_D_rA(inst), INST_D_UIMM(inst));
+		break;
+	}
 	case 31: { /* X form instructions */
 		decode_debug("XO opcode: %d\r\n", INST_XO_XO(inst));
 		opc31_handlers[INST_XO_XO(inst)](state, inst);
