@@ -82,10 +82,32 @@ static void do_andc(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint
 		update_cr0(state, state->gpr[rA]);
 }
 
+static void do_rlwimi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
+	u32 r, m;
+
+	r = rotl32(state->gpr[rS], SH);
+	m = mb_me_mask(MB, ME);
+
+	state->gpr[rA] = (r & m) | (state->gpr[rA] & ~m);
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
 static void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
 	u32 r, m;
 
 	r = rotl32(state->gpr[rS], SH);
+	m = mb_me_mask(MB, ME);
+
+	state->gpr[rA] = r & m;
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+static void do_rlwnm(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint MB, uint ME, uint Rc) {
+	u32 r, m;
+
+	r = rotl32(state->gpr[rS], (state->gpr[rB] & 0x1f));
 	m = mb_me_mask(MB, ME);
 
 	state->gpr[rA] = r & m;
