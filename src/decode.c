@@ -563,6 +563,13 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_bc(state, INST_D_BO(inst), INST_D_BI(inst), INST_D_BD(inst), INST_D_AA(inst), INST_D_LK(inst));
 		break;
 	}
+	case 17: { /* sc */
+		if (inst & 0x3fffffd || !(inst & 0x2))
+			exception_fire(state, EXCEPTION_PROGRAM);
+		else
+			exception_fire(state, EXCEPTION_SYSCALL);
+		break;
+	}
 	case 18: { /* branch */
 		do_branch(state, INST_I_LI(inst), INST_I_AA(inst), INST_I_LK(inst));
 		break;
