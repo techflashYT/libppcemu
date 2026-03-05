@@ -38,6 +38,16 @@ static void do_addc(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint 
 		update_cr0(state, state->gpr[rD]);
 }
 
+static void do_adde(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uint Rc) {
+	state->gpr[rD] = state->gpr[rA] + state->gpr[rB] + !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+
+	/* TODO: update XER.CA */
+	/* TODO: update XER if OE */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
 static void do_addic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm, uint Rc) {
 	state->gpr[rD] = state->gpr[rA] + (i32)(i16)simm;
 
