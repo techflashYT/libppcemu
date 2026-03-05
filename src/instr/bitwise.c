@@ -77,3 +77,26 @@ static void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, ui
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
+
+static void do_nand(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = ~(state->gpr[rS] & state->gpr[rB]);
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+static void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
+	state->gpr[rA] = ~state->gpr[rD];
+
+	/* TODO: update XER if OE */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+static void do_nor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = ~(state->gpr[rS] | state->gpr[rB]);
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
