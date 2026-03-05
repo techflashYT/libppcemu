@@ -597,8 +597,13 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 31: { /* X form instructions */
-		decode_debug("XO opcode: %d\r\n", INST_XO_XO(inst));
-		opc31_handlers[INST_XO_XO(inst)](state, inst);
+		decode_debug("plausible XO opcode: %d\r\n", INST_XO_XO(inst));
+		if (opc31_handlers[INST_XO_XO(inst)] != do_illegal)
+			opc31_handlers[INST_XO_XO(inst)](state, inst);
+		else {
+			decode_debug("other plausible XO opcode: %d\r\n", INST_XFX_XO(inst));
+			opc31_handlers[INST_XFX_XO(inst)](state, inst); /* whether it's illegal or not that's  what we're running at this point */
+		}
 		break;
 	}
 	case 32: { /* lwz */
