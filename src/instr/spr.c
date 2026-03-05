@@ -19,15 +19,17 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
-	case PPCEMU_SPRN_TBL_OEA:
-	case PPCEMU_SPRN_TBU_OEA:
 	case PPCEMU_SPRN_SRR0:
 	case PPCEMU_SPRN_SRR1:
 	case PPCEMU_SPRN_SPRG0:
 	case PPCEMU_SPRN_SPRG1:
 	case PPCEMU_SPRN_SPRG2:
 	case PPCEMU_SPRN_SPRG3:
-	case PPCEMU_SPRN_HID0: {
+	case PPCEMU_SPRN_HID0:
+	case PPCEMU_SPRN_TBL_OEA:
+	case PPCEMU_SPRN_TBL_VEA:
+	case PPCEMU_SPRN_TBU_OEA:
+	case PPCEMU_SPRN_TBU_VEA: {
 		state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
 		break;
 	}
@@ -150,15 +152,17 @@ static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
-	case PPCEMU_SPRN_TBL_OEA:
-	case PPCEMU_SPRN_TBU_OEA:
 	case PPCEMU_SPRN_SRR0:
 	case PPCEMU_SPRN_SRR1:
 	case PPCEMU_SPRN_SPRG0:
 	case PPCEMU_SPRN_SPRG1:
 	case PPCEMU_SPRN_SPRG2:
 	case PPCEMU_SPRN_SPRG3:
-	case PPCEMU_SPRN_HID0: {
+	case PPCEMU_SPRN_HID0:
+	case PPCEMU_SPRN_TBL_OEA:
+	case PPCEMU_SPRN_TBL_VEA:
+	case PPCEMU_SPRN_TBU_OEA:
+	case PPCEMU_SPRN_TBU_VEA: {
 		state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 		break;
 	}
