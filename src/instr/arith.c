@@ -66,6 +66,12 @@ static void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint
 		update_cr0(state, state->gpr[rD]);
 }
 
+static void do_subfic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm) {
+	state->gpr[rD] = (i16)simm - state->gpr[rA];
+
+	/* TODO: update XER.CA */
+}
+
 static void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
 	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + 1;
 
