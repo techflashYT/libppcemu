@@ -116,3 +116,35 @@ static void do_cntlzw(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
+
+static void do_slw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = state->gpr[rS] << state->gpr[rB];
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+static void do_sraw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = (i32)state->gpr[rS] >> state->gpr[rB];
+
+	/* TODO: some crap with XER.CA? */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+static void do_srawi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint Rc) {
+	state->gpr[rA] = (i32)state->gpr[rS] >> SH;
+
+	/* TODO: some crap with XER.CA? */
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+static void do_srw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = state->gpr[rS] >> state->gpr[rB];
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
