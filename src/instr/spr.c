@@ -15,6 +15,7 @@
 /* TODO: check MSR[PR] on SPR R/W */
 static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	switch (sprn) {
+	case PPCEMU_SPRN_XER:
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
