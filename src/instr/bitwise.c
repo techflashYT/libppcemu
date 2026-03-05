@@ -11,6 +11,25 @@ static u32 rotl32(u32 x, uint rot) {
 	return (x << rot) | (x >> (32 - rot));
 }
 
+static u32 mb_me_mask(uint MB, uint ME) {
+	uint b;
+	u32 m;
+
+	/* horrid mask generation */
+	if (MB <= ME) {
+		for (b = MB; b <= ME; b++)
+			m |= 1u << (31 - b);
+	} else { /* wraparound */
+		for (b = 0; b <= ME; b++)
+			m |= 1u << (31 - b);
+
+		for (b = MB; b <= 31; b++)
+			m |= 1u << (31 - b);
+	}
+
+	return m;
+}
+
 static void xori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
 	state->gpr[rA] = state->gpr[rS] ^ uimm;
 }
@@ -65,21 +84,9 @@ static void do_andc(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint
 
 static void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
 	u32 r, m;
-	uint b;
 
 	r = rotl32(state->gpr[rS], SH);
-	m = 0;
-	/* horrid mask generation */
-	if (MB <= ME) {
-		for (b = MB; b <= ME; b++)
-			m |= 1u << (31 - b);
-	} else { /* wraparound */
-		for (b = 0; b <= ME; b++)
-			m |= 1u << (31 - b);
-
-		for (b = MB; b <= 31; b++)
-			m |= 1u << (31 - b);
-	}
+	m = mb_me_mask(MB, ME);
 
 	state->gpr[rA] = r & m;
 	if (Rc)
