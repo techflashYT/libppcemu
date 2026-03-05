@@ -84,6 +84,15 @@ static void do_divwu(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uin
 		update_cr0(state, state->gpr[rD]);
 }
 
+static void do_mulhw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint Rc) {
+	i64 res = (i64)(i32)state->gpr[rA] * (i64)(i32)state->gpr[rB];
+
+	state->gpr[rD] = (u32)(res >> 32);
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
 static void do_mulhwu(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint Rc) {
 	u64 res = (u64)state->gpr[rA] * (u64)state->gpr[rB];
 
@@ -110,4 +119,11 @@ static void do_mullw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uin
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
+}
+
+static void do_mulli(struct _ppcemu_state *state, uint rD, uint rA, u16 simm) {
+	u32 xer;
+	u64 res = (i64)(i32)state->gpr[rA] * (i16)simm;
+
+	state->gpr[rD] = (u32)(res & 0xffffffff);
 }

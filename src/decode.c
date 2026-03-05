@@ -161,6 +161,7 @@ static void _do_add(struct _ppcemu_state *state, u32 inst) { do_add(state, INST_
 static void _do_divw(struct _ppcemu_state *state, u32 inst) { do_divw(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_divwu(struct _ppcemu_state *state, u32 inst) { do_divwu(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_mulhwu(struct _ppcemu_state *state, u32 inst) { if (INST_XO_OE(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mulhwu(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
+static void _do_mulhw(struct _ppcemu_state *state, u32 inst) { if (INST_XO_OE(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mulhw(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_mullw(struct _ppcemu_state *state, u32 inst) { do_mullw(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 
 /* load/store wrappers */
@@ -288,7 +289,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 16 */   do_illegal, do_illegal, do_illegal, _do_mfcr,   do_illegal, do_illegal, do_illegal, _do_lwzx,   do_illegal, do_illegal, _do_cntlzw, do_illegal, _do_and,    do_illegal, do_illegal, do_illegal,
 	/* 32 */   _do_cmpl,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subf,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_dcbst,  _do_lwzux , do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mulhw,  do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 80 */   do_illegal, do_illegal, do_illegal, _do_mfmsr,  do_illegal, do_illegal, _do_dcbf,   _do_lbzx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 96 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_neg,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 112 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_lbzux,  do_illegal, do_illegal, do_illegal, do_illegal, _do_nor,    do_illegal, do_illegal, do_illegal,
@@ -493,6 +494,10 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	case 4: { /* X form instruction */
 		decode_debug("XO opcode: %d\r\n", INST_XL_XO(inst));
 		opc4_handlers[INST_XL_XO(inst)](state, inst);
+		break;
+	}
+	case 7: { /* mulli */
+		do_mulli(state, INST_D_rD(inst), INST_D_rA(inst), INST_D_SIMM(inst));
 		break;
 	}
 	case 10: { /* cmpli */
