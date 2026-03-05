@@ -594,7 +594,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 33: { /* lwzu */
-		do_indexed_load(state, 4, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		do_basic_load_update(state, 4, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 34: { /* lbz */
@@ -602,7 +602,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 35: { /* lbzu */
-		do_indexed_load(state, 1, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		do_basic_load_update(state, 1, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 36: { /* stw */
@@ -626,7 +626,7 @@ static void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 41: { /* lhzu */
-		do_indexed_load(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		do_basic_load_update(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 44: { /* sth */
