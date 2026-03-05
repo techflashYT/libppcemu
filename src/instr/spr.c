@@ -149,6 +149,7 @@ static void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 
 static void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	switch (sprn) {
+	case PPCEMU_SPRN_XER:
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
