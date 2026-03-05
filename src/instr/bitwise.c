@@ -100,3 +100,19 @@ static void do_nor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
+
+static void do_cntlzw(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
+	u32 n = 0;
+
+	while (n <= 31) {
+		if (n & (1 << n))
+			break;
+
+		n++;
+	}
+
+	state->gpr[rA] = n;
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
