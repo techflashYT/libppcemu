@@ -12,7 +12,7 @@
 #include "../../config.h"
 
 #ifdef DEBUG_LOADSTORE
-#define mem_debug printf
+#define mem_debug debug
 #else
 static void mem_debug(const char *fmt, ...) {
 	(void)fmt;

@@ -4,14 +4,15 @@
  * Copyright (C) 2026 Techflash
  */
 
+#define LOG_LEVEL cond_loglevel
 #include <stdio.h>
 #include <ppcemu/spr.h>
-#include "../state.h"
 #include "../cr.h"
-#include "../../config.h"
+#include "../log.h"
+#include "../state.h"
 
 #ifdef DEBUG_COND
-#define cond_debug printf
+#define cond_debug debug
 #else
 static void cond_debug(const char *fmt, ...) {
 	(void)fmt;

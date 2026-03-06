@@ -18,7 +18,7 @@
 #include "../config.h"
 
 #ifdef DEBUG_VIRT2PHYS
-#define mem_debug printf
+#define mem_debug debug
 #else
 static void mem_debug(const char *fmt, ...) {
 	(void)fmt;

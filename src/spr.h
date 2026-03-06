@@ -11,7 +11,7 @@
 #include <ppcemu/spr.h>
 
 #define MAX_SPR_COUNT 62
-static inline int ppcemu_sprn_to_idx(int sprn) {
+static inline int ppcemu_sprn_to_idx_raw(int sprn) {
 	switch (sprn) {
 	case PPCEMU_SPRN_XER: return 0;
 	case PPCEMU_SPRN_LR: return 1;
@@ -77,8 +77,17 @@ static inline int ppcemu_sprn_to_idx(int sprn) {
 	case PPCEMU_SPRN_PMC2: return 59;
 	case PPCEMU_SPRN_PMC3: return 60;
 	case PPCEMU_SPRN_PMC4: return 61;
-	default: assert(!"Unreachable");
+	default: return -1;
 	}
+}
+
+static inline int ppcemu_sprn_to_idx(int sprn) {
+	int idx = ppcemu_sprn_to_idx_raw(sprn);
+
+	if (idx == -1)
+		assert(!"bad sprn");
+
+	return idx;
 }
 
 static inline int ppcemu_gqrn_to_spr_idx(int gqrn) {

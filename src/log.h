@@ -13,6 +13,15 @@
 #include "types.h"
 #include "../config.h"
 
+extern enum ppcemu_loglevel virt2phys_loglevel;
+extern enum ppcemu_loglevel ifetch_loglevel;
+extern enum ppcemu_loglevel decode_loglevel;
+extern enum ppcemu_loglevel branch_loglevel;
+extern enum ppcemu_loglevel loadstore_loglevel;
+extern enum ppcemu_loglevel cond_loglevel;
+extern enum ppcemu_loglevel misc_loglevel;
+
+
 #ifndef LOG_LEVEL
 #error "Please define LOG_LEVEL"
 #endif
@@ -20,7 +29,7 @@
 #define DO_LOG(level) \
 	va_list va; \
 	\
-	if (LOG_LEVEL > level) \
+	if (LOG_LEVEL <= level) \
 		return; \
 	\
 	va_start(va, fmt); \
@@ -46,7 +55,5 @@ static inline void warn(const char *fmt, ...) {
 static inline void error(const char *fmt, ...) {
 	DO_LOG(PPCEMU_LOOGLEVEL_ERROR);
 }
-
-extern enum ppcemu_loglevel decode_loglevel;
 
 #endif /* _LIBPPCEMU_INTERNAL_LOG_H */

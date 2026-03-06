@@ -1,0 +1,95 @@
+/*
+ * libppcemu - State handling
+ *
+ * Copyright (C) 2026 Techflash
+ */
+
+#include <ppcemu/state.h>
+#include "state.h"
+#include "spr.h"
+enum ppcemu_loglevel virt2phys_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel ifetch_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel decode_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel branch_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel loadstore_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel cond_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel misc_loglevel = PPCEMU_LOOGLEVEL_INFO;
+
+#define REAL_STATE struct _ppcemu_state *s = (struct _ppcemu_state *)state
+
+uint32_t ppcemu_get_pc(struct ppcemu_state *state) {
+	REAL_STATE;
+	return s->pc;
+}
+
+void ppcemu_set_pc(struct ppcemu_state *state, uint32_t pc) {
+	REAL_STATE;
+	s->pc = pc;
+}
+
+uint32_t ppcemu_get_gpr(struct ppcemu_state *state, unsigned int idx) {
+	REAL_STATE;
+	if (idx > 31)
+		return -1;
+
+	return s->gpr[idx];
+}
+
+void ppcemu_set_gpr(struct ppcemu_state *state, unsigned int idx, uint32_t val) {
+	REAL_STATE;
+	if (idx > 31)
+		return;
+
+	s->gpr[idx] = idx;
+}
+
+uint32_t ppcemu_get_spr(struct ppcemu_state *state, unsigned int sprn) {
+	int idx = ppcemu_sprn_to_idx_raw(sprn);
+	REAL_STATE;
+
+	if (idx == -1)
+		return 0xffffffff;
+
+	return s->sprs[idx];
+}
+
+void ppcemu_set_spr(struct ppcemu_state *state, unsigned int sprn, uint32_t val) {
+	int idx = ppcemu_sprn_to_idx_raw(sprn);
+	REAL_STATE;
+
+	if (idx == -1)
+		return;
+
+	s->sprs[idx] = val;
+}
+
+void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel level) {
+	switch (source) {
+	case PPCEMU_LOG_SOURCE_ADDR_TRANSLATION: {
+		virt2phys_loglevel = level;
+		break;
+	}
+	case PPCEMU_LOG_SOURCE_IFETCH: {
+		ifetch_loglevel = level;
+		break;
+	}
+	case PPCEMU_LOG_SOURCE_INSTR_DECODE: {
+		decode_loglevel = level;
+		break;
+	}
+	case PPCEMU_LOG_SOURCE_BRANCH: {
+		branch_loglevel = level;
+		break;
+	}
+	case PPCEMU_LOG_SOURCE_LOADSTORE: {
+		loadstore_loglevel = level;
+		break;
+	}
+	case PPCEMU_LOG_SOURCE_MISC: {
+		misc_loglevel = level;
+		break;
+	}
+	default:
+		break;
+	}
+}

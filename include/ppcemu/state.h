@@ -7,6 +7,8 @@
 #ifndef _LIBPPCEMU_STATE_H
 #define _LIBPPCEMU_STATE_H
 
+#include <stdint.h>
+
 /*
  * Opaque version of the ppcemu state struct.
  * Library users should not attempt to access this structure
@@ -14,5 +16,64 @@
  * inspect the state of this instance.
  */
 struct ppcemu_state;
+
+/*
+ * Get the current PC (the address of the next instruction
+ * that will run if you run ppcemu_{run,step}).
+ */
+uint32_t ppcemu_get_pc(struct ppcemu_state *state);
+
+/*
+ * Set the current PC (the address of the next instruction
+ * that will run if you run ppcemu_{run,step}).
+ */
+void ppcemu_set_pc(struct ppcemu_state *state, uint32_t pc);
+
+/*
+ * Get the specified GPR
+ */
+uint32_t ppcemu_get_gpr(struct ppcemu_state *state, unsigned int idx);
+
+/*
+ * Set the specified GPR
+ */
+void ppcemu_set_gpr(struct ppcemu_state *state, unsigned int idx, uint32_t val);
+
+/*
+ * Get the specified SPR.
+ * Returns 0xffffffff (-1) if the specified SPR is unimplemented/nonexistent.
+ */
+uint32_t ppcemu_get_spr(struct ppcemu_state *state, unsigned int sprn);
+
+/*
+ * Set the specified SPR.
+ * Does nothing if the specified SPR is unimplemented/nonexistent.
+ */
+void ppcemu_set_spr(struct ppcemu_state *state, unsigned int sprn, uint32_t val);
+
+/*
+ * Log levels
+ */
+enum ppcemu_loglevel {
+	PPCEMU_LOOGLEVEL_ERROR,
+	PPCEMU_LOOGLEVEL_WARN,
+	PPCEMU_LOOGLEVEL_INFO,
+	PPCEMU_LOOGLEVEL_VERBOSE,
+	PPCEMU_LOOGLEVEL_DEBUG
+};
+
+enum ppcemu_log_source {
+	PPCEMU_LOG_SOURCE_ADDR_TRANSLATION,
+	PPCEMU_LOG_SOURCE_IFETCH,
+	PPCEMU_LOG_SOURCE_INSTR_DECODE,
+	PPCEMU_LOG_SOURCE_BRANCH,
+	PPCEMU_LOG_SOURCE_LOADSTORE,
+	PPCEMU_LOG_SOURCE_MISC,
+};
+
+/*
+ * Set the desired loglevel for a given source
+ */
+void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel level);
 
 #endif /* _LIBPPCEMU_STATE_H */

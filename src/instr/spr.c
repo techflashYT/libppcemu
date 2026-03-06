@@ -4,13 +4,14 @@
  * Copyright (C) 2026 Techflash
  */
 
+#define LOG_LEVEL misc_loglevel
 #include <assert.h>
 #include <ppcemu/spr.h>
 #include "../caps.h"
 #include "../exception.h"
+#include "../log.h"
 #include "../spr.h"
 #include "../state.h"
-#include "../../config.h"
 
 /* TODO: check MSR[PR] on SPR R/W */
 void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {

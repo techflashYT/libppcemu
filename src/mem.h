@@ -7,10 +7,11 @@
 #ifndef _LIBPPCEMU_INTERNAL_MEM_H
 #define _LIBPPCEMU_INTERNAL_MEM_H
 
+#define LOG_LEVEL virt2phys_loglevel
 #include "exception.h"
-#include "types.h"
+#include "log.h"
 #include "state.h"
-#include "../config.h"
+#include "types.h"
 
 enum virt2phys_err {
 	V2P_SUCCESS,

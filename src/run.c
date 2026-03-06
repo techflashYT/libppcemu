@@ -4,18 +4,21 @@
  * Copyright (C) 2026 Techflash
  */
 
+enum ppcemu_loglevel ifetch_loglevel;
+#define LOG_LEVEL ifetch_loglevel
+
 #include <stdio.h>
 #include <ppcemu/endian.h>
 #include <ppcemu/state.h>
 #include <ppcemu/types.h>
 #include "decode.h"
+#include "log.h"
 #include "mem.h"
 #include "state.h"
 
-#include "../config.h"
 
 #ifdef DEBUG_IFETCH
-#define ifetch_debug printf
+#define ifetch_debug debug
 #else
 static void ifetch_debug(const char *fmt, ...) {
 	(void)fmt;
@@ -29,13 +32,13 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 	err = ppcemu_virt2phys(state, state->pc, &phys, true, false);
 
 	if (err != V2P_SUCCESS) {
-		ifetch_debug("Instr fetch failed @ 0x%08x due to virt2phys err %d\r\n", state->pc, err);
+		warn("Instr fetch failed @ 0x%08x due to virt2phys err %d\r\n", state->pc, err);
 		return err;
 	}
 
 	state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
 	*instr = ppcemu_be32_to_cpu(*instr);
-	ifetch_debug("Fetched instruction @ 0x%08x: %08x\r\n", state->pc, *instr);
+	verbose("Fetched instruction @ 0x%08x: %08x\r\n", state->pc, *instr);
 
 	return err;
 }

@@ -4,17 +4,18 @@
  * Copyright (C) 2026 Techflash
  */
 
+#define LOG_LEVEL decode_loglevel
+
 #include <stdio.h>
 #include "decode.h"
 #include "exception.h"
 #include "instr.h"
+#include "log.h"
 #include "state.h"
 #include "types.h"
 
-#include "../config.h"
-
 #ifdef DEBUG_INSTR_DECODE
-#define decode_debug printf
+#define decode_debug debug
 #else
 static void decode_debug(const char *fmt, ...) {
 	(void)fmt;
@@ -409,10 +410,10 @@ static void (*opc4_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	state->branched = false;
 
-	decode_debug("top-level opcode: %d\r\n", INST_OPCD(inst));
+	verbose("top-level opcode: %d\r\n", INST_OPCD(inst));
 	switch (INST_OPCD(inst)) {
 	case 4: { /* X form instruction */
-		decode_debug("XO opcode: %d\r\n", INST_XL_XO(inst));
+		verbose("XO opcode: %d\r\n", INST_XL_XO(inst));
 		opc4_handlers[INST_XL_XO(inst)](state, inst);
 		break;
 	}
@@ -478,7 +479,7 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 19: { /* X form instructions */
-		decode_debug("XO opcode: %d\r\n", INST_XL_XO(inst));
+		verbose("XO opcode: %d\r\n", INST_XL_XO(inst));
 		opc19_handlers[INST_XL_XO(inst)](state, inst);
 		break;
 	}
@@ -519,11 +520,11 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 31: { /* X form instructions */
-		decode_debug("plausible XO opcode: %d\r\n", INST_XO_XO(inst));
+		verbose("plausible XO opcode: %d\r\n", INST_XO_XO(inst));
 		if (opc31_handlers[INST_XO_XO(inst)] != do_illegal)
 			opc31_handlers[INST_XO_XO(inst)](state, inst);
 		else {
-			decode_debug("other plausible XO opcode: %d\r\n", INST_XFX_XO(inst));
+			verbose("other plausible XO opcode: %d\r\n", INST_XFX_XO(inst));
 			opc31_handlers[INST_XFX_XO(inst)](state, inst); /* whether it's illegal or not that's  what we're running at this point */
 		}
 		break;
@@ -593,7 +594,7 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 63: { /* X form instructions */
-		decode_debug("XO opcode: %d\r\n", INST_XFL_XO(inst));
+		verbose("XO opcode: %d\r\n", INST_XFL_XO(inst));
 		opc63_handlers[INST_XFL_XO(inst)](state, inst);
 		break;
 	}

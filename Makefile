@@ -3,7 +3,7 @@
 # Copyright (C) 2026 Techflash
 #
 
-override SRC := init.c run.c mem.c decode.c
+override SRC := init.c run.c mem.c decode.c state.c
 override SRC += instr/arith.c instr/bitwise.c instr/branch.c instr/cache.c
 override SRC += instr/cond.c instr/floating_point.c instr/loadstore.c
 override SRC += instr/msr.c instr/paired_singles.c instr/segmentreg.c

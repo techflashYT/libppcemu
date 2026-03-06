@@ -4,15 +4,17 @@
  * Copyright (C) 2026 Techflash
  */
 
+#define LOG_LEVEL branch_loglevel
+
 #include <stdio.h>
 #include <ppcemu/spr.h>
 #include "../cr.h"
 #include "../decode.h"
 #include "../state.h"
-#include "../../config.h"
+#include "../log.h"
 
 #ifdef DEBUG_BRANCH
-#define branch_debug printf
+#define branch_debug debug
 #else
 static void branch_debug(const char *fmt, ...) {
 	(void)fmt;
@@ -29,7 +31,7 @@ void do_rfi(struct _ppcemu_state *state, u32 inst) {
 	/* TODO: mask MSR */
 	state->msr = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)];
 
-	branch_debug("rfi branched from 0x%08x -> 0x%08x\r\n", oldpc, state->pc);
+	verbose("rfi branched from 0x%08x -> 0x%08x\r\n", oldpc, state->pc);
 	state->branched = true;
 }
 
@@ -37,6 +39,8 @@ void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	u32 oldpc = state->pc;
 	/* sign extend 24->32, but don't shift all the way back, to add back in the 2 omitted bits */
 	i32 target = ((i32)(li << 8) >> 6);
+
+	branch_debug("unconditional branch from 0x%08x, AA=%u, LI=0x%03x, target/offset=0x%08x\r\n", oldpc, aa, li, target);
 
 	if (aa)
 		state->pc = target;
@@ -47,7 +51,7 @@ void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	if (lk)
 		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)] = oldpc + 4;
 
-	branch_debug("branched from 0x%08x -> 0x%08x\r\n", oldpc, state->pc);
+	verbose("branched from 0x%08x -> 0x%08x\r\n", oldpc, state->pc);
 	state->branched = true;
 }
 
@@ -82,10 +86,10 @@ void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint lk, u32
 		if (lk)
 			state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)] = oldpc + 4;
 
-		branch_debug("conditional branch from 0x%08x -> 0x%08x WAS taken\r\n", oldpc, target_addr);
+		verbose("conditional branch from 0x%08x -> 0x%08x WAS taken\r\n", oldpc, target_addr);
 	}
 	else
-		branch_debug("conditional branch from 0x%08x -> 0x%08x NOT taken\r\n", oldpc, target_addr);
+		verbose("conditional branch from 0x%08x -> 0x%08x NOT taken\r\n", oldpc, target_addr);
 }
 
 void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint aa, uint lk) {
