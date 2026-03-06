@@ -17,7 +17,7 @@
 		return; \
 	} \
 
-static void do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
+void do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 	u32 b, ea, val_hi, val_lo;
 	enum virt2phys_err v2p_err;
 
@@ -41,7 +41,7 @@ static void do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 	state->fpr[frD] |= ppcemu_be32_to_cpu(val_lo);
 }
 
-static void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	u32 hid2;
 
 	ENFORCE_MSR_FP();
@@ -51,7 +51,7 @@ static void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	/* TODO: Update CR1 if Rc */
 }
 
-static void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
+void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 	u32 mask;
 	uint i;
 
@@ -71,13 +71,10 @@ static void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 }
 
 
-static void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
+void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
 	u32 mask = 1 << (31 - crbD);
 	if (set)
 		state->fpcsr |= mask;
 	else
 		state->fpcsr &= ~mask;
 }
-
-#define do_mtfsb0(state, crbD, Rc) do_mtfsbN(state, crbD, 0, Rc)
-#define do_mtfsb1(state, crbD, Rc) do_mtfsbN(state, crbD, 1, Rc)

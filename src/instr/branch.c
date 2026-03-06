@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <ppcemu/spr.h>
 #include "../cr.h"
+#include "../decode.h"
 #include "../state.h"
 #include "../../config.h"
 
@@ -19,7 +20,7 @@ static void branch_debug(const char *fmt, ...) {
 #endif
 
 
-static void do_rfi(struct _ppcemu_state *state, u32 inst) {
+void do_rfi(struct _ppcemu_state *state, u32 inst) {
 	u32 oldpc = state->pc;
 
 	NO_RC();
@@ -32,7 +33,7 @@ static void do_rfi(struct _ppcemu_state *state, u32 inst) {
 	state->branched = true;
 }
 
-static void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
+void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	u32 oldpc = state->pc;
 	/* sign extend 24->32, but don't shift all the way back, to add back in the 2 omitted bits */
 	i32 target = ((i32)(li << 8) >> 6);
@@ -50,7 +51,7 @@ static void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk) {
 	state->branched = true;
 }
 
-static void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint lk, u32 target_addr) {
+void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint lk, u32 target_addr) {
 	bool ctr_ignore, cond_ignore, ctr_ok, cond_ok;
 	u32 oldpc, *ctr, oldctr;
 
@@ -87,10 +88,7 @@ static void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint 
 		branch_debug("conditional branch from 0x%08x -> 0x%08x NOT taken\r\n", oldpc, target_addr);
 }
 
-#define do_bclr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)])
-#define do_bcctr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)])
-
-static void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint aa, uint lk) {
+void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint aa, uint lk) {
 	u32 ea;
 
 	if (aa)

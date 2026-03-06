@@ -19,7 +19,7 @@ static void mem_debug(const char *fmt, ...) {
 }
 #endif
 
-static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d) {
+u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d) {
 	u32 b, ea, v32;
 	u16 v16;
 	u8 v8;
@@ -57,7 +57,7 @@ static u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint r
 	return ea;
 }
 
-static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
+u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
 	u32 b, ea, v32;
 	u16 v16;
 	u8 v8;
@@ -95,16 +95,7 @@ static u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint
 	return ea;
 }
 
-static void do_basic_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint d) {
-	state->gpr[rA] = do_basic_store(state, len, rS, rA, d);
-}
-
-
-static void do_indexed_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint rB) {
-	state->gpr[rA] = do_indexed_store(state, len, rS, rA, rB);
-}
-
-static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
+void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 	u32 ea, b, val;
 	int r;
 
@@ -122,7 +113,7 @@ static void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 	}
 }
 
-static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
 	u32 b, ea, v32;
 	u8 v8;
 	u16 v16;
@@ -160,7 +151,7 @@ static u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA
 	return ea;
 }
 
-static u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
 	u32 b, ea, v32;
 	u8 v8;
 	u16 v16;
@@ -198,15 +189,7 @@ static u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint 
 	return ea;
 }
 
-static void do_basic_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
-	state->gpr[rA] = do_basic_load(state, len, rD, rA, d);
-}
-
-static void do_indexed_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
-	state->gpr[rA] = do_indexed_load(state, len, rD, rA, rB);
-}
-
-static void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d) {
+void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d) {
 	u32 ea, b, val;
 	int r;
 

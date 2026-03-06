@@ -18,7 +18,7 @@ static void cond_debug(const char *fmt, ...) {
 }
 #endif
 
-static void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
+void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
 	u32 c, a = state->gpr[rA], oldCR;
 
 	if ((i32)a < (i32)(i16)simm)
@@ -35,7 +35,7 @@ static void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
 	cond_debug("cmpi: crfD=%u, rA=%u, rA(val)=0x%08x, simm=0x%04x, (i32)(i16)simm=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, simm, (i32)(i16)simm, c, oldCR, state->cr);
 }
 
-static void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) {
+void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) {
 	u32 c, a = state->gpr[rA], oldCR;
 
 	if (a < (u32)uimm)
@@ -52,7 +52,7 @@ static void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) 
 	cond_debug("cmpli: crfD=%u, rA=%u, rA(val)=0x%08x, uimm=0x%04x, (u32)uimm=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, uimm, (u32)uimm, c, oldCR, state->cr);
 }
 
-static void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
+void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 	u32 c, a = state->gpr[rA], b = state->gpr[rB], oldCR;
 
 	if ((i32)a < (i32)b)
@@ -69,7 +69,7 @@ static void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 	cond_debug("cmp: crfD=%u, rA=%u, rA(val)=0x%08x, rB=%u, rB(val)=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, rB, b, c, oldCR, state->cr);
 }
 
-static void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
+void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 	u32 c, a = state->gpr[rA], b = state->gpr[rB], oldCR;
 
 	if (a < b)
@@ -86,12 +86,12 @@ static void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 	cond_debug("cmpl: crfD=%u, rA=%u, rA(val)=0x%08x, rB=%u, rB(val)=0x%08x, c=0x%1x, oldCR=0x%08x, newCR=0x%08x\r\n", crfD, rA, a, rB, b, c, oldCR, state->cr);
 }
 
-static void do_mfcr(struct _ppcemu_state *state, uint rD) {
+void do_mfcr(struct _ppcemu_state *state, uint rD) {
 	state->gpr[rD] = state->cr;
 }
 
 
-static void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
+void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
 	u32 mask;
 	uint i;
 

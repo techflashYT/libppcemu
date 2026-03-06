@@ -8,13 +8,11 @@
 #include <ppcemu/endian.h>
 #include <ppcemu/state.h>
 #include <ppcemu/types.h>
+#include "decode.h"
 #include "mem.h"
 #include "state.h"
 
 #include "../config.h"
-
-/* for aggressive inlining */
-#include "decode.c"
 
 #ifdef DEBUG_IFETCH
 #define ifetch_debug printf

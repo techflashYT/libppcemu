@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "../state.h"
 
-static void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS) {
+void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS) {
 	u32 val;
 
 	val = state->gpr[rS];
@@ -17,6 +17,6 @@ static void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS) {
 	state->sr[sreg] = val;
 }
 
-static void do_mfsr(struct _ppcemu_state *state, uint sreg, uint rD) {
+void do_mfsr(struct _ppcemu_state *state, uint sreg, uint rD) {
 	state->gpr[rD] = state->sr[sreg];
 }

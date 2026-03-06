@@ -30,59 +30,49 @@ static u32 mb_me_mask(uint MB, uint ME) {
 	return m;
 }
 
-static void xori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
+void xori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
 	state->gpr[rA] = state->gpr[rS] ^ uimm;
 }
 
-#define do_xori(s, rS, rA, uimm) xori_common(s, rS, rA, uimm)
-#define do_xoris(s, rS, rA, uimm) xori_common(s, rS, rA, (uimm << 16))
-
-static void do_xor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+void do_xor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] ^ state->gpr[rB];
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void ori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
+void ori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
 	state->gpr[rA] = state->gpr[rS] | uimm;
 }
 
-#define do_ori(s, rS, rA, uimm) ori_common(s, rS, rA, uimm)
-#define do_oris(s, rS, rA, uimm) ori_common(s, rS, rA, (uimm << 16))
-
-static void do_or(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc)  {
+void do_or(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] | state->gpr[rB];
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void andi_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
+void andi_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
 	state->gpr[rA] = state->gpr[rS] & uimm;
 
 	update_cr0(state, state->gpr[rA]); /* andi(s) always updates CR0 */
 }
 
-#define do_andi(s, rS, rA, uimm) andi_common(s, rS, rA, uimm)
-#define do_andis(s, rS, rA, uimm) andi_common(s, rS, rA, (uimm << 16))
-
-static void do_and(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc)  {
+void do_and(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] & state->gpr[rB];
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-
-static void do_andc(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc)  {
+void do_andc(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] & (~state->gpr[rB]);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_rlwimi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
+void do_rlwimi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
 	u32 r, m;
 
 	r = rotl32(state->gpr[rS], SH);
@@ -93,7 +83,7 @@ static void do_rlwimi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, ui
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
+void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint MB, uint ME, uint Rc) {
 	u32 r, m;
 
 	r = rotl32(state->gpr[rS], SH);
@@ -104,7 +94,7 @@ static void do_rlwinm(struct _ppcemu_state *state, uint rS, uint rA, uint SH, ui
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_rlwnm(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint MB, uint ME, uint Rc) {
+void do_rlwnm(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint MB, uint ME, uint Rc) {
 	u32 r, m;
 
 	r = rotl32(state->gpr[rS], (state->gpr[rB] & 0x1f));
@@ -115,14 +105,14 @@ static void do_rlwnm(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uin
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_nand(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+void do_nand(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = ~(state->gpr[rS] & state->gpr[rB]);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
+void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
 	state->gpr[rA] = ~state->gpr[rD];
 
 	/* TODO: update XER if OE */
@@ -131,14 +121,14 @@ static void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint 
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_nor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+void do_nor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = ~(state->gpr[rS] | state->gpr[rB]);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_cntlzw(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
+void do_cntlzw(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
 	u32 n = 0;
 
 	while (n <= 31) {
@@ -154,14 +144,14 @@ static void do_cntlzw(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_slw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+void do_slw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] << state->gpr[rB];
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_sraw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+void do_sraw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = (i32)state->gpr[rS] >> state->gpr[rB];
 
 	/* TODO: some crap with XER.CA? */
@@ -170,7 +160,7 @@ static void do_sraw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_srawi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint Rc) {
+void do_srawi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint Rc) {
 	state->gpr[rA] = (i32)state->gpr[rS] >> SH;
 
 	/* TODO: some crap with XER.CA? */
@@ -179,7 +169,7 @@ static void do_srawi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uin
 		update_cr0(state, state->gpr[rA]);
 }
 
-static void do_srw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+void do_srw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	state->gpr[rA] = state->gpr[rS] >> state->gpr[rB];
 
 	if (Rc)

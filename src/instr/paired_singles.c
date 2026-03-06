@@ -42,7 +42,7 @@
 	}
 
 
-static void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
+void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
 	u32 hid2, b, ea, gqr, val_hi, val_lo;
 	i16 di16;
 	i32 di32;
@@ -89,7 +89,7 @@ static void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uin
 	}
 }
 
-static void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	u32 hid2;
 
 	PS_ENFORCE_CAP_IDX("ps_mr");
