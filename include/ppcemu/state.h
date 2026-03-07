@@ -69,11 +69,11 @@ void ppcemu_set_msr(struct ppcemu_state *state, uint32_t val);
  * Log levels
  */
 enum ppcemu_loglevel {
-	PPCEMU_LOOGLEVEL_ERROR,
-	PPCEMU_LOOGLEVEL_WARN,
-	PPCEMU_LOOGLEVEL_INFO,
-	PPCEMU_LOOGLEVEL_VERBOSE,
-	PPCEMU_LOOGLEVEL_DEBUG
+	PPCEMU_LOGLEVEL_ERROR,
+	PPCEMU_LOGLEVEL_WARN,
+	PPCEMU_LOGLEVEL_INFO,
+	PPCEMU_LOGLEVEL_VERBOSE,
+	PPCEMU_LOGLEVEL_DEBUG
 };
 
 enum ppcemu_log_source {

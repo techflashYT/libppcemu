@@ -37,23 +37,23 @@ extern enum ppcemu_loglevel misc_loglevel;
 	va_end(va);
 
 static inline void debug(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOOGLEVEL_DEBUG);
+	DO_LOG(PPCEMU_LOGLEVEL_DEBUG);
 }
 
 static inline void verbose(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOOGLEVEL_VERBOSE);
+	DO_LOG(PPCEMU_LOGLEVEL_VERBOSE);
 }
 
 static inline void info(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOOGLEVEL_INFO);
+	DO_LOG(PPCEMU_LOGLEVEL_INFO);
 }
 
 static inline void warn(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOOGLEVEL_WARN);
+	DO_LOG(PPCEMU_LOGLEVEL_WARN);
 }
 
 static inline void error(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOOGLEVEL_ERROR);
+	DO_LOG(PPCEMU_LOGLEVEL_ERROR);
 }
 
 #endif /* _LIBPPCEMU_INTERNAL_LOG_H */

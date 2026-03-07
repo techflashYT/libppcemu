@@ -7,13 +7,13 @@
 #include <ppcemu/state.h>
 #include "state.h"
 #include "spr.h"
-enum ppcemu_loglevel virt2phys_loglevel = PPCEMU_LOOGLEVEL_INFO;
-enum ppcemu_loglevel ifetch_loglevel = PPCEMU_LOOGLEVEL_INFO;
-enum ppcemu_loglevel decode_loglevel = PPCEMU_LOOGLEVEL_INFO;
-enum ppcemu_loglevel branch_loglevel = PPCEMU_LOOGLEVEL_INFO;
-enum ppcemu_loglevel loadstore_loglevel = PPCEMU_LOOGLEVEL_INFO;
-enum ppcemu_loglevel cond_loglevel = PPCEMU_LOOGLEVEL_INFO;
-enum ppcemu_loglevel misc_loglevel = PPCEMU_LOOGLEVEL_INFO;
+enum ppcemu_loglevel virt2phys_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel ifetch_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel decode_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel branch_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel loadstore_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel cond_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel misc_loglevel = PPCEMU_LOGLEVEL_INFO;
 
 #define REAL_STATE struct _ppcemu_state *s = (struct _ppcemu_state *)state
 
