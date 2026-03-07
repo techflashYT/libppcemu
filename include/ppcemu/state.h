@@ -46,6 +46,11 @@ void ppcemu_set_gpr(struct ppcemu_state *state, unsigned int idx, uint32_t val);
 uint32_t ppcemu_get_spr(struct ppcemu_state *state, unsigned int sprn);
 
 /*
+ * Set the specified SPR.
+ */
+void ppcemu_set_spr(struct ppcemu_state *state, unsigned int sprn, uint32_t val);
+
+/*
  * Get the CR
  */
 uint32_t ppcemu_get_cr(struct ppcemu_state *state);
