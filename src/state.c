@@ -63,6 +63,26 @@ void ppcemu_set_spr(struct ppcemu_state *state, unsigned int sprn, uint32_t val)
 	s->sprs[idx] = val;
 }
 
+uint32_t ppcemu_get_cr(struct ppcemu_state *state) {
+	REAL_STATE;
+	return s->cr;
+}
+
+void ppcemu_set_cr(struct ppcemu_state *state, uint32_t val) {
+	REAL_STATE;
+	s->cr = val;
+}
+
+uint32_t ppcemu_get_msr(struct ppcemu_state *state) {
+	REAL_STATE;
+	return s->msr;
+}
+
+void ppcemu_set_msr(struct ppcemu_state *state, uint32_t val) {
+	REAL_STATE;
+	s->msr = val;
+}
+
 void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel level) {
 	switch (source) {
 	case PPCEMU_LOG_SOURCE_ADDR_TRANSLATION: {
