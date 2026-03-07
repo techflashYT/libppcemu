@@ -8,12 +8,16 @@
 #include "../state.h"
 
 static u32 rotl32(u32 x, uint rot) {
+	rot &= 31;
+	if (!rot)
+		return x;
+
 	return (x << rot) | (x >> (32 - rot));
 }
 
 static u32 mb_me_mask(uint MB, uint ME) {
 	uint b;
-	u32 m;
+	u32 m = 0;
 
 	/* horrid mask generation */
 	if (MB <= ME) {
