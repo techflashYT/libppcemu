@@ -71,6 +71,11 @@ uint32_t ppcemu_get_msr(struct ppcemu_state *state);
 void ppcemu_set_msr(struct ppcemu_state *state, uint32_t val);
 
 /*
+ * Get the Timebase
+ */
+uint64_t ppcemu_get_tb(struct ppcemu_state *state);
+
+/*
  * Log levels
  */
 enum ppcemu_loglevel {

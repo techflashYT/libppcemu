@@ -83,6 +83,11 @@ void ppcemu_set_msr(struct ppcemu_state *state, uint32_t val) {
 	s->msr = val;
 }
 
+uint64_t ppcemu_get_tb(struct ppcemu_state *state) {
+	REAL_STATE;
+	return s->tb;
+}
+
 void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel level) {
 	switch (source) {
 	case PPCEMU_LOG_SOURCE_ADDR_TRANSLATION: {
