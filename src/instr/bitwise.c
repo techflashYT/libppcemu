@@ -136,7 +136,7 @@ void do_cntlzw(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
 	u32 n = 0;
 
 	while (n <= 31) {
-		if (n & (1 << n))
+		if (state->gpr[rS] & (1 << n))
 			break;
 
 		n++;
