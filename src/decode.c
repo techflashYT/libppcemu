@@ -248,7 +248,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 544 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 560 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 576 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 592 */  do_illegal, do_illegal, do_illegal, _do_mfsr,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 592 */  do_illegal, do_illegal, do_illegal, _do_mfsr,   do_illegal, do_illegal, do_sync,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 608 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 624 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 640 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -527,13 +527,8 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 31: { /* X form instructions */
-		verbose("plausible XO opcode: %d\r\n", INST_XO_XO(inst));
-		if (opc31_handlers[INST_XO_XO(inst)] != do_illegal)
-			opc31_handlers[INST_XO_XO(inst)](state, inst);
-		else {
-			verbose("other plausible XO opcode: %d\r\n", INST_XFX_XO(inst));
-			opc31_handlers[INST_XFX_XO(inst)](state, inst); /* whether it's illegal or not that's  what we're running at this point */
-		}
+		verbose("plausible XO opcode: %d\r\n", INST_XFX_XO(inst));
+		opc31_handlers[INST_XFX_XO(inst)](state, inst);
 		break;
 	}
 	case 32: { /* lwz */

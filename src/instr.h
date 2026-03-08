@@ -67,6 +67,7 @@ extern void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint a
 /* cache / syncronization */
 extern void do_isync(struct _ppcemu_state *state, u32 inst);
 extern void do_sync(struct _ppcemu_state *state, u32 inst);
+extern void do_sync(struct _ppcemu_state *state, u32 inst);
 extern void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB);
 extern void do_dcbst(struct _ppcemu_state *state, uint rA, uint rB);
 extern void do_dcbi(struct _ppcemu_state *state, uint rA, uint rB);

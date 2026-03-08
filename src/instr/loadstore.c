@@ -31,6 +31,8 @@ u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 
 
 	ea = b + (i32)(i16)d;
 	mem_debug("basic store: len=%u, rS=%u, rA=%u, b=0x%08x, d=%d, ea=0x%08x\r\n", len, rS, rA, b, (i32)(i16)d, ea);
+	if (ea == 0x81613c24)
+		warn("basic store: PC=0x%08x, len=%u, rS=%u, rSval=0x%08x, rA=%u, b=0x%08x, d=%d, ea=0x%08x\r\n", state->pc, len, rS, state->gpr[rS], rA, b, (i32)(i16)d, ea);
 
 	switch (len) {
 	case 1: {
@@ -69,6 +71,8 @@ u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u1
 
 	ea = b + (i32)state->gpr[rB];
 	mem_debug("indexed store: len=%u, rS=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x\r\n", len, rS, rA, b, rB, (i32)state->gpr[rB], ea);
+	if (ea == 0x81613c24)
+		warn("indexed store: PC=0x%08x, len=%u, rS=%u, rS(val)=0x%08x, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x\r\n", state->pc, len, rS, state->gpr[rS], rA, b, rB, (i32)state->gpr[rB], ea);
 
 	switch (len) {
 	case 1: {
@@ -147,6 +151,8 @@ u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint 
 	}
 	}
 	mem_debug("basic load: len=%u, rD=%u, rA=%u, b=0x%08x, d=%d, ea=0x%08x, result=0x%08x\r\n", len, rD, rA, b, (i32)(i16)d, ea, state->gpr[rD]);
+	if (ea == 0x81613c24)
+		warn("basic load: PC=0x%08x, len=%u, rD=%u, rA=%u, b=0x%08x, d=%d, ea=0x%08x, result=0x%08x\r\n", state->pc, len, rD, rA, b, (i32)(i16)d, ea, state->gpr[rD]);
 
 	return ea;
 }
@@ -185,6 +191,8 @@ u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uin
 	}
 	}
 	mem_debug("indexed load: len=%u, rD=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x, result=0x%08x\r\n", len, rD, rA, rB, (i32)(i16)state->gpr[rB], b, ea, state->gpr[rD]);
+	if (ea == 0x81613c24)
+		warn("indexed load: PC=0x%08x, len=%u, rD=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x, result=0x%08x\r\n", state->pc, len, rD, rA, rB, (i32)(i16)state->gpr[rB], b, ea, state->gpr[rD]);
 
 	return ea;
 }
