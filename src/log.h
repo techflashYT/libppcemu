@@ -29,7 +29,7 @@ extern enum ppcemu_loglevel misc_loglevel;
 #define DO_LOG(level) \
 	va_list va; \
 	\
-	if (LOG_LEVEL <= level) \
+	if (LOG_LEVEL < level) \
 		return; \
 	\
 	va_start(va, fmt); \
