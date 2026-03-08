@@ -96,7 +96,27 @@ extern void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d);
 extern u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d);
 extern u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB);
 #define do_basic_load_update(s, len, rD, rA, d) s->gpr[rA] = do_basic_load(s, len, rD, rA, d);
+static inline u32 do_basic_load_signext(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	u32 ret = do_basic_load(state, len, rD, rA, d);
+	if (len == 2)
+		state->gpr[rD] = (i32)(i16)state->gpr[rD];
+	else if (len == 1)
+		state->gpr[rD] = (i32)(i16)(i8)state->gpr[rD];
+
+	return ret;
+}
+#define do_basic_load_signext_update(s, len, rD, rA, d) s->gpr[rA] = do_basic_load_signext(s, len, rD, rA, d)
 #define do_indexed_load_update(s, len, rD, rA, d) s->gpr[rA] = do_indexed_load(s, len, rD, rA, d);
+static inline u32 do_indexed_load_signext(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	u32 ret = do_indexed_load(state, len, rD, rA, d);
+	if (len == 2)
+		state->gpr[rD] = (i32)(i16)state->gpr[rD];
+	else if (len == 1)
+		state->gpr[rD] = (i32)(i16)(i8)state->gpr[rD];
+
+	return ret;
+}
+#define do_indexed_load_signext_update(s, len, rD, rA, d) s->gpr[rA] = do_indexed_load_signext(s, len, rD, rA, d)
 extern void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d);
 
 /* MSR */

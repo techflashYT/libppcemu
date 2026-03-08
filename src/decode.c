@@ -94,6 +94,8 @@ static void _do_lbzx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexe
 static void _do_lwzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lhzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lbzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_lhax(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst)); }
+static void _do_lhaux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext_update(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst)); }
 static void _do_stwx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_sthx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stbx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
@@ -229,9 +231,9 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 288 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 304 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_lhzux,  do_illegal, do_illegal, do_illegal, do_illegal, _do_xor,    do_illegal, do_illegal, do_illegal,
 	/* 320 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 336 */  do_illegal, do_illegal, do_illegal, _do_mfspr,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 336 */  do_illegal, do_illegal, do_illegal, _do_mfspr,  do_illegal, do_illegal, do_illegal, _do_lhax,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 352 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 368 */  do_illegal, do_illegal, do_illegal, _do_mftb,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 368 */  do_illegal, do_illegal, do_illegal, _do_mftb,   do_illegal, do_illegal, do_illegal, _do_lhaux,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 384 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 400 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_sthx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 416 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -571,6 +573,14 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 41: { /* lhzu */
 		do_basic_load_update(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 42: { /* lha */
+		do_basic_load_signext(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 43: { /* lhau */
+		do_basic_load_signext_update(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 44: { /* sth */
