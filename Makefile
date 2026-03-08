@@ -13,7 +13,7 @@ override OBJ := $(patsubst %.c,build/%.o,$(SRC))
 override OUT_SO := bin/libppcemu.so
 override OUT_ST := bin/libppcemu.a
 
-CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-variadic-macros -std=gnu89 -pedantic -fno-permissive -g -O3 -flto=auto
+CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-variadic-macros -Wno-format-nonliteral -std=gnu89 -pedantic -fno-permissive -g -O3 -flto=auto
 override CFLAGS := $(CFLAGS) -fPIC -Iinclude
 
 LDFLAGS ?= -flto=auto
