@@ -67,8 +67,8 @@ static void _do_mtmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtmsr
 static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr(state, INST_XO_rD(inst)); }
 static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
-static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_mfcr(state, INST_XO_rD(inst)); }
-static void _do_mtcrf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XFX_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); }; do_mtcrf(state, INST_XFX_rS(inst), INST_XFX_CRM(inst)); }
+static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mfcr(state, INST_XO_rD(inst)); }
+static void _do_mtcrf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XFX_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtcrf(state, INST_XFX_rS(inst), INST_XFX_CRM(inst)); }
 
 /* branch wrappers */
 static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0b0000011111) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
@@ -104,10 +104,10 @@ static void _do_sthux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_index
 static void _do_stbux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store_update(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 
 /* cache wrappers */
-static void _do_dcbf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_dcbf(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
-static void _do_dcbst(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_dcbst(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
-static void _do_dcbi(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_dcbi(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
-static void _do_icbi(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_icbi(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_dcbf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbf(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_dcbst(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbst(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_icbi(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_icbi(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_dcbi(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbi(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
 
 /* comparison wrappers */
 static void _do_cmpl(struct _ppcemu_state *state, u32 inst) {
