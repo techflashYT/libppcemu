@@ -4,12 +4,12 @@
  * Copyright (C) 2026 Techflash
  */
 
+#define LOG_LEVEL loadstore_loglevel
 #include <stdio.h>
 #include <ppcemu/endian.h>
-#include "../exception.h"
+#include "../log.h"
 #include "../mem.h"
 #include "../state.h"
-#include "../../config.h"
 
 #ifdef DEBUG_LOADSTORE
 #define mem_debug debug
