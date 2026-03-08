@@ -4,6 +4,8 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include "ppcemu/spr.h"
+#include "spr.h"
 #define LOG_LEVEL decode_loglevel
 
 #include <stdio.h>
@@ -408,6 +410,7 @@ static void (*opc4_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 
 
 void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
+	uint rD, crfD, oldpc;
 	state->branched = false;
 
 	verbose("top-level opcode: %d\r\n", INST_OPCD(inst));
@@ -426,7 +429,6 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 10: { /* cmpli */
-		uint rD, crfD;
 		rD = INST_D_rD(inst);
 		crfD = rD >> 2;
 		if (rD & 3) { /* forced-zero bit or L bit */
@@ -437,7 +439,6 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 11: { /* cmpi */
-		uint rD, crfD;
 		rD = INST_D_rD(inst);
 		crfD = rD >> 2;
 		if (rD & 3) { /* forced-zero bit or L bit */
@@ -470,8 +471,11 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	case 17: { /* sc */
 		if (inst & 0x3fffffd || !(inst & 0x2))
 			exception_fire(state, EXCEPTION_PROGRAM);
-		else
+		else {
+			oldpc = state->pc;
 			exception_fire(state, EXCEPTION_SYSCALL);
+			state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)] = oldpc + 4;
+		}
 		break;
 	}
 	case 18: { /* branch */
