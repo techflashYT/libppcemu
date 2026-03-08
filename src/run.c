@@ -4,6 +4,10 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include "exception.h"
+#include "ppcemu/msr.h"
+#include "ppcemu/spr.h"
+#include "spr.h"
 enum ppcemu_loglevel ifetch_loglevel;
 #define LOG_LEVEL ifetch_loglevel
 
@@ -45,8 +49,10 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 
 void ppcemu_step(struct ppcemu_state *emu) {
 	struct _ppcemu_state *state;
-	u32 instr;
+	u32 instr, dec;
+	u64 cycles;
 	enum virt2phys_err err;
+	bool fire_dec_exception;
 
 	state = (struct _ppcemu_state *)emu;
 	if (!state->ready)
@@ -60,4 +66,49 @@ void ppcemu_step(struct ppcemu_state *emu) {
 	}
 
 	_ppcemu_decode_exec(state, instr);
+
+	/* handle timing stuff */
+	state->instr_count++;
+	#if 0
+	/* TODO: eventually implement these... */
+	if (!(state->instr_count & 0x7f) && state->sync_rt) {
+		cycles = tb_cycles_since_last_sync();
+
+		/* increase timebase */
+		state->tb += cycles;
+		/* SPRs determined from state->tb at runtime */
+
+		/* decrement decrementer */
+		dec = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)];
+		fire_dec_exception = ((i32)dec >= 0 && (i32)(dec - cycles) < 0 && state->msr & PPCEMU_MSR_EE);
+		dec -= cycles;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
+
+		if (fire_dec_exception)
+			exception_fire(state, EXCEPTION_DEC);
+
+		resync_tb_cycles_timer();
+	}
+	else if (!(state->instr_count & 0x7)) {
+	#endif
+	if (!(state->instr_count & 0x7)) {
+		/* increase timebase */
+		/*
+		 * Ugly hack: core can execute approximately 2 instructions per bus cycle, and TB is 1/4 bus clock,
+		 * so increasing it by the core multiplier every 8 instructions gets _vaguely_ close to legitimate timing.
+		 * This isn't all that accurate but it is very fast, since it's just an addition.
+		 */
+		state->tb += state->c2b_mult;
+		/* SPRs determined from state->tb at runtime */
+
+		/* decrement decrementer */
+		dec = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)];
+		/* fire decrementer exception on underflow, if enabled */
+		fire_dec_exception = ((i32)dec >= 0 && (i32)(dec - state->c2b_mult) < 0 && state->msr & PPCEMU_MSR_EE);
+		dec -= state->c2b_mult;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
+
+		if (fire_dec_exception)
+			exception_fire(state, EXCEPTION_DEC);
+	}
 }

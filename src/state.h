@@ -21,6 +21,8 @@ struct _ppcemu_state {
 	ppcemu_bus_hook bus_hook;
 	uint bus_speed_khz;
 	uint c2b_mult;
+	uint instr_count;
+	u64 tb;
 
 	/* CPU state */
 	u32 gpr[32];
