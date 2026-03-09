@@ -4,6 +4,7 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include "../cache.h"
 #include "../decode.h"
 #include "../state.h"
 
@@ -19,17 +20,49 @@ void do_sync(struct _ppcemu_state *state, u32 inst) {
 }
 
 void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
-	/* TODO: actually store+invalidate the D-Cache block @ rA + (i32)rB */
+	u32 b, ea;
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	ppcemu_dcache_writeback_invalidate_line(&state->dcache, ea);
 }
 
 void do_dcbst(struct _ppcemu_state *state, uint rA, uint rB) {
-	/* TODO: actually store the D-Cache block @ rA + (i32)rB */
+	u32 b, ea;
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	ppcemu_dcache_writeback_line(&state->dcache, ea);
 }
 
 void do_dcbi(struct _ppcemu_state *state, uint rA, uint rB) {
-	/* TODO: actually invalidate the D-Cache block @ rA + (i32)rB */
+	u32 b, ea;
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	ppcemu_dcache_invalidate_line(&state->dcache, ea);
 }
 
 void do_icbi(struct _ppcemu_state *state, uint rA, uint rB) {
-	/* TODO: actually invalidate the I-Cache block @ rA + (i32)rB */
+	u32 b, ea;
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	ppcemu_icache_invalidate_line(&state->icache, ea);
 }
