@@ -171,9 +171,11 @@ void ppcemu_icache_fetch(struct cache *icache, u32 addr, u32 *out) {
 	*out = *(u32 *)&line->data[offset];
 }
 
-void ppcemu_icache_invalidate_line(struct cache *icache, u64 addr) {
+void ppcemu_icache_invalidate_line(struct cache *icache, u32 addr) {
 	u32 line_base;
 	struct cacheline *line;
+
+	verbose("icache inval: 0x%08x\r\n", addr);
 
 	assert(icache != NULL);
 	assert(!icache->is_data_cache);
@@ -224,7 +226,8 @@ void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in
 
 	assert(dcache);
 	assert(dcache->is_data_cache);
-	assert(size == 1 || size == 2 || size == 4 || size == 8);
+	/* enforce size and alignment */
+	assert(size == 1 || (size == 2 && !(addr & 0x1)) || (size == 4 && !(addr & 0x3)) || (size == 8 && !(addr & 0x7)));
 
 	line_base = cache_line_base(addr);
 	offset = cache_line_offset(addr);
@@ -253,6 +256,8 @@ void ppcemu_dcache_writeback_line(struct cache *dcache, u32 addr) {
 	u32 line_base;
 	struct cacheline *line;
 
+	verbose("dcache wb: 0x%08x\r\n", addr);
+
 	assert(dcache);
 	assert(dcache->is_data_cache);
 
@@ -269,6 +274,8 @@ void ppcemu_dcache_invalidate_line(struct cache *dcache, u32 addr) {
 	u32 line_base;
 	struct cacheline *line;
 
+	verbose("dcache inval: 0x%08x\r\n", addr);
+
 	assert(dcache);
 	assert(dcache->is_data_cache);
 
@@ -282,9 +289,11 @@ void ppcemu_dcache_invalidate_line(struct cache *dcache, u32 addr) {
 	}
 }
 
-void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u64 addr) {
+void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u32 addr) {
 	u32 line_base;
 	struct cacheline *line;
+
+	verbose("dcache wb+inval: 0x%08x\r\n", addr);
 
 	assert(dcache);
 	assert(dcache->is_data_cache);
