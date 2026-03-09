@@ -19,6 +19,7 @@ extern enum ppcemu_loglevel decode_loglevel;
 extern enum ppcemu_loglevel branch_loglevel;
 extern enum ppcemu_loglevel loadstore_loglevel;
 extern enum ppcemu_loglevel cond_loglevel;
+extern enum ppcemu_loglevel cache_loglevel;
 extern enum ppcemu_loglevel misc_loglevel;
 
 

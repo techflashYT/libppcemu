@@ -10,6 +10,7 @@
 #define LOG_LEVEL virt2phys_loglevel
 #include <stdio.h>
 #include <ppcemu/msr.h>
+#include "cache.h"
 #include "caps.h"
 #include "log.h"
 #include "mem.h"
@@ -70,11 +71,12 @@ static uint bat_blocklen_to_bytes(u32 bl) {
 }
 
 
-enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool ifetch, bool write) {
-	u32 batu, batl, size, bepi, pp;
+enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool *cacheable, bool ifetch, bool write) {
+	u32 batu, batl, size, bepi, pp, wimg;
 	uint i, max_bat;
 	bool vs, vp;
 
+	*cacheable = false;
 	if (ifetch && !(state->msr & PPCEMU_MSR_IR)) {
 		*phys = virt;
 		return V2P_SUCCESS;
@@ -119,6 +121,11 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 			else if (!write && pp == PPCEMU_BATL_PP___)
 				return V2P_NO_PERMS;
 
+			/* Determine if it can hit the cache by checking the cache inhibit bit */
+			wimg = (batl & PPCEMU_BATL_WIMG) >> PPCEMU_BATL_WIMG_SHIFT;
+			if (!(wimg & 0b0100))
+				*cacheable = true; /* already set to false above */
+
 			return V2P_SUCCESS;
 		}
 		mem_debug("MEM: It does not, continuing...\r\n");
@@ -140,8 +147,9 @@ const char *v2p_strerror(enum virt2phys_err err) {
 enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
 	u32 phys;
+	bool cacheable;
 
-	err = ppcemu_virt2phys(state, ea, &phys, false, true);
+	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, true);
 	if (err != V2P_SUCCESS) {
 		/* TODO: need to set other info? */
 		warn("_do_basic_store: store %uB to 0x%08x @ PC=0x%08x: virt2phys error: %s (%d)\r\n", len, ea, state->pc, v2p_strerror(err), err);
@@ -149,15 +157,19 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 		return err;
 	}
 
-	state->bus_hook((struct ppcemu_state *)state, phys, len, val, true);
+	if (cacheable)
+		ppcemu_dcache_store(&state->dcache, ea, len, val);
+	else
+		state->bus_hook((struct ppcemu_state *)state, phys, len, val, true);
 	return err;
 }
 
 enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
 	u32 phys;
+	bool cacheable;
 
-	err = ppcemu_virt2phys(state, ea, &phys, false, false);
+	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, false);
 	if (err != V2P_SUCCESS) {
 		/* TODO: need to set other info? */
 		warn("_do_basic_load: load %uB from 0x%08x @ PC=0x%08x: virt2phys error: %s (%d)\r\n", len, ea, state->pc, v2p_strerror(err), err);
@@ -165,6 +177,10 @@ enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea,
 		return err;
 	}
 
-	state->bus_hook((struct ppcemu_state *)state, phys, len, val, false);
+	if (cacheable)
+		ppcemu_dcache_load(&state->dcache, ea, len, val);
+	else
+		state->bus_hook((struct ppcemu_state *)state, phys, len, val, false);
+
 	return err;
 }

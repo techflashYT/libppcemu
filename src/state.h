@@ -9,6 +9,7 @@
 
 #include <ppcemu/types.h>
 #include <stdbool.h>
+#include "cache.h"
 #include "types.h"
 #include "spr.h"
 
@@ -23,6 +24,8 @@ struct _ppcemu_state {
 	uint c2b_mult;
 	uint instr_count;
 	u64 tb;
+	struct cache icache;
+	struct cache dcache;
 
 	/* CPU state */
 	u32 gpr[32];

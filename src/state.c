@@ -13,6 +13,7 @@ enum ppcemu_loglevel decode_loglevel = PPCEMU_LOGLEVEL_INFO;
 enum ppcemu_loglevel branch_loglevel = PPCEMU_LOGLEVEL_INFO;
 enum ppcemu_loglevel loadstore_loglevel = PPCEMU_LOGLEVEL_INFO;
 enum ppcemu_loglevel cond_loglevel = PPCEMU_LOGLEVEL_INFO;
+enum ppcemu_loglevel cache_loglevel = PPCEMU_LOGLEVEL_INFO;
 enum ppcemu_loglevel misc_loglevel = PPCEMU_LOGLEVEL_INFO;
 
 #define REAL_STATE struct _ppcemu_state *s = (struct _ppcemu_state *)state
@@ -108,6 +109,10 @@ void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel lev
 	}
 	case PPCEMU_LOG_SOURCE_LOADSTORE: {
 		loadstore_loglevel = level;
+		break;
+	}
+	case PPCEMU_LOG_SOURCE_CACHE: {
+		cache_loglevel = level;
 		break;
 	}
 	case PPCEMU_LOG_SOURCE_MISC: {

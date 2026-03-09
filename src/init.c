@@ -10,6 +10,7 @@
 #include <ppcemu/msr.h>
 #include <ppcemu/types.h>
 #include <ppcemu/state.h>
+#include "cache.h"
 #include "caps.h"
 #include "exception.h"
 #include "state.h"
@@ -47,6 +48,9 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 		break;
 	}
 	}
+
+	/* TODO: don't hardcode */
+	ppcemu_cache_init(state, 256 * 1024, 256 * 1024);
 
 	state->bus_hook = bus_hook;
 	state->bus_speed_khz = bus_speed_khz;

@@ -4,6 +4,7 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include "cache.h"
 #include "exception.h"
 #include "ppcemu/msr.h"
 #include "ppcemu/spr.h"
@@ -32,15 +33,20 @@ static void ifetch_debug(const char *fmt, ...) {
 static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr) {
 	u32 phys;
 	enum virt2phys_err err;
+	bool cacheable;
 
-	err = ppcemu_virt2phys(state, state->pc, &phys, true, false);
+	err = ppcemu_virt2phys(state, state->pc, &phys, &cacheable, true, false);
 
 	if (err != V2P_SUCCESS) {
 		warn("Instr fetch failed @ 0x%08x due to virt2phys err %d\r\n", state->pc, err);
 		return err;
 	}
 
-	state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
+	if (cacheable)
+		ppcemu_icache_fetch(&state->icache, state->pc, instr);
+	else
+		state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
+
 	*instr = ppcemu_be32_to_cpu(*instr);
 	verbose("Fetched instruction @ 0x%08x: %08x\r\n", state->pc, *instr);
 
