@@ -9,7 +9,6 @@
 #include "ppcemu/msr.h"
 #include "ppcemu/spr.h"
 #include "spr.h"
-enum ppcemu_loglevel ifetch_loglevel;
 #define LOG_LEVEL ifetch_loglevel
 
 #include <stdio.h>
