@@ -120,6 +120,7 @@ void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
 	state->gpr[rA] = ~state->gpr[rD];
 
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);

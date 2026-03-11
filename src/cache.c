@@ -153,7 +153,7 @@ static struct cacheline *cache_get_line(struct cache *c, u64 line_base) {
 
 /* I$ operations */
 void ppcemu_icache_fetch(struct cache *icache, u32 addr, u32 *out) {
-	u32 line_base, val;
+	u32 line_base;
 	uint offset;
 	struct cacheline *line;
 
