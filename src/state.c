@@ -41,7 +41,7 @@ void ppcemu_set_gpr(struct ppcemu_state *state, unsigned int idx, uint32_t val) 
 	if (idx > 31)
 		return;
 
-	s->gpr[idx] = idx;
+	s->gpr[idx] = val;
 }
 
 uint32_t ppcemu_get_spr(struct ppcemu_state *state, unsigned int sprn) {
