@@ -30,7 +30,7 @@ u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 
 		b = state->gpr[rA];
 
 	ea = b + (i32)(i16)d;
-	mem_debug("basic store: len=%u, rS=%u, rA=%u, b=0x%08x, d=%d, ea=0x%08x\r\n", len, rS, rA, b, (i32)(i16)d, ea);
+	mem_debug("basic store: len=%u, rS=%u, rS(val)=0x%08x, rA=%u, b=0x%08x, d=%d, ea=0x%08x\r\n", len, rS, state->gpr[rS], rA, b, (i32)(i16)d, ea);
 
 	switch (len) {
 	case 1: {
@@ -68,7 +68,7 @@ u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u1
 		b = state->gpr[rA];
 
 	ea = b + (i32)state->gpr[rB];
-	mem_debug("indexed store: len=%u, rS=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x\r\n", len, rS, rA, b, rB, (i32)state->gpr[rB], ea);
+	mem_debug("indexed store: len=%u, rS=%u, rS(val)=0x%08x, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x\r\n", len, rS, state->gpr[rS], rA, b, rB, (i32)state->gpr[rB], ea);
 
 	switch (len) {
 	case 1: {
