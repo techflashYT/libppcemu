@@ -42,13 +42,12 @@ void do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 }
 
 void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
-	u32 hid2;
-
 	ENFORCE_MSR_FP();
 
 	state->fpr[frD] = state->gpr[frB];
 
 	/* TODO: Update CR1 if Rc */
+	(void)Rc;
 }
 
 void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
@@ -68,6 +67,9 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 		state->fpcsr &= ~mask;
 		state->fpcsr |= (state->fpr[frB] & mask);
 	}
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
 }
 
 
@@ -77,4 +79,7 @@ void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
 		state->fpcsr |= mask;
 	else
 		state->fpcsr &= ~mask;
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
 }

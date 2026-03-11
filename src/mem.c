@@ -31,7 +31,7 @@ static uint bat_to_spr_idx(uint batnum, bool ibat, bool upper) {
 	uint base, off;
 
 	/* calculate base BAT SPRN */
-	if (batnum >= 0 && batnum <= 3) base = PPCEMU_SPRN_IBAT0U;
+	if (batnum <= 3) base = PPCEMU_SPRN_IBAT0U;
 	else if (batnum >= 4 && batnum <= 7) base = PPCEMU_SPRN_IBAT4U;
 	else assert(!"Unreachable");
 
@@ -43,7 +43,7 @@ static uint bat_to_spr_idx(uint batnum, bool ibat, bool upper) {
 	if (!ibat) off += 8;
 
 	/* calculate offset (number) */
-	if (batnum >= 0 && batnum <= 3) off += (2 * batnum);
+	if (batnum <= 3) off += (2 * batnum);
 	else if (batnum >= 4 && batnum <= 7) off += (2 * (batnum - 4));
 	else assert(!"Unreachable");
 

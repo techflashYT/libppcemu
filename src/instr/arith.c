@@ -19,6 +19,7 @@ void do_add(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uin
 	state->gpr[rD] = state->gpr[rA] + state->gpr[rB];
 
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -29,6 +30,7 @@ void do_addc(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uin
 
 	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -39,6 +41,7 @@ void do_adde(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uin
 
 	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -49,6 +52,7 @@ void do_addze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
 
 	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -67,6 +71,7 @@ void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, ui
 	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + 1;
 
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -83,6 +88,7 @@ void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 
 	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -93,6 +99,7 @@ void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 
 	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -102,6 +109,7 @@ void do_divw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, ui
 	state->gpr[rD] = (i32)state->gpr[rA] / (i32)state->gpr[rB];
 
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -111,6 +119,7 @@ void do_divwu(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 	state->gpr[rD] = state->gpr[rA] / state->gpr[rB];
 
 	/* TODO: update XER if OE */
+	(void)OE;
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -154,7 +163,6 @@ void do_mullw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 }
 
 void do_mulli(struct _ppcemu_state *state, uint rD, uint rA, u16 simm) {
-	u32 xer;
 	u64 res = (i64)(i32)state->gpr[rA] * (i16)simm;
 
 	state->gpr[rD] = (u32)(res & 0xffffffff);

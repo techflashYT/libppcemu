@@ -16,22 +16,22 @@
 #define CR0_EQ (1 << 29)
 #define CR0_SO (1 << 28)
 
-static uint cr_get_bit(struct _ppcemu_state *state, uint bit) {
+static inline uint cr_get_bit(struct _ppcemu_state *state, uint bit) {
 	return (state->cr >> bit) & 1;
 }
 
-static void cr_set_bit(struct _ppcemu_state *state, uint bit, bool set) {
+static inline void cr_set_bit(struct _ppcemu_state *state, uint bit, bool set) {
 	u32 mask = 1 << bit;
 	state->cr = set ? (state->cr | mask) : (state->cr & ~mask);
 }
 
-static void cr_set_field(struct _ppcemu_state *state, uint field, u32 val) {
+static inline void cr_set_field(struct _ppcemu_state *state, uint field, u32 val) {
 	u32 mask = 15 << ((7 - field) * 4);
 	state->cr &= ~mask;
 	state->cr |= ((val & 15) << ((7 - field) * 4));
 }
 
-static void update_cr0(struct _ppcemu_state *state, u32 val) {
+static inline void update_cr0(struct _ppcemu_state *state, u32 val) {
 	u8 cr0, xer_so;
 	u32 xer = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)];
 	xer_so = (xer & PPCEMU_XER_SO) >> PPCEMU_XER_SO_SHIFT;

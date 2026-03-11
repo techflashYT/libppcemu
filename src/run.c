@@ -96,6 +96,7 @@ void ppcemu_step(struct ppcemu_state *emu) {
 	}
 	else if (!(state->instr_count & 0x7)) {
 	#endif
+	(void)cycles;
 	if (!(state->instr_count & 0x7)) {
 		/* increase timebase */
 		/*

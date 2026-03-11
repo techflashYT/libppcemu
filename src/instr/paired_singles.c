@@ -22,7 +22,7 @@
 	} \
 	if (state->caps & CAPS_HID2_GEKKO) { \
 		hid2 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)]; \
-		if ((hid2 & (PPCEMU_HID2_PSE | PPCEMU_HID2_BW_LSQE)) != (PPCEMU_HID2_PSE | PPCEMU_HID2_BW_LSQE)) { \
+		if ((u32)(hid2 & (PPCEMU_HID2_PSE | PPCEMU_HID2_BW_LSQE)) != (u32)(PPCEMU_HID2_PSE | PPCEMU_HID2_BW_LSQE)) { \
 			exception_fire(state, EXCEPTION_PROGRAM); \
 			return; \
 		} \
@@ -97,4 +97,5 @@ void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	state->fpr[frD] = state->gpr[frB]; /* technically it's broken up into 2 moves but this is functionally what it does */
 
 	/* TODO: Update CR1 if Rc */
+	(void)Rc;
 }
