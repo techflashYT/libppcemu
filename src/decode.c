@@ -82,6 +82,7 @@ static void _do_add(struct _ppcemu_state *state, u32 inst) { do_add(state, INST_
 static void _do_addc(struct _ppcemu_state *state, u32 inst) { do_addc(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_adde(struct _ppcemu_state *state, u32 inst) { do_adde(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_addze(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_addze(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
+static void _do_addme(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_addme(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_divw(struct _ppcemu_state *state, u32 inst) { do_divw(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_divwu(struct _ppcemu_state *state, u32 inst) { do_divwu(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
 static void _do_mulhwu(struct _ppcemu_state *state, u32 inst) { if (INST_XO_OE(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mulhwu(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
@@ -225,7 +226,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 176 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_stwux,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 192 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_addze,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 208 */  do_illegal, do_illegal, _do_mtsr,   do_illegal, do_illegal, do_illegal, do_illegal, _do_stbx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 224 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mullw,  do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 224 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_addme,  _do_mullw,  do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 240 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_stbux,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 256 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_add,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 272 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_lhzx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
