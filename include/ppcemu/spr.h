@@ -30,6 +30,20 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_CTR = 9,
 
 	/*
+	 * DSI Status Registers
+	 *
+	 * Available in: All
+	 */
+	PPCEMU_SPRN_DSISR = 18,
+
+	/*
+	 * Data Address Register
+	 *
+	 * Available in: All
+	 */
+	PPCEMU_SPRN_DAR = 19,
+
+	/*
 	 * Decrementer
 	 *
 	 * Available in: All
@@ -194,6 +208,13 @@ enum ppcemu_sprn {
 	 * Available in: 750CL, Broadway, Espresso
 	 */
 	PPCEMU_SPRN_HID4 = 1011,
+
+	/*
+	 * Data Address Breakpoint Register
+	 *
+	 * Available in: All
+	 */
+	PPCEMU_SPRN_DABR = 1013,
 
 	/*
 	 * L2 Cache Control Register
