@@ -4,20 +4,20 @@
  * Copyright (C) 2026 Techflash
  */
 
-#include "cache.h"
-#include "exception.h"
-#include "ppcemu/msr.h"
-#include "ppcemu/spr.h"
-#include "spr.h"
 #define LOG_LEVEL ifetch_loglevel
 
 #include <stdio.h>
 #include <ppcemu/endian.h>
+#include <ppcemu/msr.h>
+#include <ppcemu/spr.h>
 #include <ppcemu/state.h>
 #include <ppcemu/types.h>
+#include "cache.h"
 #include "decode.h"
+#include "exception.h"
 #include "log.h"
 #include "mem.h"
+#include "spr.h"
 #include "state.h"
 
 
