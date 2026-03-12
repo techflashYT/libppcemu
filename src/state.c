@@ -149,14 +149,14 @@ uint64_t ppcemu_rt_refresh(struct ppcemu_state *state) {
 
 	#ifdef USE_TIMESPEC
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	diff_us = (s->rt_last_sync_sec - ts.tv_sec) * 1000000;
-	diff_us += (s->rt_last_sync_usec - (ts.tv_nsec / 1000));
+	diff_us = (ts.tv_sec - s->rt_last_sync_sec) * 1000000;
+	diff_us += ((ts.tv_nsec / 1000) - s->rt_last_sync_usec);
 	s->rt_last_sync_sec = ts.tv_sec;
 	s->rt_last_sync_usec = ts.tv_nsec / 1000;
 	#else
 	gettimeofday(&tv, NULL);
-	diff_us = (s->rt_last_sync_sec - tv.tv_sec) * 1000000;
-	diff_us += (s->rt_last_sync_usec - tv.tv_usec);
+	diff_us = (tv.tv_sec - s->rt_last_sync_sec) * 1000000;
+	diff_us += (tv.tv_usec - s->rt_last_sync_usec);
 	s->rt_last_sync_sec = tv.tv_sec;
 	s->rt_last_sync_usec = tv.tv_usec;
 	#endif
