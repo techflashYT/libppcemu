@@ -101,4 +101,23 @@ enum ppcemu_log_source {
  */
 void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel level);
 
+/*
+ * If in real-time mode, refresh the timer, and
+ * return the number of TB ticks that would have passed.
+ *
+ * Beware that ppcemu_step also calls this function, every
+ * 128th instruction.
+ */
+uint64_t ppcemu_rt_refresh(struct ppcemu_state *state);
+
+enum ppcemu_timing_mode {
+	PPCEMU_TIMING_MODE_SYNTH,
+	PPCEMU_TIMING_MODE_RT
+};
+
+/*
+ * Set the timing mode.
+ */
+void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode mode);
+
 #endif /* _LIBPPCEMU_STATE_H */

@@ -74,10 +74,9 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 	/* handle timing stuff */
 	state->instr_count++;
-	#if 0
 	/* TODO: eventually implement these... */
 	if (!(state->instr_count & 0x7f) && state->sync_rt) {
-		cycles = tb_cycles_since_last_sync();
+		cycles = ppcemu_rt_refresh((struct ppcemu_state *)state);
 
 		/* increase timebase */
 		state->tb += cycles;
@@ -91,13 +90,8 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 		if (fire_dec_exception)
 			exception_fire(state, EXCEPTION_DEC);
-
-		resync_tb_cycles_timer();
 	}
 	else if (!(state->instr_count & 0x7)) {
-	#endif
-	(void)cycles;
-	if (!(state->instr_count & 0x7)) {
 		/* increase timebase */
 		/*
 		 * Ugly hack: core can execute approximately 2 instructions per bus cycle, and TB is 1/4 bus clock,

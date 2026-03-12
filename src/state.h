@@ -26,6 +26,9 @@ struct _ppcemu_state {
 	u64 tb;
 	struct cache icache;
 	struct cache dcache;
+	u64 rt_last_sync_sec;
+	u64 rt_last_sync_usec;
+	bool sync_rt;
 
 	/* CPU state */
 	u32 gpr[32];

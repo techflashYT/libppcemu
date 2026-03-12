@@ -4,9 +4,23 @@
  * Copyright (C) 2026 Techflash
  */
 
+
+#include <unistd.h>
+#ifdef _POSIX_TIMERS
+#  ifdef _POSIX_MONOTONIC_CLOCK
+#    include <time.h>
+#    define USE_TIMESPEC
+#  else
+#    include <sys/time.h>
+#  endif
+#else
+#  include <sys/time.h>
+#endif
+
 #include <ppcemu/state.h>
 #include "state.h"
 #include "spr.h"
+/* FIXME: put into state */
 enum ppcemu_loglevel virt2phys_loglevel = PPCEMU_LOGLEVEL_INFO;
 enum ppcemu_loglevel ifetch_loglevel = PPCEMU_LOGLEVEL_INFO;
 enum ppcemu_loglevel decode_loglevel = PPCEMU_LOGLEVEL_INFO;
@@ -122,4 +136,63 @@ void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel lev
 	default:
 		break;
 	}
+}
+
+uint64_t ppcemu_rt_refresh(struct ppcemu_state *state) {
+	uint64_t diff_us, bus_hz, tb_cycles_per_usec;
+	#ifdef USE_TIMESPEC
+	struct timespec ts;
+	#else
+	struct timeval tv;
+	#endif
+	REAL_STATE;
+
+	#ifdef USE_TIMESPEC
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	diff_us = (s->rt_last_sync_sec - ts.tv_sec) * 1000000;
+	diff_us += (s->rt_last_sync_usec - (ts.tv_nsec / 1000));
+	s->rt_last_sync_sec = ts.tv_sec;
+	s->rt_last_sync_usec = ts.tv_nsec / 1000;
+	#else
+	gettimeofday(&tv, NULL);
+	diff_us = (s->rt_last_sync_sec - tv.tv_sec) * 1000000;
+	diff_us += (s->rt_last_sync_usec - tv.tv_usec);
+	s->rt_last_sync_sec = tv.tv_sec;
+	s->rt_last_sync_usec = tv.tv_usec;
+	#endif
+
+	/*
+	 * Real nath
+	 */
+
+	/* get speed in Hz for easier calculations below */
+	bus_hz = s->bus_speed_khz * 1000;
+	/* TB ticks at 1/4th bus clock; further divide by 1000000 to get number per usec */
+	tb_cycles_per_usec = (bus_hz / 4) / 1000000;
+
+	/*
+	 * number of TB cycles passed is the number
+	 * of TB cycles per usec, multiplied by how many
+	 * usecs have passed since the last check
+	 */
+	return tb_cycles_per_usec * diff_us;
+}
+
+void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode mode) {
+	REAL_STATE;
+
+	switch (mode) {
+	case PPCEMU_TIMING_MODE_RT: {
+		s->sync_rt = true;
+		break;
+	}
+	case PPCEMU_TIMING_MODE_SYNTH: {
+		s->sync_rt = false;
+		break;
+	}
+	default:
+		return;
+	}
+
+	ppcemu_rt_refresh(state);
 }
