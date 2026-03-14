@@ -5,6 +5,7 @@
  */
 
 
+#include "ppcemu/types.h"
 #include <unistd.h>
 #ifdef _POSIX_TIMERS
 #  ifdef _POSIX_MONOTONIC_CLOCK
@@ -195,4 +196,10 @@ void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode 
 	}
 
 	ppcemu_rt_refresh(state);
+}
+
+void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook hook) {
+	REAL_STATE;
+
+	s->loadstore_hook = hook;
 }

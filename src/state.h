@@ -20,6 +20,7 @@ struct _ppcemu_state {
 	enum ppcemu_cpu_model model;
 	u32 caps;
 	ppcemu_bus_hook bus_hook;
+	ppcemu_loadstore_hook loadstore_hook;
 	uint bus_speed_khz;
 	uint c2b_mult;
 	uint instr_count;

@@ -7,11 +7,13 @@
  * Copyright (C) 2025 Techflash
  */
 
+#include "ppcemu/state.h"
 #define LOG_LEVEL virt2phys_loglevel
 #include <stdio.h>
 #include <ppcemu/msr.h>
 #include "cache.h"
 #include "caps.h"
+#include "exception.h"
 #include "log.h"
 #include "mem.h"
 #include "ppcemu/spr.h"
@@ -149,6 +151,9 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 	u32 phys;
 	bool cacheable;
 
+	if (state->loadstore_hook)
+		state->loadstore_hook((struct ppcemu_state *)state, ea, len, val, true);
+
 	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, true);
 	if (err != V2P_SUCCESS) {
 		/* TODO: need to set other info? */
@@ -168,6 +173,9 @@ enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea,
 	enum virt2phys_err err;
 	u32 phys;
 	bool cacheable;
+
+	if (state->loadstore_hook)
+		state->loadstore_hook((struct ppcemu_state *)state, ea, len, val, false);
 
 	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, false);
 	if (err != V2P_SUCCESS) {

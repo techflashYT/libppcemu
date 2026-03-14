@@ -7,6 +7,7 @@
 #ifndef _LIBPPCEMU_STATE_H
 #define _LIBPPCEMU_STATE_H
 
+#include <ppcemu/types.h>
 #include <stdint.h>
 
 /*
@@ -119,5 +120,10 @@ enum ppcemu_timing_mode {
  * Set the timing mode.
  */
 void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode mode);
+
+/*
+ * Set the load/store hook.  `hook` can be NULL to remove the hook (faster).
+ */
+void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook hook);
 
 #endif /* _LIBPPCEMU_STATE_H */

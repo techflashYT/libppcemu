@@ -9,7 +9,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <ppcemu/state.h>
+
+/* can't include state.h due to recursive includes, so declare the opaque ppcemu_state here */
+struct ppcemu_state;
 
 /* The specific CPU model to emulate */
 enum ppcemu_cpu_model {
@@ -22,5 +24,8 @@ enum ppcemu_cpu_model {
 
 /* type for bus hooks */
 typedef void (*ppcemu_bus_hook)(struct ppcemu_state *emu, uint32_t address, unsigned int len, void *data, bool is_write);
+
+/* type for the load/store hook */
+typedef void (*ppcemu_loadstore_hook)(struct ppcemu_state *emu, uint32_t address, unsigned int len, void *data, bool is_write);
 
 #endif /* _LIBPPCEMU_TYPES_H */

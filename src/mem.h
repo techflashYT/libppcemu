@@ -7,7 +7,6 @@
 #ifndef _LIBPPCEMU_INTERNAL_MEM_H
 #define _LIBPPCEMU_INTERNAL_MEM_H
 
-#include "exception.h"
 #include "state.h"
 #include "types.h"
 
