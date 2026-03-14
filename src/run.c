@@ -74,8 +74,7 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 	/* handle timing stuff */
 	state->instr_count++;
-	/* TODO: eventually implement these... */
-	if (!(state->instr_count & 0x7f) && state->sync_rt) {
+	if (!(state->instr_count & 0x7fff) && state->sync_rt) {
 		cycles = ppcemu_rt_refresh((struct ppcemu_state *)state);
 
 		/* increase timebase */
