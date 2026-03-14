@@ -29,6 +29,7 @@ struct _ppcemu_state {
 	u64 rt_last_sync_sec;
 	u64 rt_last_sync_usec;
 	bool sync_rt;
+	bool dec_exception_pending;
 
 	/* CPU state */
 	u32 gpr[32];

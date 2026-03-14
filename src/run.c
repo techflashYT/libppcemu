@@ -57,7 +57,6 @@ void ppcemu_step(struct ppcemu_state *emu) {
 	u32 instr, dec;
 	u64 cycles;
 	enum virt2phys_err err;
-	bool fire_dec_exception;
 
 	state = (struct _ppcemu_state *)emu;
 	if (!state->ready)
@@ -83,12 +82,12 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 		/* decrement decrementer */
 		dec = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)];
-		fire_dec_exception = ((i32)dec >= 0 && (i32)(dec - cycles) < 0 && state->msr & PPCEMU_MSR_EE);
+		/* queue decrementer exception on underflow, if enabled */
+		if (!state->dec_exception_pending)
+			state->dec_exception_pending = ((i32)dec >= 0 && (i32)(dec - cycles) < 0);
+
 		dec -= cycles;
 		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
-
-		if (fire_dec_exception)
-			exception_fire(state, EXCEPTION_DEC);
 	}
 	else if (!(state->instr_count & 0x7)) {
 		/* increase timebase */
@@ -102,12 +101,16 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 		/* decrement decrementer */
 		dec = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)];
-		/* fire decrementer exception on underflow, if enabled */
-		fire_dec_exception = ((i32)dec >= 0 && (i32)(dec - state->c2b_mult) < 0 && state->msr & PPCEMU_MSR_EE);
+		/* queue decrementer exception on underflow, if enabled */
+		if (!state->dec_exception_pending)
+			state->dec_exception_pending = ((i32)dec >= 0 && (i32)(dec - state->c2b_mult) < 0);
+
 		dec -= state->c2b_mult;
 		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
+	}
 
-		if (fire_dec_exception)
-			exception_fire(state, EXCEPTION_DEC);
+	if (state->dec_exception_pending && state->msr & PPCEMU_MSR_EE) {
+		exception_fire(state, EXCEPTION_DEC);
+		state->dec_exception_pending = false;
 	}
 }
