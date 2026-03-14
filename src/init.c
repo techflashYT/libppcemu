@@ -50,7 +50,7 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	}
 
 	/* TODO: don't hardcode */
-	ppcemu_cache_init(state, 256 * 1024, 256 * 1024);
+	ppcemu_cache_init(state, 16 * 1024, 16 * 1024);
 
 	state->sync_rt = false;
 	state->bus_hook = bus_hook;
