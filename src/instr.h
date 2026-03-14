@@ -56,6 +56,8 @@ extern void do_slw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint 
 extern void do_sraw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc);
 extern void do_srawi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint Rc);
 extern void do_srw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc);
+extern void do_extsh(struct _ppcemu_state *state, uint rS, uint rA, uint Rc);
+extern void do_extsb(struct _ppcemu_state *state, uint rS, uint rA, uint Rc);
 
 /* branches */
 extern void do_rfi(struct _ppcemu_state *state, u32 inst);

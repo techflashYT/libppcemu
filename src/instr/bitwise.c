@@ -180,3 +180,17 @@ void do_srw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
+
+void do_extsh(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
+	state->gpr[rA] = (i32)(i16)state->gpr[rS];
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
+void do_extsb(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
+	state->gpr[rA] = (i32)(i8)state->gpr[rS];
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
