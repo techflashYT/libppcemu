@@ -8,6 +8,12 @@
 #include "../state.h"
 #include "ppcemu/spr.h"
 
+static inline void set_xer_ca(struct _ppcemu_state *state, bool ca) {
+	u32 xer = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)];
+	xer = (xer & ~PPCEMU_XER_CA) | (ca ? PPCEMU_XER_CA : 0);
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] = xer;
+}
+
 void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, i32 simm) {
 	if (rA == 0)
 		state->gpr[rD] = simm;
@@ -26,9 +32,10 @@ void do_add(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uin
 }
 
 void do_addc(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uint Rc) {
-	state->gpr[rD] = state->gpr[rA] + state->gpr[rB];
+	u64 result = (u64)state->gpr[rA] + (u64)state->gpr[rB];
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
-	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
 	(void)OE;
 
@@ -37,9 +44,11 @@ void do_addc(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uin
 }
 
 void do_adde(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uint Rc) {
-	state->gpr[rD] = state->gpr[rA] + state->gpr[rB] + !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u64 result = (u64)state->gpr[rA] + (u64)state->gpr[rB] + ca;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
-	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
 	(void)OE;
 
@@ -48,9 +57,11 @@ void do_adde(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uin
 }
 
 void do_addze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
-	state->gpr[rD] = state->gpr[rA] + !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u64 result = (u64)state->gpr[rA] + ca;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
-	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
 	(void)OE;
 
@@ -59,9 +70,11 @@ void do_addze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
 }
 
 void do_addme(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
-	state->gpr[rD] = state->gpr[rA] + !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA) + 0xffffffff;
+	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u64 result = (u64)state->gpr[rA] + ca + 0xffffffff;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
-	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
 	(void)OE;
 
@@ -70,9 +83,9 @@ void do_addme(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
 }
 
 void do_addic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm, uint Rc) {
-	state->gpr[rD] = state->gpr[rA] + (i32)(i16)simm;
-
-	/* TODO: update XER.CA */
+	u64 result = (u64)state->gpr[rA] + (u64)(u32)(i32)(i16)simm;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
@@ -89,15 +102,16 @@ void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, ui
 }
 
 void do_subfic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm) {
-	state->gpr[rD] = (i16)simm - state->gpr[rA];
-
-	/* TODO: update XER.CA */
+	u64 result = (u64)(~state->gpr[rA]) + (u64)(u32)(i32)(i16)simm + 1;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 }
 
 void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
-	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + 1;
+	u64 result = (u64)(~state->gpr[rA]) + (u64)state->gpr[rB] + 1;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
-	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
 	(void)OE;
 
@@ -106,9 +120,11 @@ void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 }
 
 void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
-	state->gpr[rD] = (~state->gpr[rA]) + state->gpr[rB] + !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u64 result = (u64)(~state->gpr[rA]) + (u64)state->gpr[rB] + ca;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
 
-	/* TODO: update XER.CA */
 	/* TODO: update XER if OE */
 	(void)OE;
 
