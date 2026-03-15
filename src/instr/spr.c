@@ -35,13 +35,13 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	}
 	case PPCEMU_SPRN_TBU_OEA:
 	case PPCEMU_SPRN_TBU_VEA: {
-		state->tb &= 0xffffffff00000000;
+		state->tb &= 0x00000000ffffffff;
 		state->tb |= ((u64)state->gpr[rS] << 32);
 		break;
 	}
 	case PPCEMU_SPRN_TBL_OEA:
 	case PPCEMU_SPRN_TBL_VEA: {
-		state->tb &= 0x00000000ffffffff;
+		state->tb &= 0xffffffff00000000;
 		state->tb |= state->gpr[rS];
 		break;
 	}
