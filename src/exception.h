@@ -42,7 +42,17 @@ static inline void exception_fire(struct _ppcemu_state *state, uint idx) {
 	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)] = state->pc;
 	/* TODO: seems right?  750CL UM is kinda vague... */
 	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)] = state->msr & ~PPCEMU_MSR_RSRVD_PF;
-	state->msr &= ~(PPCEMU_MSR_IR | PPCEMU_MSR_DR);
+	state->msr &= ~(PPCEMU_MSR_POW | PPCEMU_MSR_EE  | PPCEMU_MSR_PR |
+			PPCEMU_MSR_FP  | PPCEMU_MSR_FE0 | PPCEMU_MSR_SE |
+			PPCEMU_MSR_BE  | PPCEMU_MSR_FE1 | PPCEMU_MSR_IR |
+			PPCEMU_MSR_DR  | PPCEMU_MSR_PM  | PPCEMU_MSR_RI);
+
+	/* MSR[LE] = MSR[ILE] on exception entry */
+	if (state->msr & PPCEMU_MSR_ILE)
+		state->msr |= PPCEMU_MSR_LE;
+	else
+		state->msr &= ~PPCEMU_MSR_LE;
+
 	state->pc = prefix | (u32)idx;
 	state->branched = true;
 
