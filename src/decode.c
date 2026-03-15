@@ -98,8 +98,8 @@ static void _do_lbzx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexe
 static void _do_lwzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lhzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lbzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
-static void _do_lhax(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst)); }
-static void _do_lhaux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext_update(state, 2, INST_D_rD(inst), INST_D_rA(inst), INST_D_D(inst)); }
+static void _do_lhax(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_lhaux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext_update(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stwx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_sthx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stbx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
