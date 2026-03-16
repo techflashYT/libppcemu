@@ -39,6 +39,12 @@ static inline void exception_fire(struct _ppcemu_state *state, uint idx) {
 	else
 		prefix = 0x00000000;
 
+	if (state->msr & (PPCEMU_MSR_IR | PPCEMU_MSR_DR) && state->cache_mode == PPCEMU_CACHE_MODE_PERMISSIVE) {
+		ppcemu_dcache_writeback_all(&state->dcache);
+		ppcemu_cache_invalidate_all(&state->dcache);
+		ppcemu_cache_invalidate_all(&state->icache);
+	}
+
 	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)] = state->pc;
 	/* TODO: seems right?  750CL UM is kinda vague... */
 	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)] = state->msr & ~PPCEMU_MSR_RSRVD_PF;

@@ -39,7 +39,6 @@ void do_rfi(struct _ppcemu_state *state, u32 inst) {
 		ppcemu_dcache_writeback_all(&state->dcache);
 		ppcemu_cache_invalidate_all(&state->dcache);
 		ppcemu_cache_invalidate_all(&state->icache);
-		state->msr = srr1;
 	}
 	/* translation off -> on */
 	else if (!(state->msr & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) && (srr1 & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) &&
@@ -50,6 +49,7 @@ void do_rfi(struct _ppcemu_state *state, u32 inst) {
 		ppcemu_cache_invalidate_all(&state->dcache);
 		ppcemu_cache_invalidate_all(&state->icache);
 	}
+	state->msr = srr1;
 
 	verbose("rfi branched from 0x%08x -> 0x%08x\r\n", oldpc, state->pc);
 	state->branched = true;
