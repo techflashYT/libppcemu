@@ -197,8 +197,7 @@ void ppcemu_dcache_load(struct cache *dcache, u32 addr, uint size, void *out) {
 
 	assert(dcache);
 	assert(dcache->is_data_cache);
-	/* enforce size and alignment */
-	assert(size == 1 || (size == 2 && !(addr & 0x1)) || (size == 4 && !(addr & 0x3)) || (size == 8 && !(addr & 0x7)));
+	assert(size == 1 || size == 2 || size == 4 || size == 8);
 
 	line_base = cache_line_base(addr);
 	offset = cache_line_offset(addr);
@@ -226,8 +225,7 @@ void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in
 
 	assert(dcache);
 	assert(dcache->is_data_cache);
-	/* enforce size and alignment */
-	assert(size == 1 || (size == 2 && !(addr & 0x1)) || (size == 4 && !(addr & 0x3)) || (size == 8 && !(addr & 0x7)));
+	assert(size == 1 || size == 2 || size == 4 || size == 8);
 
 	line_base = cache_line_base(addr);
 	offset = cache_line_offset(addr);
