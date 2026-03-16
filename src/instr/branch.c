@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <ppcemu/spr.h>
+#include <ppcemu/types.h>
+#include "../cache.h"
 #include "../cr.h"
 #include "../decode.h"
 #include "../state.h"
@@ -23,13 +25,31 @@ static void branch_debug(const char *fmt, ...) {
 
 
 void do_rfi(struct _ppcemu_state *state, u32 inst) {
-	u32 oldpc = state->pc;
+	u32 srr1, oldpc = state->pc;
 
 	NO_RC();
 
 	state->pc = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)];
 	/* TODO: mask MSR */
-	state->msr = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)];
+	srr1 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)];
+	/* translation on -> off */
+	if ((state->msr & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) && !(srr1 & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) &&
+	    state->cache_mode == PPCEMU_CACHE_MODE_PERMISSIVE) {
+		branch_debug("rfi doing cache wb+invalidate for permissive cache mode");
+		ppcemu_dcache_writeback_all(&state->dcache);
+		ppcemu_cache_invalidate_all(&state->dcache);
+		ppcemu_cache_invalidate_all(&state->icache);
+		state->msr = srr1;
+	}
+	/* translation off -> on */
+	else if (!(state->msr & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) && (srr1 & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) &&
+		state->cache_mode == PPCEMU_CACHE_MODE_PERMISSIVE) {
+		branch_debug("rfi doing cache wb+invalidate for permissive cache mode");
+		state->msr = srr1;
+		ppcemu_dcache_writeback_all(&state->dcache);
+		ppcemu_cache_invalidate_all(&state->dcache);
+		ppcemu_cache_invalidate_all(&state->icache);
+	}
 
 	verbose("rfi branched from 0x%08x -> 0x%08x\r\n", oldpc, state->pc);
 	state->branched = true;

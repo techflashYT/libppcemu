@@ -49,6 +49,7 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	}
 	}
 
+	state->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
 	/* TODO: don't hardcode */
 	ppcemu_cache_init(state, 16 * 1024, 16 * 1024);
 

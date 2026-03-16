@@ -8,6 +8,7 @@
  */
 
 #include "ppcemu/state.h"
+#include "ppcemu/types.h"
 #define LOG_LEVEL virt2phys_loglevel
 #include <stdio.h>
 #include <ppcemu/msr.h>
@@ -125,7 +126,7 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 
 			/* Determine if it can hit the cache by checking the cache inhibit bit */
 			wimg = (batl & PPCEMU_BATL_WIMG) >> PPCEMU_BATL_WIMG_SHIFT;
-			if (!(wimg & 0b0100))
+			if (!(wimg & 0b0100) && state->cache_mode != PPCEMU_CACHE_MODE_DISABLED)
 				*cacheable = true; /* already set to false above */
 
 			return V2P_SUCCESS;

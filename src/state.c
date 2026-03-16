@@ -209,3 +209,9 @@ void ppcemu_external_interrupt(struct ppcemu_state *state) {
 
 	s->external_interrupt_pending = true;
 }
+
+void ppcemu_set_cache_mode(struct ppcemu_state *state, enum ppcemu_cache_mode mode) {
+	REAL_STATE;
+
+	s->cache_mode = mode;
+}

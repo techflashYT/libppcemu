@@ -131,4 +131,9 @@ void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook
  */
 void ppcemu_external_interrupt(struct ppcemu_state *state);
 
+/*
+ * Set the caching mode.
+ */
+extern void ppcemu_set_cache_mode(struct ppcemu_state *state, enum ppcemu_cache_mode mode);
+
 #endif /* _LIBPPCEMU_STATE_H */

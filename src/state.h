@@ -32,6 +32,7 @@ struct _ppcemu_state {
 	bool sync_rt;
 	bool dec_exception_pending;
 	bool external_interrupt_pending;
+	enum ppcemu_cache_mode cache_mode;
 
 	/* CPU state */
 	u32 gpr[32];
