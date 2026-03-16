@@ -36,6 +36,7 @@ extern void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, v
 extern void ppcemu_dcache_writeback_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_invalidate_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u32 addr);
+extern void ppcemu_dcache_writeback_all(struct cache *dcache);
 extern void ppcemu_cache_invalidate_all(struct cache *cache);
 
 #endif /* _LIBPPCEMU_INTERNAL_CACHE_H */

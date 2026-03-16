@@ -310,6 +310,23 @@ void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u32 addr) {
 	}
 }
 
+void ppcemu_dcache_writeback_all(struct cache *dcache) {
+	uint i;
+	struct cacheline *line;
+
+	assert(dcache);
+	assert(dcache->is_data_cache);
+
+	for (i = 0; i < dcache->line_count; i++) {
+		line = &dcache->lines[i];
+
+		if (line->dirty)
+			bus_write_line(dcache->ppcemu_state, line->tag, line->data);
+
+		line->dirty = 0;
+	}
+}
+
 void ppcemu_cache_invalidate_all(struct cache *cache) {
 	uint i;
 	struct cacheline *line;
