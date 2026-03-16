@@ -126,4 +126,9 @@ void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode 
  */
 void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook hook);
 
+/*
+ * Queue an external interrupt exception.
+ */
+void ppcemu_external_interrupt(struct ppcemu_state *state);
+
 #endif /* _LIBPPCEMU_STATE_H */

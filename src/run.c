@@ -109,7 +109,11 @@ void ppcemu_step(struct ppcemu_state *emu) {
 		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
 	}
 
-	if (state->dec_exception_pending && state->msr & PPCEMU_MSR_EE) {
+	if (state->external_interrupt_pending && state->msr & PPCEMU_MSR_EE) {
+		exception_fire(state, EXCEPTION_EXT);
+		state->external_interrupt_pending = false;
+	}
+	else if (state->dec_exception_pending && state->msr & PPCEMU_MSR_EE) {
 		exception_fire(state, EXCEPTION_DEC);
 		state->dec_exception_pending = false;
 	}

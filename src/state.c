@@ -203,3 +203,9 @@ void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook
 
 	s->loadstore_hook = hook;
 }
+
+void ppcemu_external_interrupt(struct ppcemu_state *state) {
+	REAL_STATE;
+
+	s->external_interrupt_pending = true;
+}
