@@ -34,7 +34,7 @@
 #define INST_XO_XO(inst)     (((inst) & 0x000003fe) >> 1)
 #define INST_XO_Rc(inst)     (((inst) & 0x00000001) >> 0)
 
-/* 0..5 = Opcode; 6..10 = rD/rS; 11..20 = spr/I/FXM+I/0+CRM+0; 21..30 = XO; 31 = Rc */
+/* 0..5 = Opcode; 6..10 = rD/rS; 11..20 = spr/I/FXM+I/0+CRM+0/rA+rB; 21..30 = XO; 31 = Rc */
 #define INST_XFX_rD(inst)    (((inst) & 0x03e00000) >> 21)
 #define INST_XFX_rS(inst)    INST_XFX_rD(inst)
 #define INST_XFX_CRM(inst)   (((inst) & 0x000ff000) >> 12)
@@ -52,7 +52,10 @@
 /* same as XFX */
 #define INST_XL_rD(inst)     INST_XFX_rD(inst)
 #define INST_XL_rS(inst)     INST_XFX_rS(inst)
+#define INST_XL_crbD(inst)   INST_XFX_rD(inst)
 #define INST_XL_BO(inst)     INST_XL_rS(inst)
+#define INST_XL_crbA(inst)   (((inst) & 0x001f0000) >> 16)
+#define INST_XL_crbB(inst)   (((inst) & 0x0000f800) >> 11)
 #define INST_XL_I(inst)      INST_XFX_I(inst)
 #define INST_XL_BI(inst)     (INST_XL_I(inst) >> 5)
 #define INST_XL_XO(inst)     INST_XFX_XO(inst)

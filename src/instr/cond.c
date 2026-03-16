@@ -110,3 +110,10 @@ void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
 		state->cr |= (state->gpr[rS] & mask);
 	}
 }
+
+void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB) {
+	uint a = cr_get_bit(state, 31 - crbA);
+	uint b = cr_get_bit(state, 31 - crbB);
+
+	cr_set_bit(state, 31 - crbD, a ^ b);
+}

@@ -83,6 +83,7 @@ extern void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB);
 extern void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB);
 extern void do_mfcr(struct _ppcemu_state *state, uint rD);
 extern void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm);
+extern void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 
 /* Floating Point */
 extern void do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d);
