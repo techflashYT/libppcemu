@@ -40,8 +40,8 @@ static inline uint16_t __ppcemu_swap16(uint16_t in) {
 #else
 static inline uint32_t __ppcemu_swap32(uint32_t in) {
 	return (uint32_t)(
-		(__ppcemu_swap16((uint16_t)in) << 16) |
-		(__ppcemu_swap16((uint16_t)(in >> 16)))
+		((uint32_t)__ppcemu_swap16((uint16_t)in) << 16) |
+		((uint32_t)__ppcemu_swap16((uint16_t)(in >> 16)))
 	);
 }
 #endif
@@ -50,10 +50,10 @@ static inline uint32_t __ppcemu_swap32(uint32_t in) {
 #  define __ppcemu_swap64 __builtin_bswap64
 #  undef NO_CUSTOM_SWAP64
 #else
-static inline uint64_t __ppcemu_swap32(uint64_t in) {
+static inline uint64_t __ppcemu_swap64(uint64_t in) {
 	return (uint64_t)(
-		(__ppcemu_swap32((uint32_t)in) << 32) |
-		(__ppcemu_swap32((uint32_t)(in >> 32)))
+		((uint64_t)__ppcemu_swap32((uint32_t)in) << 32) |
+		((uint64_t)__ppcemu_swap32((uint32_t)(in >> 32)))
 	);
 }
 #endif
