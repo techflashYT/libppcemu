@@ -17,8 +17,9 @@ CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-variadic-macros -Wno-format-nonliteral -
 override CFLAGS := $(CFLAGS) -fPIC -Iinclude
 
 LDFLAGS ?= -flto=auto
+DESTDIR ?= /
 
-.PHONY: all clean FORCE
+.PHONY: all clean install
 all: $(OUT_SO) $(OUT_ST)
 
 $(OUT_SO): $(OBJ)
@@ -35,6 +36,12 @@ build/%.o: src/%.c
 	@mkdir -p $(@D)
 	$(info $s  CC    $<)
 	@$(CC) $(CFLAGS) -c $< -o $@
+
+install: $(OUT_SO) $(OUT_ST)
+	mkdir -p $(DESTDIR)/usr/lib
+	install $(OUT_SO) $(DESTDIR)/usr/lib/libppcemu.so
+	install $(OUT_ST) $(DESTDIR)/usr/lib/libppcemu.a
+	install -d include/libppcemu $(DESTDIR)/usr/include/libppcemu
 
 clean:
 	rm -rf bin build
