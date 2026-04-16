@@ -92,6 +92,10 @@ void do_mfcr(struct _ppcemu_state *state, uint rD) {
 }
 
 
+void do_mcrf(struct _ppcemu_state *state, uint crfD, uint crfS) {
+	cr_set_field(state, crfD, cr_get_field(state, crfS));
+}
+
 void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
 	u32 mask;
 	uint i;

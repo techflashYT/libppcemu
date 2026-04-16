@@ -11,10 +11,10 @@
 #include "types.h"
 #include "state.h"
 
-#define CR0_LT (1 << 31)
-#define CR0_GT (1 << 30)
-#define CR0_EQ (1 << 29)
-#define CR0_SO (1 << 28)
+#define CR0_LT (1u << 31)
+#define CR0_GT (1u << 30)
+#define CR0_EQ (1u << 29)
+#define CR0_SO (1u << 28)
 
 static inline uint cr_get_bit(struct _ppcemu_state *state, uint bit) {
 	return (state->cr >> bit) & 1;
@@ -29,6 +29,11 @@ static inline void cr_set_field(struct _ppcemu_state *state, uint field, u32 val
 	u32 mask = 15 << ((7 - field) * 4);
 	state->cr &= ~mask;
 	state->cr |= ((val & 15) << ((7 - field) * 4));
+}
+
+static inline u32 cr_get_field(struct _ppcemu_state *state, uint field) {
+	u32 mask = 15 << ((7 - field) * 4);
+	return (state->cr & mask) >> ((7 - field) * 4);
 }
 
 static inline void update_cr0(struct _ppcemu_state *state, u32 val) {

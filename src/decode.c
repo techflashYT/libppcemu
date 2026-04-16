@@ -70,6 +70,7 @@ static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr
 static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
 static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mfcr(state, INST_XO_rD(inst)); }
+static void _do_mcrf(struct _ppcemu_state *state, u32 inst) { if (inst & 0x63ffff) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mcrf(state, INST_XL_crfD(inst), INST_XL_crfS(inst)); }
 static void _do_mtcrf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XFX_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtcrf(state, INST_XFX_rS(inst), INST_XFX_CRM(inst)); }
 static void _do_crxor(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crxor(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
 
@@ -282,7 +283,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 };
 
 static void (*opc19_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
-	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 0  */   _do_mcrf,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   _do_bclr,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_rfi,     do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,

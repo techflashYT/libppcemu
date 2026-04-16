@@ -82,6 +82,7 @@ extern void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm);
 extern void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB);
 extern void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB);
 extern void do_mfcr(struct _ppcemu_state *state, uint rD);
+extern void do_mcrf(struct _ppcemu_state *state, uint crfD, uint crfS);
 extern void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm);
 extern void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 
