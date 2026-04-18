@@ -145,3 +145,47 @@ void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_ps_merge00(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
+	u32 hid2;
+
+	PS_ENFORCE_CAP_IDX("ps_merge00");
+	state->fpr[frD].ps[0] = state->fpr[frA].ps[0];
+	state->fpr[frD].ps[1] = state->fpr[frB].ps[0];
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+void do_ps_merge01(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
+	u32 hid2;
+
+	PS_ENFORCE_CAP_IDX("ps_merge01");
+	state->fpr[frD].ps[0] = state->fpr[frA].ps[0];
+	state->fpr[frD].ps[1] = state->fpr[frB].ps[1];
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+void do_ps_merge10(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
+	u32 hid2;
+
+	PS_ENFORCE_CAP_IDX("ps_merge10");
+	state->fpr[frD].ps[0] = state->fpr[frA].ps[1];
+	state->fpr[frD].ps[1] = state->fpr[frB].ps[0];
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+void do_ps_merge11(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
+	u32 hid2;
+
+	PS_ENFORCE_CAP_IDX("ps_merge11");
+	state->fpr[frD].ps[0] = state->fpr[frA].ps[1];
+	state->fpr[frD].ps[1] = state->fpr[frB].ps[1];
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}

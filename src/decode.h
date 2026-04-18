@@ -27,6 +27,7 @@
 #define INST_XO_frS(inst)    INST_XO_rD(inst)
 #define INST_XO_SR(inst)     INST_XO_rD(inst)
 #define INST_XO_rA(inst)     (((inst) & 0x001f0000) >> 16)
+#define INST_XO_frA(inst)    INST_XO_rA(inst)
 #define INST_XO_rB(inst)     (((inst) & 0x0000f800) >> 11)
 #define INST_XO_frB(inst)    INST_XO_rB(inst)
 #define INST_XO_SH(inst)     INST_XO_rB(inst)
