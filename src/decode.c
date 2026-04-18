@@ -114,6 +114,7 @@ static void _do_dcbf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_
 static void _do_dcbst(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbst(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_icbi(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_icbi(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_dcbi(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbi(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_dcbz(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbz(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
 
 /* comparison wrappers */
 static void _do_cmpl(struct _ppcemu_state *state, u32 inst) {
@@ -283,7 +284,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 960 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 976 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_icbi,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 992 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 1008 */ do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 1008 */ do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_dcbz,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 };
 
 static void (*opc19_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {

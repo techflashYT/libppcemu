@@ -6,6 +6,7 @@
 
 #include "../cache.h"
 #include "../decode.h"
+#include "../mem.h"
 #include "../state.h"
 
 
@@ -65,4 +66,24 @@ void do_icbi(struct _ppcemu_state *state, uint rA, uint rB) {
 
 	ea = b + (i32)state->gpr[rB];
 	ppcemu_icache_invalidate_line(&state->icache, ea);
+}
+
+void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
+	u32 b, ea, start, zero = 0;
+	uint i;
+	enum virt2phys_err err;
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	start = ea & ~31;
+
+	for (i = 0; i < 32; i += 8) {
+		err = _do_basic_store(state, 4, start + i, &zero);
+		if (err != V2P_SUCCESS)
+			return;
+	}
 }
