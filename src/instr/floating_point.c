@@ -11,6 +11,13 @@
 #include "../mem.h"
 #include "../state.h"
 
+union fp_val {
+	u64 u64;
+	u32 u32;
+	float singleFloat;
+	double doubleFloat;
+};
+
 #define ENFORCE_MSR_FP(x) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
 		exception_fire(state, EXCEPTION_PROGRAM); \
@@ -45,12 +52,7 @@ u32 do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 
 u32 do_lfs(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 	u32 b, ea;
-	union {
-		u64 u64;
-		u32 u32;
-		float singleFloat;
-		double doubleFloat;
-	} val;
+	union fp_val val;
 	enum virt2phys_err v2p_err;
 
 	ENFORCE_MSR_FP(0);
@@ -81,6 +83,52 @@ u32 do_lfs(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 		/* store that double back into the FPR */
 		state->fpr[frD].u64 = val.u64;
 	}
+
+	return ea;
+}
+
+u32 do_stfs(struct _ppcemu_state *state, uint frS, uint rA, u16 d) {
+	u32 b, ea;
+	union fp_val val;
+	enum virt2phys_err v2p_err;
+
+	ENFORCE_MSR_FP(0);
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)(i16)d;
+
+	val.doubleFloat = state->fpr[frS].dblPrec;
+	val.singleFloat = (float)val.doubleFloat;
+	v2p_err = _do_basic_store(state, 4, ea, &val.u32);
+	if (v2p_err != V2P_SUCCESS)
+		return 0;
+
+	return ea;
+}
+
+u32 do_stfd(struct _ppcemu_state *state, uint frS, uint rA, u16 d) {
+	u32 b, ea;
+	enum virt2phys_err v2p_err;
+
+	ENFORCE_MSR_FP(0);
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)(i16)d;
+
+	v2p_err = _do_basic_store(state, 4, ea, &state->fpr[frS].u32[0]);
+	if (v2p_err != V2P_SUCCESS)
+		return 0;
+	v2p_err = _do_basic_store(state, 4, ea + 4, &state->fpr[frS].u32[1]);
+	if (v2p_err != V2P_SUCCESS)
+		return 0;
 
 	return ea;
 }

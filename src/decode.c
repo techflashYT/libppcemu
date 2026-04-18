@@ -418,7 +418,7 @@ static void (*opc4_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 
 
 void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
-	uint rD, crfD, oldpc;
+	uint rD, rA, crfD, oldpc;
 	state->branched = false;
 
 	verbose("top-level opcode: %d\r\n", INST_OPCD(inst));
@@ -605,7 +605,7 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 49: { /* lfsu */
-		u32 rA = INST_D_rA(inst);
+		rA = INST_D_rA(inst);
 		if (!rA) {
 			exception_fire(state, EXCEPTION_PROGRAM);
 			return;
@@ -617,8 +617,25 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_lfd(state, INST_D_frD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
+	case 52: { /* stfs */
+		do_stfs(state, INST_D_frS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 53: { /* stfsu */
+		rA = INST_D_rA(inst);
+		if (!rA) {
+			exception_fire(state, EXCEPTION_PROGRAM);
+			return;
+		}
+		state->gpr[rA] = do_stfs(state, INST_D_frS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
+	case 54: { /* stfd */
+		do_stfd(state, INST_D_frS(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
 	case 55: { /* lfdu */
-		u32 rA = INST_D_rA(inst);
+		rA = INST_D_rA(inst);
 		if (!rA) {
 			exception_fire(state, EXCEPTION_PROGRAM);
 			return;
