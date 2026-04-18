@@ -647,6 +647,10 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_psq_l(state, INST_PS_frD(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
 		break;
 	}
+	case 60: { /* psq_st */
+		do_psq_st(state, INST_PS_frS(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
+		break;
+	}
 	case 63: { /* X form instructions */
 		verbose("XO opcode: %d\r\n", INST_XFL_XO(inst));
 		opc63_handlers[INST_XFL_XO(inst)](state, inst);

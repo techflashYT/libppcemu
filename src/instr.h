@@ -135,6 +135,7 @@ extern void do_mfmsr(struct _ppcemu_state *state, uint rD);
 
 /* Paired Singles */
 extern void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d);
+extern void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d);
 extern void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 
 /* Segment Registers */
