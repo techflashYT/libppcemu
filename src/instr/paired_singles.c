@@ -79,8 +79,8 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 			if (v2p_err != V2P_SUCCESS)
 				return;
 
-			state->fpr[frD] = (u64)ppcemu_be32_to_cpu(val_hi) << 32;
-			state->fpr[frD] |= ppcemu_be32_to_cpu(val_lo);
+			state->fpr[frD].u64 = ((u64)ppcemu_be32_to_cpu(val_hi) << 32) |
+						ppcemu_be32_to_cpu(val_lo);
 			break;
 		}
 		default:
@@ -94,7 +94,7 @@ void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	u32 hid2;
 
 	PS_ENFORCE_CAP_IDX("ps_mr");
-	state->fpr[frD] = state->gpr[frB]; /* technically it's broken up into 2 moves but this is functionally what it does */
+	state->fpr[frD] = state->fpr[frB]; /* technically it's broken up into 2 moves but this is functionally what it does */
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
