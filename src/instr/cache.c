@@ -73,9 +73,10 @@ void do_icbi(struct _ppcemu_state *state, uint rA, uint rB) {
 }
 
 void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
-	u32 b, ea, start, zero = 0;
-	uint i;
+	u32 b, ea, start, phys;
+	bool cacheable;
 	enum virt2phys_err err;
+	u8 zero_line[CACHE_LINE_SIZE] = {0};
 
 	if (rA)
 		b = state->gpr[rA];
@@ -84,10 +85,14 @@ void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
 
 	ea = b + (i32)state->gpr[rB];
 	start = ea & ~31;
-
-	for (i = 0; i < 32; i += 8) {
-		err = _do_basic_store(state, 4, start + i, &zero);
-		if (err != V2P_SUCCESS)
-			return;
+	err = ppcemu_virt2phys(state, start, &phys, &cacheable, false, true);
+	if (err != V2P_SUCCESS) {
+		exception_fire(state, EXCEPTION_DSI);
+		return;
 	}
+
+	if (cacheable)
+		ppcemu_dcache_zero_line(&state->dcache, start);
+	else
+		state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, zero_line, true);
 }

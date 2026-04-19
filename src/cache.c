@@ -250,6 +250,28 @@ void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in
 	}
 }
 
+void ppcemu_dcache_zero_line(struct cache *dcache, u32 addr) {
+	u32 line_base;
+	struct cacheline *line;
+
+	assert(dcache);
+	assert(dcache->is_data_cache);
+
+	line_base = cache_line_base(addr);
+	line = cache_lookup_slot(dcache, line_base);
+
+	if (!(line->valid && line->tag == line_base)) {
+		if (line->valid)
+			cache_writeback_slot_if_needed(dcache, line);
+
+		line->tag = line_base;
+		line->valid = 1;
+	}
+
+	memset(line->data, 0, CACHE_LINE_SIZE);
+	line->dirty = 1;
+}
+
 void ppcemu_dcache_writeback_line(struct cache *dcache, u32 addr) {
 	u32 line_base;
 	struct cacheline *line;

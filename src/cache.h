@@ -33,6 +33,7 @@ extern void ppcemu_icache_fetch(struct cache *icache, u32 addr, u32 *out);
 extern void ppcemu_icache_invalidate_line(struct cache *icache, u32 addr);
 extern void ppcemu_dcache_load(struct cache *dcache, u32 addr, uint size, void *out);
 extern void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in);
+extern void ppcemu_dcache_zero_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_writeback_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_invalidate_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u32 addr);
