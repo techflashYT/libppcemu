@@ -124,13 +124,13 @@ void do_nand(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 }
 
 void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
-	state->gpr[rA] = ~state->gpr[rD];
+	state->gpr[rD] = (~state->gpr[rA]) + 1;
 
 	/* TODO: update XER if OE */
 	(void)OE;
 
 	if (Rc)
-		update_cr0(state, state->gpr[rA]);
+		update_cr0(state, state->gpr[rD]);
 }
 
 void do_nor(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
