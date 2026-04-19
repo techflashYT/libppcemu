@@ -52,7 +52,7 @@
 
 /* same as XFX */
 #define INST_XL_crfD(inst)   (((inst) & 0x3800000) >> 23)
-#define INST_XL_crfS(inst)   (((inst) & 0x3800000) >> 18)
+#define INST_XL_crfS(inst)   (((inst) & 0x01c0000) >> 18)
 #define INST_XL_rD(inst)     INST_XFX_rD(inst)
 #define INST_XL_rS(inst)     INST_XFX_rS(inst)
 #define INST_XL_crbD(inst)   INST_XFX_rD(inst)
