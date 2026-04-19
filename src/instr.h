@@ -40,6 +40,7 @@ extern void ori_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm);
 #define do_ori(s, rS, rA, uimm) ori_common(s, rS, rA, uimm)
 #define do_oris(s, rS, rA, uimm) ori_common(s, rS, rA, (uimm << 16))
 extern void do_or(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc);
+extern void do_orc(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc);
 extern void andi_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm);
 #define do_andi(s, rS, rA, uimm) andi_common(s, rS, rA, uimm)
 #define do_andis(s, rS, rA, uimm) andi_common(s, rS, rA, (uimm << 16))

@@ -32,6 +32,7 @@ static void do_illegal(struct _ppcemu_state *state, u32 inst) {
 /* bitwise wrappers */
 static void _do_xor(struct _ppcemu_state *state, u32 inst) { do_xor(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_or(struct _ppcemu_state *state, u32 inst) { do_or(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
+static void _do_orc(struct _ppcemu_state *state, u32 inst) { do_orc(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_and(struct _ppcemu_state *state, u32 inst) { do_and(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_andc(struct _ppcemu_state *state, u32 inst) { do_andc(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
 static void _do_nand(struct _ppcemu_state *state, u32 inst) { do_nand(state, INST_XO_rS(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_Rc(inst)); }
@@ -246,7 +247,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 352 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 368 */  do_illegal, do_illegal, do_illegal, _do_mftb,   do_illegal, do_illegal, do_illegal, _do_lhaux,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 384 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 400 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_sthx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 400 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_sthx,   do_illegal, do_illegal, do_illegal, do_illegal, _do_orc,    do_illegal, do_illegal, do_illegal,
 	/* 416 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 432 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_sthux,  do_illegal, do_illegal, do_illegal, do_illegal, _do_or,     do_illegal, do_illegal, do_illegal,
 	/* 448 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_divwu,  do_illegal, do_illegal, do_illegal, do_illegal,

@@ -56,6 +56,13 @@ void do_or(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 		update_cr0(state, state->gpr[rA]);
 }
 
+void do_orc(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = state->gpr[rS] | ~state->gpr[rB];
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
+
 void andi_common(struct _ppcemu_state *state, uint rS, uint rA, u32 uimm) {
 	state->gpr[rA] = state->gpr[rS] & uimm;
 
