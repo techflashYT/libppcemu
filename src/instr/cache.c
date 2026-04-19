@@ -20,6 +20,10 @@ void do_sync(struct _ppcemu_state *state, u32 inst) {
 	/* TODO: actually syncronize something */
 }
 
+void do_eieio(struct _ppcemu_state *state) {
+	/* TODO: actually syncronize something */
+}
+
 void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
 	u32 b, ea;
 
