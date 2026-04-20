@@ -20,7 +20,7 @@ union fp_val {
 
 #define ENFORCE_MSR_FP(x) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
-		exception_fire(state, EXCEPTION_PROGRAM); \
+		exception_fire(state, EXCEPTION_FP_UNAV); \
 		return x; \
 	} \
 
