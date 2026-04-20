@@ -64,8 +64,8 @@ extern void do_extsb(struct _ppcemu_state *state, uint rS, uint rA, uint Rc);
 extern void do_rfi(struct _ppcemu_state *state, u32 inst);
 extern void do_branch(struct _ppcemu_state *state, u32 li, uint aa, uint lk);
 extern void _do_cond_branch(struct _ppcemu_state *state, uint bo, uint bi, uint lk, u32 target_addr);
-#define do_bclr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)])
-#define do_bcctr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)])
+#define do_bclr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_LR)] & ~3)
+#define do_bcctr(s, bo, bi, lk) _do_cond_branch(s, bo, bi, lk, s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_CTR)] & ~3)
 extern void do_bc(struct _ppcemu_state *state, uint bo, uint bi, uint bd, uint aa, uint lk);
 
 /* cache / syncronization */
