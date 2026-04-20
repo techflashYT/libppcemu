@@ -213,3 +213,10 @@ void do_extsb(struct _ppcemu_state *state, uint rS, uint rA, uint Rc) {
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
+
+void do_eqv(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
+	state->gpr[rA] = ~(state->gpr[rS] ^ state->gpr[rB]);
+
+	if (Rc)
+		update_cr0(state, state->gpr[rA]);
+}
