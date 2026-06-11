@@ -146,6 +146,11 @@ static inline u32 do_indexed_load_signext(struct _ppcemu_state *state, uint len,
 	return ret;
 }
 #define do_indexed_load_signext_update(s, len, rD, rA, d) s->gpr[rA] = do_indexed_load_signext(s, len, rD, rA, d)
+static inline u32 do_indexed_load_conditional(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	state->reserve = true;
+	state->reserve_addr = do_indexed_load(state, len, rD, rA, rB);
+	return state->reserve_addr;
+}
 extern void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d);
 
 /* MSR */

@@ -49,6 +49,7 @@ struct _ppcemu_state {
 	u32 sprs[MAX_SPR_COUNT];
 	u32 sr[16];
 	bool reserve;
+	u32 reserve_addr;
 };
 
 

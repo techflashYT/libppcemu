@@ -104,6 +104,7 @@ static void _do_lhzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_index
 static void _do_lbzux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_update(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lhax(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_lhaux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_signext_update(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_lwarx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_conditional(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stwx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_sthx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stbx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
@@ -226,7 +227,7 @@ static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   _do_cmp,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subfc,  do_illegal, _do_addc,   _do_mulhwu, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 16 */   do_illegal, do_illegal, do_illegal, _do_mfcr,   do_illegal, do_illegal, do_illegal, _do_lwzx,   _do_slw,    do_illegal, _do_cntlzw, do_illegal, _do_and,    do_illegal, do_illegal, do_illegal,
+	/* 16 */   do_illegal, do_illegal, do_illegal, _do_mfcr,   _do_lwarx,  do_illegal, do_illegal, _do_lwzx,   _do_slw,    do_illegal, _do_cntlzw, do_illegal, _do_and,    do_illegal, do_illegal, do_illegal,
 	/* 32 */   _do_cmpl,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subf,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_dcbst,  _do_lwzux , do_illegal, do_illegal, do_illegal, do_illegal, _do_andc,   do_illegal, do_illegal, do_illegal,
 	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mulhw,  do_illegal, do_illegal, do_illegal, do_illegal,
