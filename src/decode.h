@@ -102,7 +102,8 @@
 #define INST_PS_PSQ(inst)    (((inst) & 0x00007000) >> 12)
 #define INST_PS_D(inst)      (((inst) & 0x00000fff) >> 0)
 
-#define NO_RC() if (INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
+#define REQ_RC() if (!INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
+#define NO_RC()  if (INST_XFX_Rc(inst))  { exception_fire(state, EXCEPTION_PROGRAM); return; }
 
 void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst);
 
