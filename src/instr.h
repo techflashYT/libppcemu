@@ -108,13 +108,17 @@ extern u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint
 #define do_basic_store_update(s, len, rS, rA, d) s->gpr[rA] = do_basic_store(s, len, rS, rA, d);
 #define do_indexed_store_update(s, len, rS, rA, d) s->gpr[rA] = do_indexed_store(s, len, rS, rA, d);
 static inline u32 do_indexed_store_conditional(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint rB) {
+	u32 ret;
 	if (state->reserve) {
-		do_indexed_store(state, len, rS, rA, rB);
+		ret = do_indexed_store(state, len, rS, rA, rB);
 		cr_set_bit(state, CR0_EQ, true);
 		state->reserve = false;
+		return ret;
 	}
 	else
 		cr_set_bit(state, CR0_EQ, false);
+
+	return 0;
 }
 extern void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d);
 
