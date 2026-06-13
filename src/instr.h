@@ -89,6 +89,13 @@ extern void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB);
 extern void do_mfcr(struct _ppcemu_state *state, uint rD);
 extern void do_mcrf(struct _ppcemu_state *state, uint crfD, uint crfS);
 extern void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm);
+extern void do_crand(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_crandc(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_creqv(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_crnand(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_crnor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_cror(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_crorc(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 extern void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 
 /* Floating Point */

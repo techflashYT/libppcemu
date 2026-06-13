@@ -115,9 +115,18 @@ void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
 	}
 }
 
-void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB) {
-	uint a = cr_get_bit(state, 31 - crbA);
-	uint b = cr_get_bit(state, 31 - crbB);
-
-	cr_set_bit(state, 31 - crbD, a ^ b);
+#define CR_OP(name, op) \
+void do_##name(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB) { \
+	uint a = cr_get_bit(state, 31 - crbA); \
+	uint b = cr_get_bit(state, 31 - crbB); \
+ \
+	cr_set_bit(state, 31 - crbD, op); \
 }
+CR_OP(crand, (a & b))
+CR_OP(crandc, (a & ~b))
+CR_OP(creqv, ~(a ^ b))
+CR_OP(crnand, ~(a & b))
+CR_OP(crnor, ~(a | b))
+CR_OP(cror, (a | b))
+CR_OP(crorc, (a | ~b))
+CR_OP(crxor, (a ^ b))
