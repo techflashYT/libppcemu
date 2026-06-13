@@ -177,7 +177,7 @@ static void _do_fadd(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(ins
 static void _do_fadds(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fadds(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_fmadd(struct _ppcemu_state *state, u32 inst) { do_fmadd(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fmadds(struct _ppcemu_state *state, u32 inst) { do_fmadds(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
-static void _do_fmsub(struct _ppcemu_state *state, u32 inst) { do_fmsubs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
+static void _do_fmsub(struct _ppcemu_state *state, u32 inst) { do_fmsub(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fmsubs(struct _ppcemu_state *state, u32 inst) { do_fmsubs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fdiv(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fdiv(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_fdivs(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fdivs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
