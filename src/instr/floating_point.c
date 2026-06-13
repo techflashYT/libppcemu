@@ -9,6 +9,7 @@
 #include <ppcemu/endian.h>
 #include <ppcemu/spr.h>
 #include "../caps.h"
+#include "../cr.h"
 #include "../exception.h"
 #include "../mem.h"
 #include "../state.h"
@@ -279,4 +280,26 @@ void do_fsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
+}
+
+void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
+	u8 c = 0;
+	double a, b;
+
+	a = state->fpr[frA].dblPrec;
+	b = state->fpr[frB].dblPrec;
+	if (a == NAN || b == NAN)
+		c = 1;
+	else if (a < b)
+		c = 8;
+	else if (a > b)
+		c = 4;
+	else
+		c = 2;
+
+	state->fpcsr &= 0x0000f000;
+	state->fpcsr |= ((u32)c << 12);
+	cr_set_field(state, crfD, c);
+
+	/* TODO: check SNaN? */
 }

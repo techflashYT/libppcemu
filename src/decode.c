@@ -176,9 +176,10 @@ static void _do_fdiv(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(ins
 static void _do_fdivs(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fdivs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_fsub(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fsub(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_fsubs(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fsubs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
+static void _do_fcmpu(struct _ppcemu_state *state, u32 inst) { if (inst & 0x00600001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fcmpu(state, INST_XL_crfD(inst), INST_XO_frA(inst), INST_XO_frB(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
-	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_frsp,   do_illegal, do_illegal, _do_fctiwz,
+	/* 0  */   _do_fcmpu,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_frsp,   do_illegal, do_illegal, _do_fctiwz,
 	/* 16 */   do_illegal, do_illegal, _do_fdiv,   do_illegal, _do_fsub,   _do_fadd,   do_illegal, do_illegal, do_illegal, _do_fmul,   do_illegal, do_illegal, _do_fmsub,  _do_fmadd,  do_illegal, do_illegal,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb1, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
