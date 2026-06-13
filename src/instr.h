@@ -137,6 +137,7 @@ extern void do_fsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint
 #define do_fsubs(s, frD, frA, frB, Rc) do_fsub_common(s, frD, frA, frB, Rc, 4)
 extern void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB);
 extern void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
+extern void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc);
 
 /* memory */
 extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d);

@@ -295,3 +295,10 @@ void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
+	state->fpr[frD].u32[0] = state->fpcsr;
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
