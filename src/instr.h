@@ -92,8 +92,9 @@ extern void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm);
 extern void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 
 /* Floating Point */
-extern u32 do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d);
-extern u32 do_lfs(struct _ppcemu_state *state, uint frD, uint rA, u16 d);
+extern u32 do_lf_common(struct _ppcemu_state *state, uint frD, uint rA, i32 d, uint width);
+#define do_lfs(s, frD, rA, d) do_lf_common(s, frD, rA, (i32)(i16)d, 4)
+#define do_lfd(s, frD, rA, d) do_lf_common(s, frD, rA, (i32)(i16)d, 8)
 extern u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint width, bool convert);
 #define do_stfs(s, frS, rA, d) do_stf_common(s, frS, rA, (i32)(i16)d, 4, true)
 #define do_stfsx(s, frS, rA, rB) do_stf_common(s, frS, rA, (i32)s->gpr[rB], 4, true)
