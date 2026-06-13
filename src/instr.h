@@ -119,6 +119,9 @@ extern void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uin
 extern void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width);
 #define do_fmsub(s, frD, frA, frB, frC, Rc) do_fmsub_common(s, frD, frA, frB, frC, Rc, 8)
 #define do_fmsubs(s, frD, frA, frB, frC, Rc) do_fmsub_common(s, frD, frA, frB, frC, Rc, 4)
+extern void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width);
+#define do_fdiv(s, frD, frA, frB, Rc) do_fdiv_common(s, frD, frA, frB, Rc, 8)
+#define do_fdivs(s, frD, frA, frB, Rc) do_fdiv_common(s, frD, frA, frB, Rc, 4)
 
 /* memory */
 extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d);
