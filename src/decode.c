@@ -166,10 +166,12 @@ static void _do_fctiwz(struct _ppcemu_state *state, u32 inst) { if (INST_XO_frA(
 static void _do_frsp(struct _ppcemu_state *state, u32 inst) { if (INST_XO_frA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_frsp(state, INST_XO_frS(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 static void _do_fmul(struct _ppcemu_state *state, u32 inst) { if (INST_A_frB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fmul(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fmuls(struct _ppcemu_state *state, u32 inst) { if (INST_A_frB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fmuls(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
+static void _do_fadd(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fadd(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
+static void _do_fadds(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fadds(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_frsp,   do_illegal, do_illegal, _do_fctiwz,
-	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_fmul,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_fadd,   do_illegal, do_illegal, do_illegal, _do_fmul,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb1, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb0, do_illegal, _do_fmr,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -236,7 +238,7 @@ static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 
 static void (*opc59_handlers[32])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_fmuls,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_fadds,  do_illegal, do_illegal, do_illegal, _do_fmuls,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 };
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {

@@ -110,6 +110,9 @@ extern void do_frsp(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_fmul_common(struct _ppcemu_state *state, uint frD, uint frA, uint frC, uint Rc, uint width);
 #define do_fmul(s, frD, frA, frC, Rc) do_fmul_common(s, frD, frA, frC, Rc, 8)
 #define do_fmuls(s, frD, frA, frC, Rc) do_fmul_common(s, frD, frA, frC, Rc, 4)
+extern void do_fadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width);
+#define do_fadd(s, frD, frA, frB, Rc) do_fadd_common(s, frD, frA, frB, Rc, 8)
+#define do_fadds(s, frD, frA, frB, Rc) do_fadd_common(s, frD, frA, frB, Rc, 4)
 
 /* memory */
 extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d);
