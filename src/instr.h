@@ -107,6 +107,9 @@ extern void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc)
 #define do_mtfsb1(state, crbD, Rc) do_mtfsbN(state, crbD, 1, Rc)
 extern void do_fctiwz(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_frsp(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
+extern void do_fmul_common(struct _ppcemu_state *state, uint frD, uint frA, uint frC, uint Rc, uint width);
+#define do_fmul(s, frD, frA, frC, Rc) do_fmul_common(s, frD, frA, frC, Rc, 8)
+#define do_fmuls(s, frD, frA, frC, Rc) do_fmul_common(s, frD, frA, frC, Rc, 4)
 
 /* memory */
 extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d);
