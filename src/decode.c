@@ -232,6 +232,11 @@ static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 1008 */ do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 };
 
+static void (*opc59_handlers[32])(struct _ppcemu_state *state, u32 inst) = {
+	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+};
+
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   _do_cmp,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subfc,  do_illegal, _do_addc,   _do_mulhwu, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   do_illegal, do_illegal, do_illegal, _do_mfcr,   _do_lwarx,  do_illegal, do_illegal, _do_lwzx,   _do_slw,    do_illegal, _do_cntlzw, do_illegal, _do_and,    do_illegal, do_illegal, do_illegal,
@@ -673,13 +678,23 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_psq_l(state, INST_PS_frD(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
 		break;
 	}
+	case 59: { /* A form instructions */
+		verbose("A-form XO opcode: %d\r\n", INST_A_XO(inst));
+		opc59_handlers[INST_A_XO(inst)](state, inst);
+		break;
+	}
 	case 60: { /* psq_st */
 		do_psq_st(state, INST_PS_frS(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
 		break;
 	}
-	case 63: { /* X form instructions */
-		verbose("XO opcode: %d\r\n", INST_XFL_XO(inst));
-		opc63_handlers[INST_XFL_XO(inst)](state, inst);
+	case 63: { /* A and X form instructions */
+		verbose("A-form XO opcode: %d\r\n", INST_A_XO(inst));
+		if (opc63_handlers[INST_A_XO(inst)] != do_illegal)
+			opc63_handlers[INST_A_XO(inst)](state, inst);
+		else {
+			verbose("XFL-form XO opcode: %d\r\n", INST_XFL_XO(inst));
+			opc63_handlers[INST_XFL_XO(inst)](state, inst);
+		}
 		break;
 	}
 	default: {

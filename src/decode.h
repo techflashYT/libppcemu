@@ -102,6 +102,15 @@
 #define INST_PS_PSQ(inst)    (((inst) & 0x00007000) >> 12)
 #define INST_PS_D(inst)      (((inst) & 0x00000fff) >> 0)
 
+/* 0..5 = Opcode; 6..10 = frD; 11..15 = frA; 16..20 = frB; 21..25 = frC; 26..30 = XO; 31 = Rc */
+#define INST_A_frS(inst)     (((inst) & 0x03e00000) >> 21)
+#define INST_A_frD(inst)     INST_A_frS(inst)
+#define INST_A_frA(inst)     (((inst) & 0x001f0000) >> 16)
+#define INST_A_frB(inst)     (((inst) & 0x0000f800) >> 11)
+#define INST_A_frC(inst)     (((inst) & 0x000007c0) >> 6)
+#define INST_A_XO(inst)      (((inst) & 0x0000003e) >> 1)
+#define INST_A_Rc(inst)      (((inst) & 0x00000001) >> 0)
+
 #define REQ_RC() if (!INST_XFX_Rc(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }
 #define NO_RC()  if (INST_XFX_Rc(inst))  { exception_fire(state, EXCEPTION_PROGRAM); return; }
 
