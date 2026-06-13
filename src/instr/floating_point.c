@@ -179,3 +179,20 @@ void do_fctiwz(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_frsp(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	float rounded;
+
+	ENFORCE_MSR_FP();
+
+	/* TODO: should check mode via FPSCR[RN] */
+	rounded = (float)state->fpr[frB].dblPrec;
+
+	if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
+		state->fpr[frD].ps[0] = rounded;
+	else
+		state->fpr[frD].dblPrec = (double)rounded;
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}

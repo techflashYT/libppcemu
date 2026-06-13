@@ -163,9 +163,10 @@ static void _do_stfdux(struct _ppcemu_state *state, u32 inst) { u32 rA = INST_XO
 static void _do_stfsx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_stfsx(state, INST_XO_frS(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stfdx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_stfdx(state, INST_XO_frS(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_fctiwz(struct _ppcemu_state *state, u32 inst) { if (INST_XO_frA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fctiwz(state, INST_XO_frS(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
+static void _do_frsp(struct _ppcemu_state *state, u32 inst) { if (INST_XO_frA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_frsp(state, INST_XO_frS(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
-	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_fctiwz,
+	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_frsp, do_illegal, do_illegal, _do_fctiwz,
 	/* 16 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb1, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
