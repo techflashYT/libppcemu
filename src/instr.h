@@ -94,9 +94,12 @@ extern void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crb
 /* Floating Point */
 extern u32 do_lfd(struct _ppcemu_state *state, uint frD, uint rA, u16 d);
 extern u32 do_lfs(struct _ppcemu_state *state, uint frD, uint rA, u16 d);
-extern u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint width);
-#define do_stfs(s, frS, rA, d) do_stf_common(s, frS, rA, (i32)(i16)d, 4)
-#define do_stfd(s, frS, rA, d) do_stf_common(s, frS, rA, (i32)(i16)d, 8)
+extern u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint width, bool convert);
+#define do_stfs(s, frS, rA, d) do_stf_common(s, frS, rA, (i32)(i16)d, 4, true)
+#define do_stfsx(s, frS, rA, rB) do_stf_common(s, frS, rA, (i32)s->gpr[rB], 4, true)
+#define do_stfd(s, frS, rA, d) do_stf_common(s, frS, rA, (i32)(i16)d, 8, false)
+#define do_stfdx(s, frS, rA, rB) do_stf_common(s, frS, rA, (i32)s->gpr[rB], 8, false)
+#define do_stfiwx(s, frS, rA, rB) do_stf_common(s, frS, rA, (i32)s->gpr[rB], 4, false)
 extern void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc);
 extern void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc);

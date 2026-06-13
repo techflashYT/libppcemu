@@ -87,8 +87,9 @@ u32 do_lfs(struct _ppcemu_state *state, uint frD, uint rA, u16 d) {
 	return ea;
 }
 
-u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint width) {
+u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint width, bool convert) {
 	u32 b, ea;
+	float f32;
 	enum virt2phys_err v2p_err;
 
 	ENFORCE_MSR_FP(0);
@@ -100,13 +101,21 @@ u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint wi
 
 	ea = b + d;
 
-	v2p_err = _do_basic_store(state, 4, ea, &state->fpr[frS].u32[0]);
-	if (v2p_err != V2P_SUCCESS)
-		return 0;
-	if (width == 8) {
-		v2p_err = _do_basic_store(state, 4, ea + 4, &state->fpr[frS].u32[1]);
+	if (convert && width == 4) {
+		f32 = (float)state->fpr[frS].dblPrec;
+		v2p_err = _do_basic_store(state, 4, ea, &f32);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
+	}
+	else {
+		v2p_err = _do_basic_store(state, 4, ea, &state->fpr[frS].u32[0]);
+		if (v2p_err != V2P_SUCCESS)
+			return 0;
+		if (width == 8) {
+			v2p_err = _do_basic_store(state, 4, ea + 4, &state->fpr[frS].u32[1]);
+			if (v2p_err != V2P_SUCCESS)
+				return 0;
+		}
 	}
 
 	return ea;
