@@ -288,3 +288,10 @@ void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 
 	/* TODO: check SNaN? */
 }
+
+void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	state->fpr[frD].u64 = (state->fpr[frB].u64 ^ (1ull << 63));
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
