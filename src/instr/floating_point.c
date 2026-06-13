@@ -238,3 +238,17 @@ void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width) {
+	if (width == 8)
+		state->fpr[frD].dblPrec = (state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) - state->fpr[frB].dblPrec;
+	else if (width == 4) {
+		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
+			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = (state->fpr[frA].ps[0] * state->fpr[frC].ps[0]) - state->fpr[frB].ps[0];
+		else
+			state->fpr[frD].dblPrec = (float)((state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) - state->fpr[frB].dblPrec);
+	}
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
