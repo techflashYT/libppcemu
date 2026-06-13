@@ -627,6 +627,15 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_lfd(state, INST_D_frD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
+	case 51: { /* lfdu */
+		rA = INST_D_rA(inst);
+		if (!rA) {
+			exception_fire(state, EXCEPTION_PROGRAM);
+			return;
+		}
+		state->gpr[rA] = do_lfd(state, INST_D_frD(inst), INST_D_rA(inst), INST_D_D(inst));
+		break;
+	}
 	case 52: { /* stfs */
 		do_stfs(state, INST_D_frS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
@@ -642,15 +651,6 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 	}
 	case 54: { /* stfd */
 		do_stfd(state, INST_D_frS(inst), INST_D_rA(inst), INST_D_D(inst));
-		break;
-	}
-	case 55: { /* lfdu */
-		rA = INST_D_rA(inst);
-		if (!rA) {
-			exception_fire(state, EXCEPTION_PROGRAM);
-			return;
-		}
-		state->gpr[rA] = do_lfd(state, INST_D_frD(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
 	case 56: { /* psq_l */
