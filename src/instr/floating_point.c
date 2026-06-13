@@ -5,8 +5,10 @@
  */
 
 #include <assert.h>
+#include <math.h>
 #include <ppcemu/endian.h>
 #include <ppcemu/spr.h>
+#include "../caps.h"
 #include "../exception.h"
 #include "../mem.h"
 #include "../state.h"
@@ -160,6 +162,20 @@ void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
 	else
 		state->fpcsr &= ~mask;
 
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+void do_fctiwz(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	i32 asi32;
+	double rounded;
+
+	ENFORCE_MSR_FP();
+
+	rounded = trunc(state->fpr[frB].dblPrec);
+	asi32 = (i32)rounded;
+
+	state->fpr[frD].u32[0] = (u32)asi32;
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
