@@ -132,6 +132,19 @@ void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 		update_cr0(state, state->gpr[rD]);
 }
 
+void do_subfze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
+	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u64 result = (u64)(~state->gpr[rA]) + ca;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
+
+	/* TODO: update XER if OE */
+	(void)OE;
+
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
 void do_divw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
 	state->gpr[rD] = (i32)state->gpr[rA] / (i32)state->gpr[rB];
 

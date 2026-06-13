@@ -25,6 +25,7 @@ extern void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint
 extern void do_subfic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm);
 extern void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
 extern void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
+extern void do_subfze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc);
 extern void do_divw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
 extern void do_divwu(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
 extern void do_mulhw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint Rc);
