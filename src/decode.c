@@ -653,6 +653,15 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_stfd(state, INST_D_frS(inst), INST_D_rA(inst), INST_D_D(inst));
 		break;
 	}
+	case 55: { /* stfdu */
+		rA = INST_D_rA(inst);
+		if (!rA) {
+			exception_fire(state, EXCEPTION_PROGRAM);
+			return;
+		}
+		state->gpr[rA] = do_stfd(state, INST_D_frS(inst), rA, INST_D_D(inst));
+		break;
+	}
 	case 56: { /* psq_l */
 		do_psq_l(state, INST_PS_frD(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
 		break;
