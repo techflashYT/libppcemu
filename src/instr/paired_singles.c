@@ -123,7 +123,7 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 			v2p_err = _do_basic_store(state, 4, ea, &state->fpr[frS].u32[0]);
 			if (v2p_err != V2P_SUCCESS)
 				return;
-			v2p_err = _do_basic_load(state, 4, ea + 4, &state->fpr[frS].u32[1]);
+			v2p_err = _do_basic_store(state, 4, ea + 4, &state->fpr[frS].u32[1]);
 			if (v2p_err != V2P_SUCCESS)
 				return;
 
