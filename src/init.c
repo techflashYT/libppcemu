@@ -4,6 +4,7 @@
  * Copyright (C) 2026 Techflash
  */
 
+#define LOG_LEVEL misc_loglevel
 #include <stdlib.h>
 #include <string.h>
 #include <ppcemu/init.h>
@@ -13,9 +14,11 @@
 #include "cache.h"
 #include "caps.h"
 #include "exception.h"
+#include "log.h"
 #include "state.h"
 
 struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bus_hook, uint bus_speed_khz, uint c2b_mult) {
+	int ret;
 	struct _ppcemu_state *state;
 
 	if (model < 0 || model > PPCEMU_CPU_MODEL_ESPRESSO)
@@ -51,7 +54,12 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 
 	state->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
 	/* TODO: don't hardcode */
-	ppcemu_cache_init(state, 16 * 1024, 16 * 1024);
+	ret = ppcemu_cache_init(state, 16 * 1024, 16 * 1024);
+	if (ret) {
+		error("ppcemu_cache_init failed: %d\r\n", ret);
+		free(state);
+		return NULL;
+	}
 
 	state->sync_rt = false;
 	state->bus_hook = bus_hook;
