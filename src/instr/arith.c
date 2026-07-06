@@ -14,6 +14,18 @@ static inline void set_xer_ca(struct _ppcemu_state *state, bool ca) {
 	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] = xer;
 }
 
+static inline void set_xer_ov(struct _ppcemu_state *state, uint ov) {
+	u32 xer = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)];
+	xer &= ~PPCEMU_XER_OV;
+	if (ov)
+		xer |= PPCEMU_XER_OV | PPCEMU_XER_SO;
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] = xer;
+}
+
+static inline u32 ppcemu_abs_s32_bits(u32 val) {
+	return val & 0x80000000u ? (~val + 1) : val;
+}
+
 void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, i32 simm) {
 	if (rA == 0)
 		state->gpr[rD] = simm;
@@ -146,20 +158,34 @@ void do_subfze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) 
 }
 
 void do_divw(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
-	state->gpr[rD] = (i32)state->gpr[rA] / (i32)state->gpr[rB];
+	u32 quotient, dividend, divisor;
+	uint overflow, negative;
+	dividend = state->gpr[rA];
+	divisor = state->gpr[rB];
+	overflow = divisor == 0 || (dividend == 0x80000000u && divisor == 0xffffffffu);
 
-	/* TODO: update XER if OE */
-	(void)OE;
+	if (!overflow) {
+		negative = (dividend ^ divisor) & 0x80000000u;
+		quotient = ppcemu_abs_s32_bits(dividend) / ppcemu_abs_s32_bits(divisor);
+
+		state->gpr[rD] = negative ? (~quotient + 1) : quotient;
+	}
+
+	if (OE)
+		set_xer_ov(state, overflow);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
 }
 
 void do_divwu(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc) {
-	state->gpr[rD] = state->gpr[rA] / state->gpr[rB];
+	uint overflow = state->gpr[rB] == 0;
 
-	/* TODO: update XER if OE */
-	(void)OE;
+	if (!overflow)
+		state->gpr[rD] = state->gpr[rA] / state->gpr[rB];
+
+	if (OE)
+		set_xer_ov(state, overflow);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rD]);
