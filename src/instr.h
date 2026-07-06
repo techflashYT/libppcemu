@@ -8,6 +8,7 @@
 #define _LIBPPCEMU_INTERNAL_INSTR_H
 
 #include "cr.h"
+#include "mem.h"
 #include "state.h"
 #include "types.h"
 
@@ -160,11 +161,22 @@ static inline u32 do_indexed_store_conditional(struct _ppcemu_state *state, uint
 }
 extern void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d);
 
-extern u32 do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d);
-extern u32 do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB);
-#define do_basic_load_update(s, len, rD, rA, d) s->gpr[rA] = do_basic_load(s, len, rD, rA, d);
-static inline u32 do_basic_load_signext(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
-	u32 ret = do_basic_load(state, len, rD, rA, d);
+extern enum virt2phys_err do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d, u32 *ea_out);
+extern enum virt2phys_err do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB, u32 *ea_out);
+static inline enum virt2phys_err do_basic_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	u32 ea;
+	enum virt2phys_err ret = do_basic_load(state, len, rD, rA, d, &ea);
+
+	if (ret == V2P_SUCCESS)
+		state->gpr[rA] = ea;
+
+	return ret;
+}
+static inline enum virt2phys_err do_basic_load_signext(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	enum virt2phys_err ret = do_basic_load(state, len, rD, rA, d, NULL);
+	if (ret != V2P_SUCCESS)
+		return ret;
+
 	if (len == 2)
 		state->gpr[rD] = (i32)(i16)state->gpr[rD];
 	else if (len == 1)
@@ -172,10 +184,34 @@ static inline u32 do_basic_load_signext(struct _ppcemu_state *state, uint len, u
 
 	return ret;
 }
-#define do_basic_load_signext_update(s, len, rD, rA, d) s->gpr[rA] = do_basic_load_signext(s, len, rD, rA, d)
-#define do_indexed_load_update(s, len, rD, rA, d) s->gpr[rA] = do_indexed_load(s, len, rD, rA, d);
-static inline u32 do_indexed_load_signext(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
-	u32 ret = do_indexed_load(state, len, rD, rA, d);
+static inline enum virt2phys_err do_basic_load_signext_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
+	u32 ea;
+	enum virt2phys_err ret = do_basic_load(state, len, rD, rA, d, &ea);
+	if (ret != V2P_SUCCESS)
+		return ret;
+
+	if (len == 2)
+		state->gpr[rD] = (i32)(i16)state->gpr[rD];
+	else if (len == 1)
+		state->gpr[rD] = (i32)(i16)(i8)state->gpr[rD];
+
+	state->gpr[rA] = ea;
+	return ret;
+}
+static inline enum virt2phys_err do_indexed_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	u32 ea;
+	enum virt2phys_err ret = do_indexed_load(state, len, rD, rA, rB, &ea);
+
+	if (ret == V2P_SUCCESS)
+		state->gpr[rA] = ea;
+
+	return ret;
+}
+static inline enum virt2phys_err do_indexed_load_signext(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	enum virt2phys_err ret = do_indexed_load(state, len, rD, rA, rB, NULL);
+	if (ret != V2P_SUCCESS)
+		return ret;
+
 	if (len == 2)
 		state->gpr[rD] = (i32)(i16)state->gpr[rD];
 	else if (len == 1)
@@ -183,11 +219,32 @@ static inline u32 do_indexed_load_signext(struct _ppcemu_state *state, uint len,
 
 	return ret;
 }
-#define do_indexed_load_signext_update(s, len, rD, rA, d) s->gpr[rA] = do_indexed_load_signext(s, len, rD, rA, d)
-static inline u32 do_indexed_load_conditional(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+static inline enum virt2phys_err do_indexed_load_signext_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	u32 ea;
+	enum virt2phys_err ret = do_indexed_load(state, len, rD, rA, rB, &ea);
+	if (ret != V2P_SUCCESS)
+		return ret;
+
+	if (len == 2)
+		state->gpr[rD] = (i32)(i16)state->gpr[rD];
+	else if (len == 1)
+		state->gpr[rD] = (i32)(i16)(i8)state->gpr[rD];
+
+	state->gpr[rA] = ea;
+	return ret;
+}
+static inline enum virt2phys_err do_indexed_load_conditional(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB) {
+	u32 ea;
+	enum virt2phys_err ret = do_indexed_load(state, len, rD, rA, rB, &ea);
+
+	if (ret != V2P_SUCCESS) {
+		state->reserve = false;
+		return ret;
+	}
+
 	state->reserve = true;
-	state->reserve_addr = do_indexed_load(state, len, rD, rA, rB);
-	return state->reserve_addr;
+	state->reserve_addr = ea;
+	return V2P_SUCCESS;
 }
 extern void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d);
 
