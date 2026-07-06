@@ -86,6 +86,7 @@ static int cache_init(struct cache *c, uint cache_size, bool is_data_cache) {
 	lines = malloc(line_count * sizeof(struct cacheline));
 	if (!lines)
 		return -1;
+	memset(lines, 0, line_count * sizeof(struct cacheline));
 
 	c->lines = lines;
 	c->line_count = line_count;
