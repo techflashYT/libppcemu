@@ -23,11 +23,11 @@ void do_cmpi(struct _ppcemu_state *state, uint crfD, uint rA, u16 simm) {
 	u32 c, a = state->gpr[rA], oldCR;
 
 	if ((i32)a < (i32)(i16)simm)
-		c = 0b1000;
+		c = 0x8;
 	else if ((i32)a > (i32)(i16)simm)
-		c = 0b0100;
+		c = 0x4;
 	else /* equal */
-		c = 0b0010;
+		c = 0x2;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
 	oldCR = state->cr;
@@ -40,11 +40,11 @@ void do_cmpli(struct _ppcemu_state *state, uint crfD, uint rA, u16 uimm) {
 	u32 c, a = state->gpr[rA], oldCR;
 
 	if (a < (u32)uimm)
-		c = 0b1000;
+		c = 0x8;
 	else if (a > (u32)uimm)
-		c = 0b0100;
+		c = 0x4;
 	else /* equal */
-		c = 0b0010;
+		c = 0x2;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
 	oldCR = state->cr;
@@ -57,11 +57,11 @@ void do_cmp(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 	u32 c, a = state->gpr[rA], b = state->gpr[rB], oldCR;
 
 	if ((i32)a < (i32)b)
-		c = 0b1000;
+		c = 0x8;
 	else if ((i32)a > (i32)b)
-		c = 0b0100;
+		c = 0x4;
 	else /* equal */
-		c = 0b0010;
+		c = 0x2;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
 	oldCR = state->cr;
@@ -74,11 +74,11 @@ void do_cmpl(struct _ppcemu_state *state, uint crfD, uint rA, uint rB) {
 	u32 c, a = state->gpr[rA], b = state->gpr[rB], oldCR;
 
 	if (a < b)
-		c = 0b1000;
+		c = 0x8;
 	else if (a > b)
-		c = 0b0100;
+		c = 0x4;
 	else /* equal */
-		c = 0b0010;
+		c = 0x2;
 
 	c |= !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
 	oldCR = state->cr;

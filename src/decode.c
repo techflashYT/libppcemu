@@ -49,17 +49,17 @@ static void _do_eqv(struct _ppcemu_state *state, u32 inst) { do_eqv(state, INST_
 
 /* special wrappers */
 static void _do_mtspr(struct _ppcemu_state *state, u32 inst) { /* fucking IBM.... */
-	u32 sprn = ((INST_XFX_I(inst) & 0b0000011111) << 5) | ((INST_XFX_I(inst) & 0b1111100000) >> 5);
+	u32 sprn = ((INST_XFX_I(inst) & 0x1f) << 5) | ((INST_XFX_I(inst) & 0x3e0) >> 5);
 	NO_RC();
 	do_mtspr(state, INST_XFX_rS(inst), sprn);
 }
 static void _do_mfspr(struct _ppcemu_state *state, u32 inst) {
-	u32 sprn = ((INST_XFX_I(inst) & 0b0000011111) << 5) | ((INST_XFX_I(inst) & 0b1111100000) >> 5);
+	u32 sprn = ((INST_XFX_I(inst) & 0x1f) << 5) | ((INST_XFX_I(inst) & 0x3e0) >> 5);
 	NO_RC();
 	do_mfspr(state, INST_XFX_rD(inst), sprn);
 }
 static void _do_mftb(struct _ppcemu_state *state, u32 inst) {
-	u32 tbrn = ((INST_XFX_I(inst) & 0b0000011111) << 5) | ((INST_XFX_I(inst) & 0b1111100000) >> 5);
+	u32 tbrn = ((INST_XFX_I(inst) & 0x1f) << 5) | ((INST_XFX_I(inst) & 0x3e0) >> 5);
 	NO_RC();
 	if (tbrn != 268 && tbrn != 269) { /* enforce actually reading timebase */
 		exception_fire(state, EXCEPTION_PROGRAM);
@@ -73,7 +73,7 @@ static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(s
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
 static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mfcr(state, INST_XO_rD(inst)); }
 static void _do_mcrf(struct _ppcemu_state *state, u32 inst) { if (inst & 0x63ffff) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mcrf(state, INST_XL_crfD(inst), INST_XL_crfS(inst)); }
-static void _do_mtcrf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XFX_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtcrf(state, INST_XFX_rS(inst), INST_XFX_CRM(inst)); }
+static void _do_mtcrf(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XFX_I(inst) & 0x201) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtcrf(state, INST_XFX_rS(inst), INST_XFX_CRM(inst)); }
 static void _do_crand(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crand(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
 static void _do_crandc(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crandc(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
 static void _do_creqv(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_creqv(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
@@ -84,8 +84,8 @@ static void _do_crorc(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crorc
 static void _do_crxor(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crxor(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
 
 /* branch wrappers */
-static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0b0000011111) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
-static void _do_bcctr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0b0000011111) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bcctr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
+static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0x1f) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
+static void _do_bcctr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0x1f) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bcctr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
 
 /* arithmetic wrappers */
 static void _do_subf(struct _ppcemu_state *state, u32 inst) { do_subf(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), INST_XO_OE(inst), INST_XO_Rc(inst)); }
@@ -162,7 +162,7 @@ static void _do_ps_mr(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(in
 
 /* Floating Point wrappers */
 static void _do_fmr(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fmr(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
-static void _do_mtfsf(struct _ppcemu_state *state, u32 inst) { if (INST_XFL_I(inst) & 0b1000000001) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsf(state, INST_XFL_FM(inst), INST_XFL_frB(inst), INST_XFL_Rc(inst)); }
+static void _do_mtfsf(struct _ppcemu_state *state, u32 inst) { if (INST_XFL_I(inst) & 0x201) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsf(state, INST_XFL_FM(inst), INST_XFL_frB(inst), INST_XFL_Rc(inst)); }
 static void _do_mtfsb0(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsb0(state, INST_XO_crbD(inst), INST_XO_Rc(inst)); }
 static void _do_mtfsb1(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtfsb1(state, INST_XO_crbD(inst), INST_XO_Rc(inst)); }
 static void _do_stfiwx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_stfiwx(state, INST_XO_frS(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
