@@ -19,15 +19,15 @@
 #define INST_I_AA(inst)      (((inst) & 0x00000002) >> 1)
 #define INST_I_LK(inst)      (((inst) & 0x00000001) >> 0)
 
-/* 0..5 = Opcode; 6..10 = rD/rS/SR; 11..15 = rA; 16..20 = rB; 21 = OE; 22..30 = XO; 31 = Rc */
+/* 0..5 = Opcode; 6..10 = rD/rS; 11..15 = rA/SR; 16..20 = rB; 21 = OE; 22..30 = XO; 31 = Rc */
 #define INST_XO_rD(inst)     (((inst) & 0x03e00000) >> 21)
 #define INST_XO_rS(inst)     INST_XO_rD(inst)
 #define INST_XO_frD(inst)    INST_XO_rD(inst)
 #define INST_XO_crbD(inst)   INST_XO_rD(inst)
 #define INST_XO_frS(inst)    INST_XO_rD(inst)
-#define INST_XO_SR(inst)     INST_XO_rD(inst)
 #define INST_XO_rA(inst)     (((inst) & 0x001f0000) >> 16)
 #define INST_XO_frA(inst)    INST_XO_rA(inst)
+#define INST_XO_SR(inst)     (((inst) & 0x000f0000) >> 16)
 #define INST_XO_rB(inst)     (((inst) & 0x0000f800) >> 11)
 #define INST_XO_frB(inst)    INST_XO_rB(inst)
 #define INST_XO_SH(inst)     INST_XO_rB(inst)
