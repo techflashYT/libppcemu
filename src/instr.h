@@ -147,17 +147,19 @@ extern u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint
 #define do_basic_store_update(s, len, rS, rA, d) s->gpr[rA] = do_basic_store(s, len, rS, rA, d);
 #define do_indexed_store_update(s, len, rS, rA, d) s->gpr[rA] = do_indexed_store(s, len, rS, rA, d);
 static inline u32 do_indexed_store_conditional(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint rB) {
-	u32 ret;
-	if (state->reserve) {
-		ret = do_indexed_store(state, len, rS, rA, rB);
-		cr_set_bit(state, CR0_EQ, true);
-		state->reserve = false;
-		return ret;
-	}
-	else
-		cr_set_bit(state, CR0_EQ, false);
+	u32 ea = (rA == 0 ? 0 : state->gpr[rA]) + state->gpr[rB];
+	bool success = state->reserve;
+	u32 cr0 = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_SO);
 
-	return 0;
+	/* A store-conditional attempt always consumes the reservation. */
+	state->reserve = false;
+	if (success)
+		cr0 |= 2; /* CR0[EQ] */
+	cr_set_field(state, 0, cr0);
+
+	if (success)
+		return do_indexed_store(state, len, rS, rA, rB);
+	return ea;
 }
 extern void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d);
 
