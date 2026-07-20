@@ -89,6 +89,7 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 
 			state->fpr[frD].u64 = ((u64)ppcemu_be32_to_cpu(val_hi) << 32) |
 						ppcemu_be32_to_cpu(val_lo);
+			state->fpr_is_ps[frD] = true;
 			break;
 		}
 		default:
@@ -99,7 +100,7 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 }
 
 void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d) {
-	u32 hid2, b, ea, gqr;
+	u32 hid2, b, ea, gqr, val_hi, val_lo;
 	i16 di16;
 	i32 di32;
 	enum ppcemu_gqr_quantization_type st_type;
@@ -127,11 +128,12 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 	else { /* store 2 paired single precision floats */
 		switch (st_type) {
 		case PPCEMU_GQR_QUANTIZATION_SINGLE: {
-			/* FIXME: is this right?? */
-			v2p_err = _do_basic_store(state, 4, ea, &state->fpr[frS].u32[0]);
+			val_hi = ppcemu_cpu_to_be32((u32)(state->fpr[frS].u64 >> 32));
+			val_lo = ppcemu_cpu_to_be32((u32)state->fpr[frS].u64);
+			v2p_err = _do_basic_store(state, 4, ea, &val_hi);
 			if (v2p_err != V2P_SUCCESS)
 				return;
-			v2p_err = _do_basic_store(state, 4, ea + 4, &state->fpr[frS].u32[1]);
+			v2p_err = _do_basic_store(state, 4, ea + 4, &val_lo);
 			if (v2p_err != V2P_SUCCESS)
 				return;
 
@@ -149,50 +151,59 @@ void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 
 	PS_ENFORCE_CAP_IDX("ps_mr");
 	state->fpr[frD] = state->fpr[frB]; /* technically it's broken up into 2 moves but this is functionally what it does */
+	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
 
 void do_ps_merge00(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
-	u32 hid2;
+	u32 hid2, a0, b0;
 
 	PS_ENFORCE_CAP_IDX("ps_merge00");
-	state->fpr[frD].ps[0] = state->fpr[frA].ps[0];
-	state->fpr[frD].ps[1] = state->fpr[frB].ps[0];
+	a0 = (u32)(state->fpr[frA].u64 >> 32);
+	b0 = (u32)(state->fpr[frB].u64 >> 32);
+	state->fpr[frD].u64 = ((u64)a0 << 32) | b0;
+	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
 
 void do_ps_merge01(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
-	u32 hid2;
+	u32 hid2, a0, b1;
 
 	PS_ENFORCE_CAP_IDX("ps_merge01");
-	state->fpr[frD].ps[0] = state->fpr[frA].ps[0];
-	state->fpr[frD].ps[1] = state->fpr[frB].ps[1];
+	a0 = (u32)(state->fpr[frA].u64 >> 32);
+	b1 = (u32)state->fpr[frB].u64;
+	state->fpr[frD].u64 = ((u64)a0 << 32) | b1;
+	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
 
 void do_ps_merge10(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
-	u32 hid2;
+	u32 hid2, a1, b0;
 
 	PS_ENFORCE_CAP_IDX("ps_merge10");
-	state->fpr[frD].ps[0] = state->fpr[frA].ps[1];
-	state->fpr[frD].ps[1] = state->fpr[frB].ps[0];
+	a1 = (u32)state->fpr[frA].u64;
+	b0 = (u32)(state->fpr[frB].u64 >> 32);
+	state->fpr[frD].u64 = ((u64)a1 << 32) | b0;
+	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
 
 void do_ps_merge11(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc) {
-	u32 hid2;
+	u32 hid2, a1, b1;
 
 	PS_ENFORCE_CAP_IDX("ps_merge11");
-	state->fpr[frD].ps[0] = state->fpr[frA].ps[1];
-	state->fpr[frD].ps[1] = state->fpr[frB].ps[1];
+	a1 = (u32)state->fpr[frA].u64;
+	b1 = (u32)state->fpr[frB].u64;
+	state->fpr[frD].u64 = ((u64)a1 << 32) | b1;
+	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;

@@ -42,6 +42,8 @@ struct _ppcemu_state {
 		float ps[2];
 		double dblPrec;
 	} fpr[32];
+	/* the 750CL register file has distinct internal PS and double formats */
+	bool fpr_is_ps[32];
 	u32 fpcsr;
 	u32 cr;
 	u32 pc;

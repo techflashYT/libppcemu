@@ -21,6 +21,36 @@ union fp_val {
 	double doubleFloat;
 };
 
+static bool paired_single_mode(const struct _ppcemu_state *state) {
+	return (state->caps & CAPS_PS_IDX) &&
+	       (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE);
+}
+
+/* ps0 is the high-order word */
+static float get_ps0(const struct _ppcemu_state *state, uint fr) {
+	union fp_val val;
+	val.u32[0] = (u32)(state->fpr[fr].u64 >> 32);
+	return val.singleFloat[0];
+}
+
+static void set_ps(struct _ppcemu_state *state, uint fr, float ps0, float ps1) {
+	union fp_val hi, lo;
+	hi.singleFloat[0] = ps0;
+	lo.singleFloat[0] = ps1;
+	state->fpr[fr].u64 = ((u64)hi.u32[0] << 32) | lo.u32[0];
+	state->fpr_is_ps[fr] = true;
+}
+
+static double get_double(const struct _ppcemu_state *state, uint fr) {
+	/* ps0 is accepted by DP instructions */
+	return state->fpr_is_ps[fr] ? (double)get_ps0(state, fr) : state->fpr[fr].dblPrec;
+}
+
+static void set_double(struct _ppcemu_state *state, uint fr, double val) {
+	state->fpr[fr].dblPrec = val;
+	state->fpr_is_ps[fr] = false;
+}
+
 #define ENFORCE_MSR_FP(x) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
 		exception_fire(state, EXCEPTION_FP_UNAV); \
@@ -51,10 +81,10 @@ u32 do_lf_common(struct _ppcemu_state *state, uint frD, uint rA, i32 d, uint wid
 	}
 
 	if (width == 4) {
-		if (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE) {
+		if (paired_single_mode(state)) {
 			/* load into both PS slots */
-			state->fpr[frD].u32[0] = ppcemu_be32_to_cpu(val.u32[0]);
-			state->fpr[frD].u32[1] = ppcemu_be32_to_cpu(val.u32[0]);
+			val.u32[0] = ppcemu_be32_to_cpu(val.u32[0]);
+			set_ps(state, frD, val.singleFloat[0], val.singleFloat[0]);
 		}
 		else {
 			/* byteswap if needed */
@@ -65,11 +95,13 @@ u32 do_lf_common(struct _ppcemu_state *state, uint frD, uint rA, i32 d, uint wid
 
 			/* store that double back into the FPR */
 			state->fpr[frD].u64 = val.u64;
+			state->fpr_is_ps[frD] = false;
 		}
 	}
 	else if (width == 8) {
 		state->fpr[frD].u64 = ((u64)ppcemu_be32_to_cpu(val.u32[0]) << 32) |
 					ppcemu_be32_to_cpu(val.u32[1]);
+		state->fpr_is_ps[frD] = false;
 	}
 
 	return ea;
@@ -90,20 +122,26 @@ u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint wi
 	ea = b + d;
 
 	if (convert && width == 4) {
-		/* stfs: round the double down to single precision, then store */
-		val.singleFloat[0] = (float)state->fpr[frS].dblPrec;
+		/* In PS mode stfs stores ps0; otherwise it converts a double. */
+		val.singleFloat[0] = paired_single_mode(state) ? get_ps0(state, frS) : (float)get_double(state, frS);
 		word = ppcemu_cpu_to_be32(val.u32[0]);
 		v2p_err = _do_basic_store(state, 4, ea, &word);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
 	}
 	else if (width == 8) {
+		if (state->fpr_is_ps[frS]) {
+			val.doubleFloat = get_double(state, frS);
+			word = ppcemu_cpu_to_be32(val.u32[1]);
+		} else
+			word = ppcemu_cpu_to_be32(state->fpr[frS].u32[1]);
+
 		/* stfd: high-order word first */
-		word = ppcemu_cpu_to_be32(state->fpr[frS].u32[1]);
 		v2p_err = _do_basic_store(state, 4, ea, &word);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
-		word = ppcemu_cpu_to_be32(state->fpr[frS].u32[0]);
+
+		word = ppcemu_cpu_to_be32(state->fpr_is_ps[frS] ? val.u32[0] : state->fpr[frS].u32[0]);
 		v2p_err = _do_basic_store(state, 4, ea + 4, &word);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
@@ -122,7 +160,15 @@ u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint wi
 void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	ENFORCE_MSR_FP();
 
-	state->fpr[frD].u64 = state->fpr[frB].u64;
+	if (paired_single_mode(state) && state->fpr_is_ps[frB]) {
+		/* in PS mode fmr copies ps0 and leaves the destination ps1 unchanged */
+		state->fpr[frD].u64 = (state->fpr[frB].u64 & 0xffffffff00000000ull) |
+					 (state->fpr[frD].u64 & 0xffffffffull);
+		state->fpr_is_ps[frD] = true;
+	} else {
+		state->fpr[frD].u64 = state->fpr[frB].u64;
+		state->fpr_is_ps[frD] = state->fpr_is_ps[frB];
+	}
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
@@ -174,10 +220,11 @@ void do_fctiwz(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 
 	ENFORCE_MSR_FP();
 
-	rounded = trunc(state->fpr[frB].dblPrec);
+	rounded = trunc(get_double(state, frB));
 	asi32 = (i32)rounded;
 
 	state->fpr[frD].u32[0] = (u32)asi32;
+	state->fpr_is_ps[frD] = false;
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
@@ -188,12 +235,17 @@ void do_frsp(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	ENFORCE_MSR_FP();
 
 	/* TODO: should check mode via FPSCR[RN] */
-	rounded = (float)state->fpr[frB].dblPrec;
+	rounded = (float)get_double(state, frB);
 
-	if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-		state->fpr[frD].ps[0] = rounded;
+	if (paired_single_mode(state)) {
+		/* frsp defines ps0 only; the 750CL UM explicitly leaves ps1 undefined */
+		union fp_val val;
+		val.singleFloat[0] = rounded;
+		state->fpr[frD].u64 = ((u64)val.u32[0] << 32) | (u32)state->fpr[frD].u64;
+		state->fpr_is_ps[frD] = true;
+	}
 	else
-		state->fpr[frD].dblPrec = (double)rounded;
+		set_double(state, frD, (double)rounded);
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
@@ -203,12 +255,14 @@ void do_fmul_common(struct _ppcemu_state *state, uint frD, uint frA, uint frC, u
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
-		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec * state->fpr[frC].dblPrec;
+		set_double(state, frD, get_double(state, frA) * get_double(state, frC));
 	else if (width == 4) {
-		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = state->fpr[frA].ps[0] * state->fpr[frC].ps[0];
+		if (paired_single_mode(state)) {
+			float result = get_ps0(state, frA) * get_ps0(state, frC);
+			set_ps(state, frD, result, result);
+		}
 		else
-			state->fpr[frD].dblPrec = (float)(state->fpr[frA].dblPrec * state->fpr[frC].dblPrec);
+			set_double(state, frD, (float)(get_double(state, frA) * get_double(state, frC)));
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -219,12 +273,14 @@ void do_fadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
-		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec + state->fpr[frB].dblPrec;
+		set_double(state, frD, get_double(state, frA) + get_double(state, frB));
 	else if (width == 4) {
-		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = state->fpr[frA].ps[0] + state->fpr[frB].ps[0];
+		if (paired_single_mode(state)) {
+			float result = get_ps0(state, frA) + get_ps0(state, frB);
+			set_ps(state, frD, result, result);
+		}
 		else
-			state->fpr[frD].dblPrec = (float)(state->fpr[frA].dblPrec + state->fpr[frB].dblPrec);
+			set_double(state, frD, (float)(get_double(state, frA) + get_double(state, frB)));
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -235,12 +291,14 @@ void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, 
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
-		state->fpr[frD].dblPrec = (state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) + state->fpr[frB].dblPrec;
+		set_double(state, frD, (get_double(state, frA) * get_double(state, frC)) + get_double(state, frB));
 	else if (width == 4) {
-		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = (state->fpr[frA].ps[0] * state->fpr[frC].ps[0]) + state->fpr[frB].ps[0];
+		if (paired_single_mode(state)) {
+			float result = (get_ps0(state, frA) * get_ps0(state, frC)) + get_ps0(state, frB);
+			set_ps(state, frD, result, result);
+		}
 		else
-			state->fpr[frD].dblPrec = (float)((state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) + state->fpr[frB].dblPrec);
+			set_double(state, frD, (float)((get_double(state, frA) * get_double(state, frC)) + get_double(state, frB)));
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -251,12 +309,14 @@ void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, 
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
-		state->fpr[frD].dblPrec = (state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) - state->fpr[frB].dblPrec;
+		set_double(state, frD, (get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
 	else if (width == 4) {
-		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = (state->fpr[frA].ps[0] * state->fpr[frC].ps[0]) - state->fpr[frB].ps[0];
+		if (paired_single_mode(state)) {
+			float result = (get_ps0(state, frA) * get_ps0(state, frC)) - get_ps0(state, frB);
+			set_ps(state, frD, result, result);
+		}
 		else
-			state->fpr[frD].dblPrec = (float)((state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) - state->fpr[frB].dblPrec);
+			set_double(state, frD, (float)((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB)));
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -267,12 +327,14 @@ void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
-		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec / state->fpr[frB].dblPrec;
+		set_double(state, frD, get_double(state, frA) / get_double(state, frB));
 	else if (width == 4) {
-		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = state->fpr[frA].ps[0] / state->fpr[frB].ps[0];
+		if (paired_single_mode(state)) {
+			float result = get_ps0(state, frA) / get_ps0(state, frB);
+			set_ps(state, frD, result, result);
+		}
 		else
-			state->fpr[frD].dblPrec = (float)(state->fpr[frA].dblPrec / state->fpr[frB].dblPrec);
+			set_double(state, frD, (float)(get_double(state, frA) / get_double(state, frB)));
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -283,12 +345,14 @@ void do_fsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
-		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec - state->fpr[frB].dblPrec;
+		set_double(state, frD, get_double(state, frA) - get_double(state, frB));
 	else if (width == 4) {
-		if (state->caps & CAPS_PS_IDX && state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_PSE)
-			state->fpr[frD].ps[0] = state->fpr[frD].ps[1] = state->fpr[frA].ps[0] - state->fpr[frB].ps[0];
+		if (paired_single_mode(state)) {
+			float result = get_ps0(state, frA) - get_ps0(state, frB);
+			set_ps(state, frD, result, result);
+		}
 		else
-			state->fpr[frD].dblPrec = (float)(state->fpr[frA].dblPrec - state->fpr[frB].dblPrec);
+			set_double(state, frD, (float)(get_double(state, frA) - get_double(state, frB)));
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -301,8 +365,8 @@ void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 
 	ENFORCE_MSR_FP();
 
-	a = state->fpr[frA].dblPrec;
-	b = state->fpr[frB].dblPrec;
+	a = get_double(state, frA);
+	b = get_double(state, frB);
 	if (a == NAN || b == NAN)
 		c = 1;
 	else if (a < b)
@@ -322,7 +386,8 @@ void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	ENFORCE_MSR_FP();
 
-	state->fpr[frD].u64 = (state->fpr[frB].u64 ^ (1ull << 63));
+	state->fpr[frD].u64 = state->fpr[frB].u64 ^ (1ull << 63);
+	state->fpr_is_ps[frD] = state->fpr_is_ps[frB];
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
@@ -332,6 +397,7 @@ void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
 	ENFORCE_MSR_FP();
 
 	state->fpr[frD].u32[0] = state->fpcsr;
+	state->fpr_is_ps[frD] = false;
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
