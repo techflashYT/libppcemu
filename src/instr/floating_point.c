@@ -132,6 +132,8 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 	u32 mask;
 	uint i;
 
+	ENFORCE_MSR_FP();
+
 	if (FM == 0xff) /* fast path for "set all" */
 		state->fpcsr = state->fpr[frB].u32[0];
 	else {
@@ -152,7 +154,11 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 
 
 void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
-	u32 mask = 1 << (31 - crbD);
+	u32 mask;
+
+	ENFORCE_MSR_FP();
+
+	mask = 1 << (31 - crbD);
 	if (set)
 		state->fpcsr |= mask;
 	else
@@ -194,6 +200,8 @@ void do_frsp(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 }
 
 void do_fmul_common(struct _ppcemu_state *state, uint frD, uint frA, uint frC, uint Rc, uint width) {
+	ENFORCE_MSR_FP();
+
 	if (width == 8)
 		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec * state->fpr[frC].dblPrec;
 	else if (width == 4) {
@@ -208,6 +216,8 @@ void do_fmul_common(struct _ppcemu_state *state, uint frD, uint frA, uint frC, u
 }
 
 void do_fadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width) {
+	ENFORCE_MSR_FP();
+
 	if (width == 8)
 		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec + state->fpr[frB].dblPrec;
 	else if (width == 4) {
@@ -222,6 +232,8 @@ void do_fadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 }
 
 void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width) {
+	ENFORCE_MSR_FP();
+
 	if (width == 8)
 		state->fpr[frD].dblPrec = (state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) + state->fpr[frB].dblPrec;
 	else if (width == 4) {
@@ -236,6 +248,8 @@ void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, 
 }
 
 void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width) {
+	ENFORCE_MSR_FP();
+
 	if (width == 8)
 		state->fpr[frD].dblPrec = (state->fpr[frA].dblPrec * state->fpr[frC].dblPrec) - state->fpr[frB].dblPrec;
 	else if (width == 4) {
@@ -250,6 +264,8 @@ void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, 
 }
 
 void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width) {
+	ENFORCE_MSR_FP();
+
 	if (width == 8)
 		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec / state->fpr[frB].dblPrec;
 	else if (width == 4) {
@@ -264,6 +280,8 @@ void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 }
 
 void do_fsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width) {
+	ENFORCE_MSR_FP();
+
 	if (width == 8)
 		state->fpr[frD].dblPrec = state->fpr[frA].dblPrec - state->fpr[frB].dblPrec;
 	else if (width == 4) {
@@ -280,6 +298,8 @@ void do_fsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 	u8 c = 0;
 	double a, b;
+
+	ENFORCE_MSR_FP();
 
 	a = state->fpr[frA].dblPrec;
 	b = state->fpr[frB].dblPrec;
@@ -300,6 +320,8 @@ void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 }
 
 void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	ENFORCE_MSR_FP();
+
 	state->fpr[frD].u64 = (state->fpr[frB].u64 ^ (1ull << 63));
 
 	/* TODO: Update CR1 if Rc */
@@ -307,6 +329,8 @@ void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 }
 
 void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
+	ENFORCE_MSR_FP();
+
 	state->fpr[frD].u32[0] = state->fpcsr;
 
 	/* TODO: Update CR1 if Rc */
