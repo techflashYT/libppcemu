@@ -15,6 +15,10 @@
 #include "../state.h"
 
 #define PS_ENFORCE_CAP_LS(instr) \
+	if (!(state->msr & PPCEMU_MSR_FP)) { \
+		exception_fire(state, EXCEPTION_FP_UNAV); \
+		return; \
+	} \
 	if (!(state->caps & CAPS_PS_LD_ST)) { \
 		warn(instr " on CPU w/o PS Load/Store support"); \
 		exception_fire(state, EXCEPTION_PROGRAM); \
@@ -29,6 +33,10 @@
 	}
 
 #define PS_ENFORCE_CAP_IDX(instr) \
+	if (!(state->msr & PPCEMU_MSR_FP)) { \
+		exception_fire(state, EXCEPTION_FP_UNAV); \
+		return; \
+	} \
 	if (!(state->caps & CAPS_PS_IDX)) { \
 		warn(instr " on CPU w/o PS Indexed support"); \
 		exception_fire(state, EXCEPTION_PROGRAM); \
