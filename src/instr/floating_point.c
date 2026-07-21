@@ -132,23 +132,23 @@ u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, uint wi
 	else if (width == 8) {
 		if (state->fpr_is_ps[frS]) {
 			val.doubleFloat = get_double(state, frS);
-			word = ppcemu_cpu_to_be32(val.u32[1]);
+			word = ppcemu_cpu_to_be32((u32)(val.u64 >> 32));
 		} else
-			word = ppcemu_cpu_to_be32(state->fpr[frS].u32[1]);
+			word = ppcemu_cpu_to_be32((u32)(state->fpr[frS].u64 >> 32));
 
 		/* stfd: high-order word first */
 		v2p_err = _do_basic_store(state, 4, ea, &word);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
 
-		word = ppcemu_cpu_to_be32(state->fpr_is_ps[frS] ? val.u32[0] : state->fpr[frS].u32[0]);
+		word = ppcemu_cpu_to_be32((u32)(state->fpr_is_ps[frS] ? val.u64 : state->fpr[frS].u64));
 		v2p_err = _do_basic_store(state, 4, ea + 4, &word);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
 	}
 	else {
 		/* stfiwx: store the low-order 32 bits verbatim */
-		word = ppcemu_cpu_to_be32(state->fpr[frS].u32[0]);
+		word = ppcemu_cpu_to_be32((u32)state->fpr[frS].u64);
 		v2p_err = _do_basic_store(state, 4, ea, &word);
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
@@ -181,7 +181,7 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 	ENFORCE_MSR_FP();
 
 	if (FM == 0xff) /* fast path for "set all" */
-		state->fpcsr = state->fpr[frB].u32[0];
+		state->fpcsr = (u32)state->fpr[frB].u64;
 	else {
 		/* actually mask it */
 		mask = 0;
@@ -191,7 +191,7 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 		}
 
 		state->fpcsr &= ~mask;
-		state->fpcsr |= (state->fpr[frB].u32[0] & mask);
+		state->fpcsr |= ((u32)state->fpr[frB].u64 & mask);
 	}
 
 	/* TODO: Update CR1 if Rc */
@@ -223,7 +223,7 @@ void do_fctiwz(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	rounded = trunc(get_double(state, frB));
 	asi32 = (i32)rounded;
 
-	state->fpr[frD].u32[0] = (u32)asi32;
+	state->fpr[frD].u64 = (state->fpr[frD].u64 & 0xffffffff00000000ull) | (u32)asi32;
 	state->fpr_is_ps[frD] = false;
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
@@ -396,7 +396,7 @@ void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
 	ENFORCE_MSR_FP();
 
-	state->fpr[frD].u32[0] = state->fpcsr;
+	state->fpr[frD].u64 = (state->fpr[frD].u64 & 0xffffffff00000000ull) | state->fpcsr;
 	state->fpr_is_ps[frD] = false;
 
 	/* TODO: Update CR1 if Rc */
