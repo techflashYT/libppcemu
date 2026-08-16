@@ -95,6 +95,38 @@ u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u1
 	return ea;
 }
 
+u32 do_indexed_store_brev(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
+	u32 b, ea, v32;
+	u16 v16;
+
+	if (rA == 0)
+		b = 0;
+	else
+		b = state->gpr[rA];
+
+	ea = b + (i32)state->gpr[rB];
+	mem_debug("indexed store brev: len=%u, rS=%u, rS(val)=0x%08x, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x\r\n", len, rS, state->gpr[rS], rA, rB, state->gpr[rB], b, ea);
+
+	switch (len) {
+	case 2: {
+		v16 = ppcemu_cpu_to_le16((u16)state->gpr[rS]);
+		_do_basic_store(state, len, ea, &v16);
+		break;
+	}
+	case 4: {
+		v32 = ppcemu_cpu_to_le32(state->gpr[rS]);
+		_do_basic_store(state, len, ea, &v32);
+		break;
+	}
+	default: {
+		assert(!"Unreachable");
+		break;
+	}
+	}
+
+	return ea;
+}
+
 void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 	u32 ea, b, val;
 	int r;
@@ -204,6 +236,45 @@ enum virt2phys_err do_indexed_load(struct _ppcemu_state *state, uint len, uint r
 	}
 	}
 	mem_debug("indexed load: len=%u, rD=%u, rA=%u, rB=%u, rB(val)=%d, b=0x%08x, ea=0x%08x, result=0x%08x\r\n", len, rD, rA, rB, (i32)rBval, b, ea, state->gpr[rD]);
+
+	return v2p_err;
+}
+
+enum virt2phys_err do_indexed_load_brev(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB, u32 *ea_out) {
+	u32 b, ea, v32;
+	u16 v16;
+	enum virt2phys_err v2p_err;
+
+	if (rA == 0)
+		b = 0;
+	else
+		b = state->gpr[rA];
+
+	ea = b + (i32)state->gpr[rB];
+	if (ea_out)
+		*ea_out = ea;
+
+	switch (len) {
+	case 2: {
+		v2p_err = _do_basic_load(state, len, ea, &v16);
+		if (v2p_err != V2P_SUCCESS)
+			return v2p_err;
+		state->gpr[rD] = (u32)ppcemu_le16_to_cpu(v16);
+		break;
+	}
+	case 4: {
+		v2p_err = _do_basic_load(state, len, ea, &v32);
+		if (v2p_err != V2P_SUCCESS)
+			return v2p_err;
+		state->gpr[rD] = ppcemu_le32_to_cpu(v32);
+		break;
+	}
+	default: {
+		assert(!"Unreachable");
+		break;
+	}
+	}
+	mem_debug("indexed load brev: len=%u, rD=%u, rA=%u, rB=%u, b=0x%08x, ea=0x%08x, result=0x%08x\r\n", len, rD, rA, rB, b, ea, state->gpr[rD]);
 
 	return v2p_err;
 }

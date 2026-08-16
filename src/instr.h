@@ -144,6 +144,7 @@ extern void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc);
 /* memory */
 extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d);
 extern u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB);
+extern u32 do_indexed_store_brev(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB);
 #define do_basic_store_update(s, len, rS, rA, d) s->gpr[rA] = do_basic_store(s, len, rS, rA, d);
 #define do_indexed_store_update(s, len, rS, rA, d) s->gpr[rA] = do_indexed_store(s, len, rS, rA, d);
 static inline u32 do_indexed_store_conditional(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint rB) {
@@ -165,6 +166,7 @@ extern void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d);
 
 extern enum virt2phys_err do_basic_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d, u32 *ea_out);
 extern enum virt2phys_err do_indexed_load(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB, u32 *ea_out);
+extern enum virt2phys_err do_indexed_load_brev(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint rB, u32 *ea_out);
 static inline enum virt2phys_err do_basic_load_update(struct _ppcemu_state *state, uint len, uint rD, uint rA, uint d) {
 	u32 ea;
 	enum virt2phys_err ret = do_basic_load(state, len, rD, rA, d, &ea);
