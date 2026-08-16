@@ -143,9 +143,9 @@ void do_##name(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB) { \
 }
 CR_OP(crand, (a & b))
 CR_OP(crandc, (a & ~b))
-CR_OP(creqv, ~(a ^ b))
-CR_OP(crnand, ~(a & b))
-CR_OP(crnor, ~(a | b))
+CR_OP(creqv, !(a ^ b))
+CR_OP(crnand, !(a & b))
+CR_OP(crnor, !(a | b))
 CR_OP(cror, (a | b))
-CR_OP(crorc, (a | ~b))
+CR_OP(crorc, (a | !b))
 CR_OP(crxor, (a ^ b))
