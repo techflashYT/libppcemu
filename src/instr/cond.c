@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <ppcemu/spr.h>
 #include "../cr.h"
+#include "../exception.h"
 #include "../log.h"
 #include "../state.h"
 
@@ -113,6 +114,24 @@ void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
 		state->cr &= ~mask;
 		state->cr |= (state->gpr[rS] & mask);
 	}
+}
+
+void do_tw_common(struct _ppcemu_state *state, uint TO, uint rA, i32 val) {
+	i32 a, b;
+
+	a = (i32)state->gpr[rA];
+	b = val;
+
+	if (a < b && (TO & 16)) goto trap;
+	if (a > b && (TO & 8)) goto trap;
+	if (a == b && (TO & 4)) goto trap;
+	if ((u32)a < (u32)b && (TO & 2)) goto trap;
+	if ((u32)a > (u32)b && (TO & 1)) goto trap;
+
+	return;
+
+trap:
+	exception_fire(state, EXCEPTION_PROGRAM);
 }
 
 #define CR_OP(name, op) \

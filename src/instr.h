@@ -99,6 +99,9 @@ extern void do_crnor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crb
 extern void do_cror(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 extern void do_crorc(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
 extern void do_crxor(struct _ppcemu_state *state, uint crbD, uint crbA, uint crbB);
+extern void do_tw_common(struct _ppcemu_state *state, uint TO, uint rA, i32 val);
+#define do_twi(s, TO, rA, simm) do_tw_common(s, TO, rA, (i32)(i16)simm)
+#define do_tw(s, TO, rA, rB) do_tw_common(s, TO, rA, (i32)s->gpr[rB])
 
 /* Floating Point */
 extern u32 do_lf_common(struct _ppcemu_state *state, uint frD, uint rA, i32 d, uint width);

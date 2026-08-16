@@ -82,6 +82,7 @@ static void _do_crnor(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crnor
 static void _do_cror(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_cror(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
 static void _do_crorc(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crorc(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
 static void _do_crxor(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_crxor(state, INST_XL_crbD(inst), INST_XL_crbA(inst), INST_XL_crbB(inst)); }
+static void _do_tw(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_tw(state, INST_XO_TO(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 
 /* branch wrappers */
 static void _do_bclr(struct _ppcemu_state *state, u32 inst) { if (INST_XL_I(inst) & 0x1f) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_bclr(state, INST_XL_BO(inst), INST_XL_BI(inst), INST_XL_LK(inst)); }
@@ -269,7 +270,7 @@ static void (*opc59_handlers[32])(struct _ppcemu_state *state, u32 inst) = {
 };
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
-	/* 0  */   _do_cmp,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subfc,  do_illegal, _do_addc,   _do_mulhwu, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 0  */   _do_cmp,    do_illegal, do_illegal, do_illegal, _do_tw,     do_illegal, do_illegal, do_illegal, _do_subfc,  do_illegal, _do_addc,   _do_mulhwu, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 16 */   do_illegal, do_illegal, do_illegal, _do_mfcr,   _do_lwarx,  do_illegal, do_illegal, _do_lwzx,   _do_slw,    do_illegal, _do_cntlzw, do_illegal, _do_and,    do_illegal, do_illegal, do_illegal,
 	/* 32 */   _do_cmpl,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subf,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_dcbst,  _do_lwzux , do_illegal, do_illegal, do_illegal, do_illegal, _do_andc,   do_illegal, do_illegal, do_illegal,
@@ -476,6 +477,10 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 
 	verbose("top-level opcode: %d\r\n", INST_OPCD(inst));
 	switch (INST_OPCD(inst)) {
+	case 3: { /* twi */
+		do_twi(state, INST_D_TO(inst), INST_D_rA(inst), INST_D_SIMM(inst));
+		break;
+	}
 	case 4: { /* X form instruction */
 		verbose("XO opcode: %d\r\n", INST_XL_XO(inst));
 		opc4_handlers[INST_XL_XO(inst)](state, inst);
