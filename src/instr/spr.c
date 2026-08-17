@@ -174,7 +174,8 @@ void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_HID0:
 	case PPCEMU_SPRN_DSISR:
 	case PPCEMU_SPRN_DAR:
-	case PPCEMU_SPRN_DABR: {
+	case PPCEMU_SPRN_DABR:
+	case PPCEMU_SPRN_PVR: {
 		state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 		break;
 	}
