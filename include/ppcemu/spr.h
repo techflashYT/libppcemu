@@ -335,5 +335,50 @@ enum ppcemu_gqr_quantization_type {
 	PPCEMU_GQR_QUANTIZATION_I16 = 7
 };
 
+enum ppcemu_pvr_values {
+	/*
+	 * 750CXe PVRs
+	 */
+	PPCEMU_PVR_750CXE_DD1_0 = 0x00080100,
+	PPCEMU_PVR_750CXE_DD2_0 = 0x00080100, /* FIXME: according to the datasheet it's the same as DD1.0?  Datasheet typo perhaps? */
+	PPCEMU_PVR_750CXE_DD2_1 = 0x00082201,
+	PPCEMU_PVR_750CXE_DD2_2 = 0x00082202,
+	PPCEMU_PVR_750CXE_DD2_3 = 0x00082203,
+	PPCEMU_PVR_750CXE_DD3_1 = 0x00083311,
+	PPCEMU_PVR_750CXE_DD3_1_PRE_GA = 0x00082311,
+	PPCEMU_PVR_750CXE_DEFAULT = PPCEMU_PVR_750CXE_DD3_1,
+
+	/*
+	 * 750CL PVRs
+	 */
+	PPCEMU_PVR_750CL_DD2_0 = 0x00087200, /* FIXME: check the supposed reserved nibble `r` of 872r0 on a real 750CL */
+	PPCEMU_PVR_750CL_DEFAULT = PPCEMU_PVR_750CL_DD2_0,
+
+	/*
+	 * Gekko PVRs
+	 *
+	 * Gekko DDx.x labels calculated from Swiss.
+	 * 83214 PVR assumed to exist in retail since gc-linux lists it.
+	 * Swiss's mapping suggests other revisions may exist but I've not
+	 * seen evidence of any others actually making their way into retail
+	 * boards (until checking gc-linux DD4.0 was the only one I'd ever
+	 *         seen, I assume DD2.4e was pretty-quickly replaced by 4.0).
+	 */
+	PPCEMU_PVR_GEKKO_DD2_4E = 0x00083214,
+	PPCEMU_PVR_GEKKO_DD4_0 = 0x00083410,
+	PPCEMU_PVR_GEKKO_DEFAULT = PPCEMU_PVR_GEKKO_DD4_0,
+
+	/*
+	 * Broadway PVRs
+	 */
+	PPCEMU_PVR_BROADWAY = 0x00087200, /* FIXME: collides with 750CL DD2.0 PVR, but this is genuinely the observed value on real hardware */
+	PPCEMU_PVR_BROADWAY_DEFAULT = PPCEMU_PVR_BROADWAY,
+
+	/*
+	 * Espresso PVRs
+	 */
+	PPCEMU_PVR_ESPRESSO = 0x70010201,
+	PPCEMU_PVR_ESPRESSO_DEFAULT = PPCEMU_PVR_ESPRESSO
+};
 
 #endif /* _LIBPPCEMU_SPR_H */
