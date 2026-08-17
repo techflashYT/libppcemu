@@ -24,6 +24,12 @@ void do_eieio(struct _ppcemu_state *state) {
 	/* TODO: actually syncronize something */
 }
 
+void do_tlbie(struct _ppcemu_state *state, uint rB) {
+	/* TODO: actually invalidate TLB entries */
+	(void)state;
+	(void)rB;
+}
+
 void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
 	u32 b, ea;
 
