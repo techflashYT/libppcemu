@@ -14,7 +14,7 @@ void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS) {
 
 	val = state->gpr[rS];
 	if (!(val & 0x80000000))
-		warn("Writing a non-direct-store segment which will not be interpreted!!!");
+		warn("Writing a non-direct-store segment (SR%u) @ PC=%08x which will not be interpreted!!!\r\n", sreg, state->pc);
 
 	state->sr[sreg] = val;
 }
