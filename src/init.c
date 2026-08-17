@@ -11,11 +11,13 @@
 #include <ppcemu/msr.h>
 #include <ppcemu/types.h>
 #include <ppcemu/state.h>
+#include <ppcemu/spr.h>
 #include "cache.h"
 #include "caps.h"
 #include "exception.h"
 #include "log.h"
 #include "state.h"
+#include "spr.h"
 
 struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bus_hook, uint bus_speed_khz, uint c2b_mult) {
 	int ret;
@@ -34,20 +36,27 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	switch (model) {
 	case PPCEMU_CPU_MODEL_750CXE: {
 		state->caps = 0;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_750CXE_DEFAULT;
 		break;
 	}
 	case PPCEMU_CPU_MODEL_GEKKO: {
 		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_L2CR | CAPS_PERF_MON;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_GEKKO_DEFAULT;
 		break;
 	}
 	case PPCEMU_CPU_MODEL_750CL: {
 		state->caps = CAPS_PS_IDX | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_L2CR | CAPS_PERF_MON;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_750CL_DEFAULT;
 		break;
 	}
-	case PPCEMU_CPU_MODEL_BROADWAY:
-		/* fallthrough */
+	case PPCEMU_CPU_MODEL_BROADWAY: {
+		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE | CAPS_L2CR | CAPS_PERF_MON;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_BROADWAY_DEFAULT;
+		break;
+	}
 	case PPCEMU_CPU_MODEL_ESPRESSO: {
 		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE | CAPS_L2CR | CAPS_PERF_MON;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_ESPRESSO_DEFAULT;
 		break;
 	}
 	}
