@@ -70,6 +70,7 @@ static void _do_mftb(struct _ppcemu_state *state, u32 inst) {
 static void _do_mtmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtmsr(state, INST_XO_rS(inst)); }
 static void _do_mfmsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfmsr(state, INST_XO_rD(inst)); }
 static void _do_mtsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mtsr(state, INST_XO_SR(inst), INST_XO_rS(inst)); }
+static void _do_mtsrin(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mtsrin(state, INST_XO_rS(inst), INST_XO_rB(inst)); }
 static void _do_mfsr(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_mfsr(state, INST_XO_SR(inst), INST_XO_rD(inst)); }
 static void _do_mfcr(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mfcr(state, INST_XO_rD(inst)); }
 static void _do_mcrf(struct _ppcemu_state *state, u32 inst) { if (inst & 0x63ffff) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_mcrf(state, INST_XL_crfD(inst), INST_XL_crfS(inst)); }
@@ -286,7 +287,7 @@ static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 192 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_subfze, do_illegal, _do_addze,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 208 */  do_illegal, do_illegal, _do_mtsr,   do_illegal, do_illegal, do_illegal, do_illegal, _do_stbx,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 224 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_addme,  _do_mullw,  do_illegal, do_illegal, do_illegal, do_illegal,
-	/* 240 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_stbux,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
+	/* 240 */  do_illegal, do_illegal, _do_mtsrin, do_illegal, do_illegal, do_illegal, do_illegal, _do_stbux,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 256 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_add,    do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 272 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_lhzx,   do_illegal, do_illegal, do_illegal, do_illegal, _do_eqv,    do_illegal, do_illegal, do_illegal,
 	/* 288 */  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,

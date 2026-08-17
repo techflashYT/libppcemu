@@ -271,6 +271,7 @@ extern void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 
 /* Segment Registers */
 extern void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS);
+#define do_mtsrin(s, rS, rB) do_mtsr(s, s->gpr[rB] >> 28, rS)
 extern void do_mfsr(struct _ppcemu_state *state, uint sreg, uint rD);
 
 /* SPRs */
