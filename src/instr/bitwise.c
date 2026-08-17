@@ -4,8 +4,15 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include <ppcemu/spr.h>
 #include "../cr.h"
 #include "../state.h"
+
+static inline void set_xer_ca(struct _ppcemu_state *state, bool ca) {
+	u32 xer = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)];
+	xer = (xer & ~PPCEMU_XER_CA) | (ca ? PPCEMU_XER_CA : 0);
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] = xer;
+}
 
 static u32 rotl32(u32 x, uint rot) {
 	rot &= 31;
@@ -167,24 +174,40 @@ void do_slw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
 }
 
 void do_sraw(struct _ppcemu_state *state, uint rS, uint rA, uint rB, uint Rc) {
-	if ((state->gpr[rB] & 0x20) != 0)
-		state->gpr[rA] = 0;
-	else
-		state->gpr[rA] = (i32)state->gpr[rS] >> (state->gpr[rB] & 0x1f);
+	i32 rs = (i32)state->gpr[rS];
+	uint n = state->gpr[rB] & 0x1f;
+	bool ca;
 
-	/* TODO: some crap with XER.CA? */
+	if ((state->gpr[rB] & 0x20) != 0) {
+		state->gpr[rA] = rs < 0 ? 0xffffffff : 0;
+		ca = rs < 0;
+	}
+	else {
+		state->gpr[rA] = rs >> n;
+		ca = rs < 0 && (n != 0) && (((u32)rs & ((1u << n) - 1)) != 0);
+	}
+
+	set_xer_ca(state, ca);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
 }
 
 void do_srawi(struct _ppcemu_state *state, uint rS, uint rA, uint SH, uint Rc) {
-	if ((SH & 0x20) != 0)
-		state->gpr[rA] = 0;
-	else
-		state->gpr[rA] = (i32)state->gpr[rS] >> (SH & 0x1f);
+	i32 rs = (i32)state->gpr[rS];
+	uint n = SH & 0x1f;
+	bool ca;
 
-	/* TODO: some crap with XER.CA? */
+	if ((SH & 0x20) != 0) {
+		state->gpr[rA] = rs < 0 ? 0xffffffff : 0;
+		ca = rs < 0;
+	}
+	else {
+		state->gpr[rA] = rs >> n;
+		ca = rs < 0 && (n != 0) && (((u32)rs & ((1u << n) - 1)) != 0);
+	}
+
+	set_xer_ca(state, ca);
 
 	if (Rc)
 		update_cr0(state, state->gpr[rA]);
