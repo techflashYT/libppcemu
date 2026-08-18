@@ -22,6 +22,7 @@ void do_sync(struct _ppcemu_state *state, u32 inst) {
 
 void do_eieio(struct _ppcemu_state *state) {
 	/* TODO: actually syncronize something */
+	(void)state;
 }
 
 void do_tlbie(struct _ppcemu_state *state, uint rB) {
