@@ -23,6 +23,7 @@ extern void do_addze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uin
 extern void do_addme(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc);
 extern void do_addic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm, uint Rc);
 extern void do_subf(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
+extern void do_neg(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc);
 extern void do_subfic(struct _ppcemu_state *state, uint rD, uint rA, u16 simm);
 extern void do_subfc(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
 extern void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
