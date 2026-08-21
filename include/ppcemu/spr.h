@@ -164,6 +164,13 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_HID2_GEKKO = 920,
 
 	/*
+	 * Write-gather Pipe Address Register
+	 *
+	 * Available in: Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_WPAR = 921,
+
+	/*
 	 * Monitor Control Register 0
 	 *
 	 * Available in: Gekko, 750CL, Broadway, Espresso

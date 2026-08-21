@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <ppcemu/spr.h>
 
-#define MAX_SPR_COUNT 65
+#define MAX_SPR_COUNT 66
 static inline int ppcemu_sprn_to_idx_raw(int sprn) {
 	switch (sprn) {
 	case PPCEMU_SPRN_XER: return 0;
@@ -78,6 +78,7 @@ static inline int ppcemu_sprn_to_idx_raw(int sprn) {
 	case PPCEMU_SPRN_DABR: return 62;
 	case PPCEMU_SPRN_PVR: return 63;
 	case PPCEMU_SPRN_SDR1: return 64;
+	case PPCEMU_SPRN_WPAR: return 65;
 	default: return -1;
 	}
 }

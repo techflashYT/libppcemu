@@ -151,6 +151,16 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 
 		break;
 	}
+	case PPCEMU_SPRN_WPAR: {
+		if (!(state->caps & CAPS_WR_GATHER_PIPE)) {
+			warn("Attempted to write WPAR on an unsupported CPU\r\n");
+			exception_fire(state, EXCEPTION_PROGRAM);
+		}
+		else
+			state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+
+		break;
+	}
 	default: {
 		warn("Unknown SPR write %d\r\n", sprn);
 		exception_fire(state, EXCEPTION_PROGRAM);
@@ -288,6 +298,16 @@ void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_PMC4: {
 		if (!(state->caps & CAPS_PERF_MON)) {
 			warn("Attempted to read PMCn/MMCRn on an unsupported CPU\r\n");
+			exception_fire(state, EXCEPTION_PROGRAM);
+		}
+		else
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+
+		break;
+	}
+	case PPCEMU_SPRN_WPAR: {
+		if (!(state->caps & CAPS_WR_GATHER_PIPE)) {
+			warn("Attempted to read WPAR on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
 		else
