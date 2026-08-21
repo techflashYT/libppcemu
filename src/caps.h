@@ -16,5 +16,6 @@
 #define CAPS_UPPER_BATS      (1 << 5)
 #define CAPS_L2CR            (1 << 6)
 #define CAPS_PERF_MON        (1 << 7)
+#define CAPS_WR_GATHER_PIPE  (1 << 8)
 
 #endif /* _LIBPPCEMU_INTERNAL_CAPS_H */
