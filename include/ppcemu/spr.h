@@ -51,6 +51,13 @@ enum ppcemu_sprn {
 	PPCEMU_SPRN_DEC = 22,
 
 	/*
+	 * Page Table Base Address
+	 *
+	 * Available in: All
+	 */
+	PPCEMU_SPRN_SDR1 = 25,
+
+	/*
 	 * Machine Status Save/Restore Register 0/1
 	 *
 	 * Available in: All
