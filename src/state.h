@@ -52,6 +52,10 @@ struct _ppcemu_state {
 	u32 sr[16];
 	bool reserve;
 	u32 reserve_addr;
+
+	/* Write-Gather Pipe state */
+	u8 wgp_buf[32];
+	uint cur_wgp_idx;
 };
 
 

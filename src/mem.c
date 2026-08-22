@@ -11,6 +11,7 @@
 #include "ppcemu/types.h"
 #define LOG_LEVEL virt2phys_loglevel
 #include <stdio.h>
+#include <string.h>
 #include <ppcemu/msr.h>
 #include "cache.h"
 #include "caps.h"
@@ -147,6 +148,42 @@ const char *v2p_strerror(enum virt2phys_err err) {
 	}
 }
 
+static void do_wgp_flush(struct _ppcemu_state *state) {
+	u32 wpar = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_WPAR)];
+
+	state->bus_hook((struct ppcemu_state *)state, wpar, 32, state->wgp_buf, true);
+	state->cur_wgp_idx = 0;
+}
+
+static void do_wgp_store(struct _ppcemu_state *state, uint len, void *_val) {
+	int wraparound = ((int)(state->cur_wgp_idx + len)) - 32;
+	u8 *val = _val;
+
+	/* filling */
+	if (wraparound < 0) {
+		memcpy(&state->wgp_buf[state->cur_wgp_idx], val, len);
+		state->cur_wgp_idx += len;
+		return;
+	}
+
+	/* exactly fills 32B, flush */
+	else if (wraparound == 0) {
+		memcpy(&state->wgp_buf[state->cur_wgp_idx], val, len);
+		state->cur_wgp_idx += len;
+		do_wgp_flush(state);
+		return;
+	}
+
+	/* wrap around */
+	else if (wraparound > 0) {
+		memcpy(&state->wgp_buf[state->cur_wgp_idx], val, len - wraparound);
+		do_wgp_flush(state);
+		val += (len - wraparound);
+		len -= wraparound;
+		memcpy(&state->wgp_buf[state->cur_wgp_idx], val, len);
+	}
+}
+
 enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
 	u32 phys;
@@ -165,8 +202,12 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 
 	if (cacheable)
 		ppcemu_dcache_store(&state->dcache, ea, len, val);
-	else
-		state->bus_hook((struct ppcemu_state *)state, phys, len, val, true);
+	else {
+		if ((state->caps & CAPS_WR_GATHER_PIPE) && (phys & ~31) == state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_WPAR)])
+			do_wgp_store(state, len, val);
+		else
+			state->bus_hook((struct ppcemu_state *)state, phys, len, val, true);
+	}
 	return err;
 }
 
