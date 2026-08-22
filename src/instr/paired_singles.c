@@ -14,6 +14,48 @@
 #include "../mem.h"
 #include "../state.h"
 
+/*
+ * Paired Single lane access.  ps0 lives in the high 32 bits of the FPR's
+ * u64, ps1 in the low 32 bits, per the PPC bit-numbering.
+ */
+union ps_bits {
+	u32 u;
+	float f;
+};
+
+enum ps_lane {
+	PS_LANE_0 = 0,
+	PS_LANE_1 = 1,
+};
+
+static inline u32 ps_get_u32(struct _ppcemu_state *state, uint fr, enum ps_lane lane) {
+	if (lane == PS_LANE_0)
+		return (u32)(state->fpr[fr].u64 >> 32);
+
+	return (u32)state->fpr[fr].u64;
+}
+
+static inline float ps_get_f32(struct _ppcemu_state *state, uint fr, enum ps_lane lane) {
+	union ps_bits b;
+
+	b.u = ps_get_u32(state, fr, lane);
+	return b.f;
+}
+
+static inline void ps_set_u32(struct _ppcemu_state *state, uint fr, enum ps_lane lane, u32 val) {
+	if (lane == PS_LANE_0)
+		state->fpr[fr].u64 = ((u64)val << 32) | (u32)state->fpr[fr].u64;
+	else
+		state->fpr[fr].u64 = (state->fpr[fr].u64 & 0xffffffff00000000ULL) | val;
+}
+
+static inline void ps_set_f32(struct _ppcemu_state *state, uint fr, enum ps_lane lane, float val) {
+	union ps_bits b;
+
+	b.f = val;
+	ps_set_u32(state, fr, lane, b.u);
+}
+
 #define PS_ENFORCE_CAP_LS(instr) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
 		exception_fire(state, EXCEPTION_FP_UNAV); \
@@ -87,8 +129,8 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 			if (v2p_err != V2P_SUCCESS)
 				return;
 
-			state->fpr[frD].u64 = ((u64)ppcemu_be32_to_cpu(val_hi) << 32) |
-						ppcemu_be32_to_cpu(val_lo);
+			ps_set_u32(state, frD, PS_LANE_0, ppcemu_be32_to_cpu(val_hi));
+			ps_set_u32(state, frD, PS_LANE_1, ppcemu_be32_to_cpu(val_lo));
 			state->fpr_is_ps[frD] = true;
 			break;
 		}
@@ -128,8 +170,8 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 	else { /* store 2 paired single precision floats */
 		switch (st_type) {
 		case PPCEMU_GQR_QUANTIZATION_SINGLE: {
-			val_hi = ppcemu_cpu_to_be32((u32)(state->fpr[frS].u64 >> 32));
-			val_lo = ppcemu_cpu_to_be32((u32)state->fpr[frS].u64);
+			val_hi = ppcemu_cpu_to_be32(ps_get_u32(state, frS, PS_LANE_0));
+			val_lo = ppcemu_cpu_to_be32(ps_get_u32(state, frS, PS_LANE_1));
 			v2p_err = _do_basic_store(state, 4, ea, &val_hi);
 			if (v2p_err != V2P_SUCCESS)
 				return;
@@ -161,9 +203,10 @@ void do_ps_merge00(struct _ppcemu_state *state, uint frD, uint frA, uint frB, ui
 	u32 hid2, a0, b0;
 
 	PS_ENFORCE_CAP_IDX("ps_merge00");
-	a0 = (u32)(state->fpr[frA].u64 >> 32);
-	b0 = (u32)(state->fpr[frB].u64 >> 32);
-	state->fpr[frD].u64 = ((u64)a0 << 32) | b0;
+	a0 = ps_get_u32(state, frA, PS_LANE_0);
+	b0 = ps_get_u32(state, frB, PS_LANE_0);
+	ps_set_u32(state, frD, PS_LANE_0, a0);
+	ps_set_u32(state, frD, PS_LANE_1, b0);
 	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
@@ -174,9 +217,10 @@ void do_ps_merge01(struct _ppcemu_state *state, uint frD, uint frA, uint frB, ui
 	u32 hid2, a0, b1;
 
 	PS_ENFORCE_CAP_IDX("ps_merge01");
-	a0 = (u32)(state->fpr[frA].u64 >> 32);
-	b1 = (u32)state->fpr[frB].u64;
-	state->fpr[frD].u64 = ((u64)a0 << 32) | b1;
+	a0 = ps_get_u32(state, frA, PS_LANE_0);
+	b1 = ps_get_u32(state, frB, PS_LANE_1);
+	ps_set_u32(state, frD, PS_LANE_0, a0);
+	ps_set_u32(state, frD, PS_LANE_1, b1);
 	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
@@ -187,9 +231,10 @@ void do_ps_merge10(struct _ppcemu_state *state, uint frD, uint frA, uint frB, ui
 	u32 hid2, a1, b0;
 
 	PS_ENFORCE_CAP_IDX("ps_merge10");
-	a1 = (u32)state->fpr[frA].u64;
-	b0 = (u32)(state->fpr[frB].u64 >> 32);
-	state->fpr[frD].u64 = ((u64)a1 << 32) | b0;
+	a1 = ps_get_u32(state, frA, PS_LANE_1);
+	b0 = ps_get_u32(state, frB, PS_LANE_0);
+	ps_set_u32(state, frD, PS_LANE_0, a1);
+	ps_set_u32(state, frD, PS_LANE_1, b0);
 	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
@@ -200,9 +245,10 @@ void do_ps_merge11(struct _ppcemu_state *state, uint frD, uint frA, uint frB, ui
 	u32 hid2, a1, b1;
 
 	PS_ENFORCE_CAP_IDX("ps_merge11");
-	a1 = (u32)state->fpr[frA].u64;
-	b1 = (u32)state->fpr[frB].u64;
-	state->fpr[frD].u64 = ((u64)a1 << 32) | b1;
+	a1 = ps_get_u32(state, frA, PS_LANE_1);
+	b1 = ps_get_u32(state, frB, PS_LANE_1);
+	ps_set_u32(state, frD, PS_LANE_0, a1);
+	ps_set_u32(state, frD, PS_LANE_1, b1);
 	state->fpr_is_ps[frD] = true;
 
 	/* TODO: Update CR1 if Rc */
