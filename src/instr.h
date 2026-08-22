@@ -269,6 +269,8 @@ extern void do_ps_merge01(struct _ppcemu_state *state, uint frD, uint frA, uint 
 extern void do_ps_merge10(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc);
 extern void do_ps_merge11(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc);
 extern void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
+extern void do_ps_sum0(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc);
+extern void do_ps_sum1(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc);
 
 /* Segment Registers */
 extern void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS);

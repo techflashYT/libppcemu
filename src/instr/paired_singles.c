@@ -254,3 +254,40 @@ void do_ps_merge11(struct _ppcemu_state *state, uint frD, uint frA, uint frB, ui
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_ps_sum0(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc) {
+	u32 hid2, c1;
+	float a0, b1, d0;
+
+	PS_ENFORCE_CAP_IDX("ps_sum1");
+
+	/* doesn't need to be loaded into host FPR as we do no math with it */
+	c1 = ps_get_u32(state, frC, PS_LANE_1);
+	a0 = ps_get_f32(state, frA, PS_LANE_0);
+	b1 = ps_get_f32(state, frB, PS_LANE_1);
+	d0 = a0 + b1;
+	ps_set_f32(state, frD, PS_LANE_0, d0);
+	ps_set_u32(state, frD, PS_LANE_1, c1);
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+
+void do_ps_sum1(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc) {
+	u32 hid2, c0;
+	float a0, b1, d1;
+
+	PS_ENFORCE_CAP_IDX("ps_sum1");
+
+	/* doesn't need to be loaded into host FPR as we do no math with it */
+	c0 = ps_get_u32(state, frC, PS_LANE_0);
+	a0 = ps_get_f32(state, frA, PS_LANE_0);
+	b1 = ps_get_f32(state, frB, PS_LANE_1);
+	d1 = a0 + b1;
+	ps_set_u32(state, frD, PS_LANE_0, c0);
+	ps_set_f32(state, frD, PS_LANE_1, d1);
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
