@@ -179,8 +179,9 @@ static void do_wgp_store(struct _ppcemu_state *state, uint len, void *_val) {
 		memcpy(&state->wgp_buf[state->cur_wgp_idx], val, len - wraparound);
 		do_wgp_flush(state);
 		val += (len - wraparound);
-		len -= wraparound;
+		len = wraparound;
 		memcpy(&state->wgp_buf[state->cur_wgp_idx], val, len);
+		state->cur_wgp_idx += len;
 	}
 }
 
