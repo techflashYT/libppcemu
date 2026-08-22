@@ -4,15 +4,15 @@
  * Copyright (C) 2026 Techflash
  */
 
-#include "ppcemu/spr.h"
-#include "spr.h"
 #define LOG_LEVEL decode_loglevel
 
 #include <stdio.h>
+#include <ppcemu/spr.h>
 #include "decode.h"
 #include "exception.h"
 #include "instr.h"
 #include "log.h"
+#include "spr.h"
 #include "state.h"
 #include "types.h"
 
