@@ -310,8 +310,13 @@ void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 			warn("Attempted to read WPAR on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
-		else
-			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
+		else {
+			/*
+			 * Bit 0 (BNE): set when the WGP buffer has any
+			 * pending, unflushed data.
+			 */
+			state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)] | ((state->cur_wgp_idx != 0) ? 1 : 0);
+		}
 
 		break;
 	}
