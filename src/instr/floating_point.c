@@ -29,6 +29,10 @@ static bool paired_single_mode(const struct _ppcemu_state *state) {
 /* ps0 is the high-order word */
 static float get_ps0(const struct _ppcemu_state *state, uint fr) {
 	union fp_val val;
+
+	if (!state->fpr_is_ps[fr])
+		return (float)state->fpr[fr].dblPrec;
+
 	val.u32[0] = (u32)(state->fpr[fr].u64 >> 32);
 	return val.singleFloat[0];
 }
@@ -252,13 +256,14 @@ void do_frsp(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 }
 
 void do_fmul_common(struct _ppcemu_state *state, uint frD, uint frA, uint frC, uint Rc, uint width) {
+	float result;
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
 		set_double(state, frD, get_double(state, frA) * get_double(state, frC));
 	else if (width == 4) {
 		if (paired_single_mode(state)) {
-			float result = get_ps0(state, frA) * get_ps0(state, frC);
+			result = (float)(get_double(state, frA) * get_double(state, frC));
 			set_ps(state, frD, result, result);
 		}
 		else
@@ -276,7 +281,7 @@ void do_fadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 		set_double(state, frD, get_double(state, frA) + get_double(state, frB));
 	else if (width == 4) {
 		if (paired_single_mode(state)) {
-			float result = get_ps0(state, frA) + get_ps0(state, frB);
+			float result = (float)(get_double(state, frA) + get_double(state, frB));
 			set_ps(state, frD, result, result);
 		}
 		else
@@ -288,13 +293,14 @@ void do_fadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 }
 
 void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width) {
+	float result;
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
 		set_double(state, frD, (get_double(state, frA) * get_double(state, frC)) + get_double(state, frB));
 	else if (width == 4) {
 		if (paired_single_mode(state)) {
-			float result = (get_ps0(state, frA) * get_ps0(state, frC)) + get_ps0(state, frB);
+			result = (float)((get_double(state, frA) * get_double(state, frC)) + get_double(state, frB));
 			set_ps(state, frD, result, result);
 		}
 		else
@@ -306,13 +312,14 @@ void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, 
 }
 
 void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width) {
+	float result;
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
 		set_double(state, frD, (get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
 	else if (width == 4) {
 		if (paired_single_mode(state)) {
-			float result = (get_ps0(state, frA) * get_ps0(state, frC)) - get_ps0(state, frB);
+			result = (float)((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
 			set_ps(state, frD, result, result);
 		}
 		else
@@ -330,7 +337,7 @@ void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 		set_double(state, frD, get_double(state, frA) / get_double(state, frB));
 	else if (width == 4) {
 		if (paired_single_mode(state)) {
-			float result = get_ps0(state, frA) / get_ps0(state, frB);
+			float result = (float)(get_double(state, frA) / get_double(state, frB));
 			set_ps(state, frD, result, result);
 		}
 		else
@@ -342,13 +349,14 @@ void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, u
 }
 
 void do_fsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width) {
+	float result;
 	ENFORCE_MSR_FP();
 
 	if (width == 8)
 		set_double(state, frD, get_double(state, frA) - get_double(state, frB));
 	else if (width == 4) {
 		if (paired_single_mode(state)) {
-			float result = get_ps0(state, frA) - get_ps0(state, frB);
+			result = (float)(get_double(state, frA) - get_double(state, frB));
 			set_ps(state, frD, result, result);
 		}
 		else
