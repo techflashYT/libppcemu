@@ -111,7 +111,6 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 	if (state->external_interrupt_pending && state->msr & PPCEMU_MSR_EE) {
 		exception_fire(state, EXCEPTION_EXT);
-		state->external_interrupt_pending = false;
 	}
 	else if (state->dec_exception_pending && state->msr & PPCEMU_MSR_EE) {
 		exception_fire(state, EXCEPTION_DEC);

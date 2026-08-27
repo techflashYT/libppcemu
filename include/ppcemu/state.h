@@ -127,9 +127,9 @@ void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode 
 void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook hook);
 
 /*
- * Queue an external interrupt exception.
+ * Assert or de-assert the external interrupt line.
  */
-void ppcemu_external_interrupt(struct ppcemu_state *state);
+void ppcemu_external_interrupt(struct ppcemu_state *state, bool asserted);
 
 /*
  * Set the caching mode.
