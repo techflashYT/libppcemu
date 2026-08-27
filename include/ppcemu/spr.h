@@ -239,6 +239,13 @@ enum ppcemu_sprn {
 };
 
 /*
+ * DSISR bits
+ */
+#define PPCEMU_DSISR_NOT_FOUND  (1 << 30)
+#define PPCEMU_DSISR_PROTECTION (1 << 27)
+#define PPCEMU_DSISR_STORE      (1 << 25)
+
+/*
  * XER bits
  */
 #define PPCEMU_XER_SO_SHIFT 31

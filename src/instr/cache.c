@@ -94,6 +94,7 @@ void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
 	start = ea & ~31;
 	err = ppcemu_virt2phys(state, start, &phys, &cacheable, false, true);
 	if (err != V2P_SUCCESS) {
+		ppcemu_set_dsi_info(state, ea, err, true);
 		exception_fire(state, EXCEPTION_DSI);
 		return;
 	}

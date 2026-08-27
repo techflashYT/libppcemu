@@ -148,6 +148,24 @@ const char *v2p_strerror(enum virt2phys_err err) {
 	}
 }
 
+void HIDDEN ppcemu_set_dsi_info(struct _ppcemu_state *state, u32 ea, enum virt2phys_err err, bool write) {
+	u32 dsisr = write ? PPCEMU_DSISR_STORE : 0;
+
+	switch (err) {
+	case V2P_NOT_MAPPED:
+		dsisr |= PPCEMU_DSISR_NOT_FOUND;
+		break;
+	case V2P_NO_PERMS:
+		dsisr |= PPCEMU_DSISR_PROTECTION;
+		break;
+	case V2P_SUCCESS:
+		break;
+	}
+
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DSISR)] = dsisr;
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DAR)] = ea;
+}
+
 static void do_wgp_flush(struct _ppcemu_state *state) {
 	u32 wpar = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_WPAR)];
 
@@ -195,8 +213,8 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 
 	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, true);
 	if (err != V2P_SUCCESS) {
-		/* TODO: need to set other info? */
 		warn("_do_basic_store: store %uB to 0x%08x @ PC=0x%08x: virt2phys error: %s (%d)\r\n", len, ea, state->pc, v2p_strerror(err), err);
+		ppcemu_set_dsi_info(state, ea, err, true);
 		exception_fire(state, EXCEPTION_DSI);
 		return err;
 	}
@@ -222,8 +240,8 @@ enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea,
 
 	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, false);
 	if (err != V2P_SUCCESS) {
-		/* TODO: need to set other info? */
 		warn("_do_basic_load: load %uB from 0x%08x @ PC=0x%08x: virt2phys error: %s (%d)\r\n", len, ea, state->pc, v2p_strerror(err), err);
+		ppcemu_set_dsi_info(state, ea, err, false);
 		exception_fire(state, EXCEPTION_DSI);
 		return err;
 	}
