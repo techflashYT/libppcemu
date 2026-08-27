@@ -33,6 +33,7 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	state->bus_hook = bus_hook;
 	state->c2b_mult = c2b_mult;
 	state->bus_speed_khz = bus_speed_khz;
+	state->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
 	ppcemu_reset((struct ppcemu_state *)state);
 
 	return (struct ppcemu_state *)state;
@@ -44,14 +45,23 @@ int ppcemu_reset(struct ppcemu_state *state) {
 	enum ppcemu_cpu_model model;
 	ppcemu_bus_hook bus_hook;
 	uint c2b_mult, bus_speed_khz;
+	ppcemu_loadstore_hook loadstore_hook;
+	enum ppcemu_cache_mode cache_mode;
+	bool sync_rt;
 
 	s = (struct _ppcemu_state *)state;
 
 	/* save some state before the below memset */
 	model = s->model;
 	bus_hook = s->bus_hook;
+	loadstore_hook = s->loadstore_hook;
 	c2b_mult = s->c2b_mult;
 	bus_speed_khz = s->bus_speed_khz;
+	cache_mode = s->cache_mode;
+	sync_rt = s->sync_rt;
+
+	if (s->ready)
+		ppcemu_cache_destroy(s);
 
 	memset(s, 0, sizeof(struct _ppcemu_state));
 
@@ -84,7 +94,7 @@ int ppcemu_reset(struct ppcemu_state *state) {
 	}
 	}
 
-	s->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
+	s->cache_mode = cache_mode;
 	/* TODO: don't hardcode */
 	ret = ppcemu_cache_init(s, 16 * 1024, 16 * 1024);
 	if (ret) {
@@ -92,10 +102,11 @@ int ppcemu_reset(struct ppcemu_state *state) {
 		return ret;
 	}
 
-	s->sync_rt = false;
 	s->bus_hook = bus_hook;
+	s->loadstore_hook = loadstore_hook;
 	s->bus_speed_khz = bus_speed_khz;
 	s->c2b_mult = c2b_mult;
+	s->sync_rt = sync_rt;
 	s->msr = PPCEMU_MSR_IP;
 	s->ready = true;
 	exception_fire(s, EXCEPTION_RESET);
