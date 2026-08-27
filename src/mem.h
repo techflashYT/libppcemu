@@ -13,7 +13,8 @@
 enum virt2phys_err {
 	V2P_SUCCESS,
 	V2P_NOT_MAPPED,
-	V2P_NO_PERMS
+	V2P_NO_PERMS,
+	V2P_DIRECT_STORE
 };
 
 /* converts a virtual address to a physical one, returning various values if it failed */

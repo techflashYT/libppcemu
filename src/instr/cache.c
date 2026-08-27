@@ -9,6 +9,13 @@
 #include "../mem.h"
 #include "../state.h"
 
+static bool cache_ea_is_direct_store(struct _ppcemu_state *state, u32 ea) {
+	u32 phys;
+	bool cacheable;
+
+	return ppcemu_virt2phys(state, ea, &phys, &cacheable, false, false) == V2P_DIRECT_STORE;
+}
+
 
 void do_isync(struct _ppcemu_state *state, u32 inst) {
 	NO_RC();
@@ -40,6 +47,8 @@ void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
+	if (cache_ea_is_direct_store(state, ea))
+		return;
 	ppcemu_dcache_writeback_invalidate_line(&state->dcache, ea);
 }
 
@@ -52,6 +61,8 @@ void do_dcbst(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
+	if (cache_ea_is_direct_store(state, ea))
+		return;
 	ppcemu_dcache_writeback_line(&state->dcache, ea);
 }
 
@@ -64,6 +75,8 @@ void do_dcbi(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
+	if (cache_ea_is_direct_store(state, ea))
+		return;
 	ppcemu_dcache_invalidate_line(&state->dcache, ea);
 }
 
@@ -76,6 +89,9 @@ void do_icbi(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
+	/* icbi is translated and protected as a data load */
+	if (cache_ea_is_direct_store(state, ea))
+		return;
 	ppcemu_icache_invalidate_line(&state->icache, ea);
 }
 
@@ -93,6 +109,8 @@ void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
 	ea = b + (i32)state->gpr[rB];
 	start = ea & ~31;
 	err = ppcemu_virt2phys(state, start, &phys, &cacheable, false, true);
+	if (err == V2P_DIRECT_STORE)
+		return;
 	if (err != V2P_SUCCESS) {
 		ppcemu_set_dsi_info(state, ea, err, true);
 		exception_fire(state, EXCEPTION_DSI);

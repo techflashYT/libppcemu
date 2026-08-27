@@ -76,7 +76,7 @@ static uint bat_blocklen_to_bytes(u32 bl) {
 
 
 enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool *cacheable, bool ifetch, bool write) {
-	u32 batu, batl, size, bepi, pp, wimg;
+	u32 batu, batl, size, bepi, pp, sr, wimg;
 	uint i, max_bat;
 	bool vs, vp;
 
@@ -135,7 +135,16 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 		mem_debug("MEM: It does not, continuing...\r\n");
 	}
 
-	/* No matching BAT */
+	/*
+	 * BAT translation takes precedence over segment/page translation.  Page
+	 * translation is not implemented yet, but recognize a direct-store
+	 * segment so callers do not accidentally treat it as merely unmapped.
+	 */
+	sr = state->sr[virt >> 28];
+	if (sr & 0x80000000)
+		return V2P_DIRECT_STORE;
+
+	/* No matching BAT or supported segment translation */
 	return V2P_NOT_MAPPED;
 }
 
@@ -144,6 +153,7 @@ const char *v2p_strerror(enum virt2phys_err err) {
 	case V2P_SUCCESS: return "Success";
 	case V2P_NOT_MAPPED: return "Not Mapped";
 	case V2P_NO_PERMS: return "Invalid Permissions";
+	case V2P_DIRECT_STORE: return "Direct Store";
 	default: return "???";
 	}
 }
@@ -157,6 +167,9 @@ void HIDDEN ppcemu_set_dsi_info(struct _ppcemu_state *state, u32 ea, enum virt2p
 		break;
 	case V2P_NO_PERMS:
 		dsisr |= PPCEMU_DSISR_PROTECTION;
+		break;
+	case V2P_DIRECT_STORE:
+		dsisr |= PPCEMU_DSISR_DIRECT_STORE;
 		break;
 	case V2P_SUCCESS:
 		break;

@@ -243,6 +243,7 @@ enum ppcemu_sprn {
  */
 #define PPCEMU_DSISR_NOT_FOUND  (1 << 30)
 #define PPCEMU_DSISR_PROTECTION (1 << 27)
+#define PPCEMU_DSISR_DIRECT_STORE (1 << 26)
 #define PPCEMU_DSISR_STORE      (1 << 25)
 
 /*
