@@ -20,7 +20,6 @@
 #include "spr.h"
 
 struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bus_hook, uint bus_speed_khz, uint c2b_mult) {
-	int ret;
 	struct _ppcemu_state *state;
 
 	if (model < 0 || model > PPCEMU_CPU_MODEL_ESPRESSO)
@@ -30,53 +29,76 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	if (!state)
 		return NULL;
 
-	memset(state, 0, sizeof(struct _ppcemu_state));
-
 	state->model = model;
+	state->bus_hook = bus_hook;
+	state->c2b_mult = c2b_mult;
+	state->bus_speed_khz = bus_speed_khz;
+	ppcemu_reset((struct ppcemu_state *)state);
+
+	return (struct ppcemu_state *)state;
+}
+
+int ppcemu_reset(struct ppcemu_state *state) {
+	struct _ppcemu_state *s;
+	int ret;
+	enum ppcemu_cpu_model model;
+	ppcemu_bus_hook bus_hook;
+	uint c2b_mult, bus_speed_khz;
+
+	s = (struct _ppcemu_state *)state;
+
+	/* save some state before the below memset */
+	model = s->model;
+	bus_hook = s->bus_hook;
+	c2b_mult = s->c2b_mult;
+	bus_speed_khz = s->bus_speed_khz;
+
+	memset(s, 0, sizeof(struct _ppcemu_state));
+
+	s->model = model;
 	switch (model) {
 	case PPCEMU_CPU_MODEL_750CXE: {
-		state->caps = 0;
-		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_750CXE_DEFAULT;
+		s->caps = 0;
+		s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_750CXE_DEFAULT;
 		break;
 	}
 	case PPCEMU_CPU_MODEL_GEKKO: {
-		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
-		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_GEKKO_DEFAULT;
+		s->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
+		s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_GEKKO_DEFAULT;
 		break;
 	}
 	case PPCEMU_CPU_MODEL_750CL: {
-		state->caps = CAPS_PS_IDX | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
-		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_750CL_DEFAULT;
+		s->caps = CAPS_PS_IDX | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
+		s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_750CL_DEFAULT;
 		break;
 	}
 	case PPCEMU_CPU_MODEL_BROADWAY: {
-		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
-		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_BROADWAY_DEFAULT;
+		s->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
+		s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_BROADWAY_DEFAULT;
 		break;
 	}
 	case PPCEMU_CPU_MODEL_ESPRESSO: {
-		state->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
-		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_ESPRESSO_DEFAULT;
+		s->caps = CAPS_PS_IDX | CAPS_PS_LD_ST | CAPS_HID2_GEKKO | CAPS_HID4 | CAPS_UPPER_BATS | CAPS_HID4_BDWAY_LIKE | CAPS_L2CR | CAPS_PERF_MON | CAPS_WR_GATHER_PIPE;
+		s->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PVR)] = PPCEMU_PVR_ESPRESSO_DEFAULT;
 		break;
 	}
 	}
 
-	state->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
+	s->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
 	/* TODO: don't hardcode */
-	ret = ppcemu_cache_init(state, 16 * 1024, 16 * 1024);
+	ret = ppcemu_cache_init(s, 16 * 1024, 16 * 1024);
 	if (ret) {
 		error("ppcemu_cache_init failed: %d\r\n", ret);
-		free(state);
-		return NULL;
+		return ret;
 	}
 
-	state->sync_rt = false;
-	state->bus_hook = bus_hook;
-	state->bus_speed_khz = bus_speed_khz;
-	state->c2b_mult = c2b_mult;
-	state->msr = PPCEMU_MSR_IP;
-	state->ready = true;
-	exception_fire(state, EXCEPTION_RESET);
+	s->sync_rt = false;
+	s->bus_hook = bus_hook;
+	s->bus_speed_khz = bus_speed_khz;
+	s->c2b_mult = c2b_mult;
+	s->msr = PPCEMU_MSR_IP;
+	s->ready = true;
+	exception_fire(s, EXCEPTION_RESET);
 
-	return (struct ppcemu_state *)state;
+	return 0;
 }

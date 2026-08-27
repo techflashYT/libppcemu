@@ -34,4 +34,17 @@ extern struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_
  */
 extern void ppcemu_destory(struct ppcemu_state *emu);
 
+/*
+ * Reset a ppcemu instance to its default state, as would be set up by
+ * ppcemu_init().
+ *
+ * Returns:
+ * - 0 (on success)
+ * - <0 (on failure)
+ *
+ * Parameters:
+ * - 'state': The ppcemu instance to reset
+ */
+extern int ppcemu_reset(struct ppcemu_state *state);
+
 #endif /* _LIBPPCEMU_INIT_H */
