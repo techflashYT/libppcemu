@@ -128,11 +128,11 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 			v2p_err = _do_basic_load(state, 4, ea + 4, &ps1.u);
 			if (v2p_err != V2P_SUCCESS)
 				return;
+			ps1.u = ppcemu_be32_to_cpu(ps1.u);
 		}
 
 		ps_set_u32(state, frD, PS_LANE_0, ppcemu_be32_to_cpu(ps0.u));
-		if (!W)
-			ps_set_u32(state, frD, PS_LANE_1, ppcemu_be32_to_cpu(ps1.u));
+		ps_set_u32(state, frD, PS_LANE_1, ps1.u);
 		state->fpr_is_ps[frD] = true;
 		break;
 	}
