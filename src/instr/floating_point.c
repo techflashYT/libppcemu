@@ -401,6 +401,16 @@ void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	(void)Rc;
 }
 
+void do_fabs(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	ENFORCE_MSR_FP();
+
+	state->fpr[frD].u64 = state->fpr[frB].u64 & ~(1ull << 63);
+	state->fpr_is_ps[frD] = state->fpr_is_ps[frB];
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
 void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
 	ENFORCE_MSR_FP();
 
