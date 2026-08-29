@@ -381,3 +381,23 @@ void do_ps_mul(struct _ppcemu_state *state, uint frD, uint frA, uint frC, uint R
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_ps_madd(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc) {
+	u32 hid2;
+	float a0, a1, b0, b1, c0, c1, d0, d1;
+
+	PS_ENFORCE_CAP_IDX("ps_madd");
+	a0 = ps_get_f32(state, frA, PS_LANE_0);
+	a1 = ps_get_f32(state, frA, PS_LANE_1);
+	b0 = ps_get_f32(state, frB, PS_LANE_0);
+	b1 = ps_get_f32(state, frB, PS_LANE_1);
+	c0 = ps_get_f32(state, frC, PS_LANE_0);
+	c1 = ps_get_f32(state, frC, PS_LANE_1);
+	d0 = (a0 * c0) + b0;
+	d1 = (a1 * c1) + b1;
+	ps_set_f32(state, frD, PS_LANE_0, d0);
+	ps_set_f32(state, frD, PS_LANE_1, d1);
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
