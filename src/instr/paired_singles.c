@@ -313,7 +313,7 @@ void do_ps_muls1(struct _ppcemu_state *state, uint frD, uint frA, uint frC, uint
 	u32 hid2;
 	float a0, a1, c1, d0, d1;
 
-	PS_ENFORCE_CAP_IDX("ps_muls0");
+	PS_ENFORCE_CAP_IDX("ps_muls1");
 	a0 = ps_get_f32(state, frA, PS_LANE_0);
 	a1 = ps_get_f32(state, frA, PS_LANE_1);
 	c1 = ps_get_f32(state, frC, PS_LANE_1);
