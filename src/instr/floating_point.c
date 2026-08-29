@@ -411,6 +411,15 @@ void do_fabs(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	(void)Rc;
 }
 
+void do_frsqrte(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	ENFORCE_MSR_FP();
+
+	set_double(state, frD, 1.0 / sqrt(get_double(state, frB)));
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
 void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
 	ENFORCE_MSR_FP();
 
