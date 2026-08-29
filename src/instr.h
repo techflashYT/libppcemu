@@ -134,8 +134,11 @@ extern void do_fmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uin
 #define do_fmadd(s, frD, frA, frB, frC, Rc) do_fmadd_common(s, frD, frA, frB, frC, Rc, 8)
 #define do_fmadds(s, frD, frA, frB, frC, Rc) do_fmadd_common(s, frD, frA, frB, frC, Rc, 4)
 extern void do_fmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width);
+extern void do_fnmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width);
 #define do_fmsub(s, frD, frA, frB, frC, Rc) do_fmsub_common(s, frD, frA, frB, frC, Rc, 8)
 #define do_fmsubs(s, frD, frA, frB, frC, Rc) do_fmsub_common(s, frD, frA, frB, frC, Rc, 4)
+#define do_fnmsub(s, frD, frA, frB, frC, Rc) do_fnmsub_common(s, frD, frA, frB, frC, Rc, 8)
+#define do_fnmsubs(s, frD, frA, frB, frC, Rc) do_fnmsub_common(s, frD, frA, frB, frC, Rc, 4)
 extern void do_fdiv_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc, uint width);
 #define do_fdiv(s, frD, frA, frB, Rc) do_fdiv_common(s, frD, frA, frB, Rc, 8)
 #define do_fdivs(s, frD, frA, frB, Rc) do_fdiv_common(s, frD, frA, frB, Rc, 4)
@@ -146,7 +149,6 @@ extern void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB)
 extern void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_fabs(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_frsqrte(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
-extern void do_fnmsub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc);
 extern void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc);
 
 /* memory */

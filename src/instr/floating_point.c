@@ -420,13 +420,23 @@ void do_frsqrte(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	(void)Rc;
 }
 
-void do_fnmsub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc) {
+void do_fnmsub_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width) {
 	double res;
 
 	ENFORCE_MSR_FP();
 
-	res = -((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
-	set_double(state, frD, res);
+	if (width == 8) {
+		res = -((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
+		set_double(state, frD, res);
+	}
+	else if (width == 4) {
+		if (paired_single_mode(state)) {
+			res = (float)-((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
+			set_ps(state, frD, res, res);
+		}
+		else
+			set_double(state, frD, (float)-((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB)));
+	}
 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
