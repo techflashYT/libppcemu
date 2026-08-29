@@ -5,7 +5,6 @@
  */
 
 #define LOG_LEVEL misc_loglevel
-#include <assert.h>
 #include <ppcemu/endian.h>
 #include <ppcemu/spr.h>
 #include "../caps.h"
@@ -117,7 +116,8 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	ld_type = (enum ppcemu_gqr_quantization_type)((gqr & PPCEMU_GQR_LD_TYPE) >> PPCEMU_GQR_LD_TYPE_SHIFT);
 
 	if (W) { /* read unpaired */
-		assert(!"Unimplemented");
+		error("Unimplemented psq_l unpaired (W=1)\r\n");
+		exception_fire(state, EXCEPTION_PROGRAM);
 	}
 	else { /* read 2 paired single precision floats */
 		switch (ld_type) {
@@ -134,9 +134,11 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 			state->fpr_is_ps[frD] = true;
 			break;
 		}
-		default:
-			assert(!"Unimplemented");
+		default: {
+			error("Unimplemented psq_l quantization: %u\r\n", ld_type);
+			exception_fire(state, EXCEPTION_PROGRAM);
 			break;
+		}
 		}
 	}
 }
@@ -165,7 +167,8 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 	st_type = (enum ppcemu_gqr_quantization_type)((gqr & PPCEMU_GQR_ST_TYPE) >> PPCEMU_GQR_ST_TYPE_SHIFT);
 
 	if (W) { /* read unpaired */
-		assert(!"Unimplemented");
+		error("Unimplemented psq_st unpaired (W=1)\r\n");
+		exception_fire(state, EXCEPTION_PROGRAM);
 	}
 	else { /* store 2 paired single precision floats */
 		switch (st_type) {
@@ -181,9 +184,11 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 
 			break;
 		}
-		default:
-			assert(!"Unimplemented");
+		default: {
+			error("Unimplemented psq_st quantization: %u\r\n", st_type);
+			exception_fire(state, EXCEPTION_PROGRAM);
 			break;
+		}
 		}
 	}
 }
