@@ -426,3 +426,19 @@ void do_ps_msub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint 
 	/* TODO: Update CR1 if Rc */
 	(void)Rc;
 }
+
+void do_ps_neg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	u32 hid2;
+	u32 b0, b1, d0, d1;
+
+	PS_ENFORCE_CAP_IDX("ps_msub");
+	b0 = ps_get_u32(state, frB, PS_LANE_0);
+	b1 = ps_get_u32(state, frB, PS_LANE_1);
+	d0 = b0 ^ (1u << 31);
+	d1 = b1 ^ (1u << 31);
+	ps_set_u32(state, frD, PS_LANE_0, d0);
+	ps_set_u32(state, frD, PS_LANE_1, d1);
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
