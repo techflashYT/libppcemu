@@ -199,6 +199,8 @@ static void _do_fmsub(struct _ppcemu_state *state, u32 inst) { do_fmsub(state, I
 static void _do_fmsubs(struct _ppcemu_state *state, u32 inst) { do_fmsubs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fnmsub(struct _ppcemu_state *state, u32 inst) { do_fnmsub(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fnmsubs(struct _ppcemu_state *state, u32 inst) { do_fnmsubs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
+static void _do_fnmadd(struct _ppcemu_state *state, u32 inst) { do_fnmadd(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
+static void _do_fnmadds(struct _ppcemu_state *state, u32 inst) { do_fnmadds(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_fdiv(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fdiv(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_fdivs(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fdivs(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_fsub(struct _ppcemu_state *state, u32 inst) { if (INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_fsub(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
@@ -215,7 +217,7 @@ static void _do_mffs(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(ins
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   _do_fcmpu,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,  do_illegal, _do_frsp,   do_illegal, do_illegal, _do_fctiwz,
-	/* 16 */   do_illegal, do_illegal, _do_fdiv,   do_illegal, _do_fsub,   _do_fadd,   do_illegal, do_illegal, do_illegal, _do_fmul,   _do_frsqrte, do_illegal, _do_fmsub,  _do_fmadd,  _do_fnmsub, do_illegal,
+	/* 16 */   do_illegal, do_illegal, _do_fdiv,   do_illegal, _do_fsub,   _do_fadd,   do_illegal, do_illegal, do_illegal, _do_fmul,   _do_frsqrte, do_illegal, _do_fmsub,  _do_fmadd,  _do_fnmsub, _do_fnmadd,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb1, do_illegal, _do_fneg,   do_illegal, do_illegal,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb0, do_illegal, _do_fmr,    do_illegal, do_illegal,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
@@ -282,7 +284,7 @@ static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 
 static void (*opc59_handlers[32])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,  do_illegal,
-	/* 16 */   do_illegal, do_illegal, _do_fdivs,  do_illegal, _do_fsubs,  _do_fadds,  do_illegal, do_illegal, do_illegal, _do_fmuls,  do_illegal, do_illegal, _do_fmsubs, _do_fmadds, _do_fnmsubs, do_illegal,
+	/* 16 */   do_illegal, do_illegal, _do_fdivs,  do_illegal, _do_fsubs,  _do_fadds,  do_illegal, do_illegal, do_illegal, _do_fmuls,  do_illegal, do_illegal, _do_fmsubs, _do_fmadds, _do_fnmsubs, _do_fnmadds,
 };
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {

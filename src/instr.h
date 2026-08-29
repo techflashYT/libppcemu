@@ -149,6 +149,9 @@ extern void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB)
 extern void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_fabs(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_frsqrte(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
+extern void do_fnmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc, uint width);
+#define do_fnmadd(s, frD, frA, frB, frC, Rc) do_fnmadd_common(s, frD, frA, frB, frC, Rc, 8)
+#define do_fnmadds(s, frD, frA, frB, frC, Rc) do_fnmadd_common(s, frD, frA, frB, frC, Rc, 4)
 extern void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc);
 
 /* memory */
