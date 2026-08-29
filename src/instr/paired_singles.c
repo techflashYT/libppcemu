@@ -93,11 +93,12 @@ static inline void ps_set_f32(struct _ppcemu_state *state, uint fr, enum ps_lane
 
 
 void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
-	u32 hid2, b, ea, gqr, val_hi, val_lo;
+	u32 hid2, b, ea, gqr;
 	i16 di16;
 	i32 di32;
 	enum ppcemu_gqr_quantization_type ld_type;
 	enum virt2phys_err v2p_err;
+	union ps_bits ps0, ps1;
 
 	PS_ENFORCE_CAP_LS("psq_l");
 	di16 = (i16)(d << 4);
@@ -115,40 +116,41 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	gqr = state->sprs[ppcemu_gqrn_to_spr_idx(PSQ)];
 	ld_type = (enum ppcemu_gqr_quantization_type)((gqr & PPCEMU_GQR_LD_TYPE) >> PPCEMU_GQR_LD_TYPE_SHIFT);
 
-	if (W) { /* read unpaired */
-		error("Unimplemented psq_l unpaired (W=1)\r\n");
-		exception_fire(state, EXCEPTION_PROGRAM);
-	}
-	else { /* read 2 paired single precision floats */
-		switch (ld_type) {
-		case PPCEMU_GQR_QUANTIZATION_SINGLE: {
-			v2p_err = _do_basic_load(state, 4, ea, &val_hi);
-			if (v2p_err != V2P_SUCCESS)
-				return;
-			v2p_err = _do_basic_load(state, 4, ea + 4, &val_lo);
-			if (v2p_err != V2P_SUCCESS)
-				return;
+	if (W) /* read unpaired */
+		ps1.f = 1.0f;
 
-			ps_set_u32(state, frD, PS_LANE_0, ppcemu_be32_to_cpu(val_hi));
-			ps_set_u32(state, frD, PS_LANE_1, ppcemu_be32_to_cpu(val_lo));
-			state->fpr_is_ps[frD] = true;
-			break;
+	switch (ld_type) {
+	case PPCEMU_GQR_QUANTIZATION_SINGLE: {
+		v2p_err = _do_basic_load(state, 4, ea, &ps0.u);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+		if (!W) {
+			v2p_err = _do_basic_load(state, 4, ea + 4, &ps1.u);
+			if (v2p_err != V2P_SUCCESS)
+				return;
 		}
-		default: {
-			error("Unimplemented psq_l quantization: %u\r\n", ld_type);
-			exception_fire(state, EXCEPTION_PROGRAM);
-			break;
-		}
-		}
+
+		ps_set_u32(state, frD, PS_LANE_0, ppcemu_be32_to_cpu(ps0.u));
+		if (!W)
+			ps_set_u32(state, frD, PS_LANE_1, ppcemu_be32_to_cpu(ps1.u));
+		state->fpr_is_ps[frD] = true;
+		break;
+	}
+	default: {
+		error("Unimplemented psq_l quantization: %u\r\n", ld_type);
+		exception_fire(state, EXCEPTION_PROGRAM);
+		break;
+	}
 	}
 }
 
 void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d) {
-	u32 hid2, b, ea, gqr, val_hi, val_lo;
+	u32 hid2, b, ea, gqr;
 	i16 di16;
 	i32 di32;
 	enum ppcemu_gqr_quantization_type st_type;
 	enum virt2phys_err v2p_err;
+	union ps_bits ps0, ps1;
 
 	PS_ENFORCE_CAP_LS("psq_st");
 	di16 = (i16)(d << 4);
@@ -166,30 +168,28 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 	gqr = state->sprs[ppcemu_gqrn_to_spr_idx(PSQ)];
 	st_type = (enum ppcemu_gqr_quantization_type)((gqr & PPCEMU_GQR_ST_TYPE) >> PPCEMU_GQR_ST_TYPE_SHIFT);
 
-	if (W) { /* read unpaired */
-		error("Unimplemented psq_st unpaired (W=1)\r\n");
-		exception_fire(state, EXCEPTION_PROGRAM);
-	}
-	else { /* store 2 paired single precision floats */
-		switch (st_type) {
-		case PPCEMU_GQR_QUANTIZATION_SINGLE: {
-			val_hi = ppcemu_cpu_to_be32(ps_get_u32(state, frS, PS_LANE_0));
-			val_lo = ppcemu_cpu_to_be32(ps_get_u32(state, frS, PS_LANE_1));
-			v2p_err = _do_basic_store(state, 4, ea, &val_hi);
-			if (v2p_err != V2P_SUCCESS)
-				return;
-			v2p_err = _do_basic_store(state, 4, ea + 4, &val_lo);
-			if (v2p_err != V2P_SUCCESS)
-				return;
+	switch (st_type) {
+	case PPCEMU_GQR_QUANTIZATION_SINGLE: {
+		ps0.u = ppcemu_cpu_to_be32(ps_get_u32(state, frS, PS_LANE_0));
+		if (!W)
+			ps1.u = ppcemu_cpu_to_be32(ps_get_u32(state, frS, PS_LANE_1));
 
-			break;
+		v2p_err = _do_basic_store(state, 4, ea, &ps0.u);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+		if (!W) {
+			v2p_err = _do_basic_store(state, 4, ea + 4, &ps1.u);
+			if (v2p_err != V2P_SUCCESS)
+				return;
 		}
-		default: {
-			error("Unimplemented psq_st quantization: %u\r\n", st_type);
-			exception_fire(state, EXCEPTION_PROGRAM);
-			break;
-		}
-		}
+
+		break;
+	}
+	default: {
+		error("Unimplemented psq_st quantization: %u\r\n", st_type);
+		exception_fire(state, EXCEPTION_PROGRAM);
+		break;
+	}
 	}
 }
 
