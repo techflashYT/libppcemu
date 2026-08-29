@@ -22,13 +22,18 @@
 struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bus_hook, uint bus_speed_khz, uint c2b_mult) {
 	struct _ppcemu_state *state;
 
-	if (model < 0 || model > PPCEMU_CPU_MODEL_ESPRESSO)
+	if (model < 0 || model > PPCEMU_CPU_MODEL_ESPRESSO) {
+		error("bad model %u\r\n", model);
 		return NULL;
+	}
 
 	state = malloc(sizeof(struct _ppcemu_state));
-	if (!state)
+	if (!state) {
+		error("state allocation failed\r\n");
 		return NULL;
+	}
 
+	state->ready = false;
 	state->model = model;
 	state->bus_hook = bus_hook;
 	state->c2b_mult = c2b_mult;
