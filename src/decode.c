@@ -201,11 +201,12 @@ static void _do_lfsux(struct _ppcemu_state *state, u32 inst) { uint rA = INST_XO
 static void _do_fneg(struct _ppcemu_state *state, u32 inst) { do_fneg(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 static void _do_fabs(struct _ppcemu_state *state, u32 inst) { do_fabs(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 static void _do_frsqrte(struct _ppcemu_state *state, u32 inst) { do_frsqrte(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
+static void _do_fnmsub(struct _ppcemu_state *state, u32 inst) { do_fnmsub(state, INST_A_frD(inst), INST_A_frA(inst), INST_A_frB(inst), INST_A_frC(inst), INST_A_Rc(inst)); }
 static void _do_mffs(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_mffs(state, INST_XO_frD(inst), INST_XO_Rc(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   _do_fcmpu,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,  do_illegal, _do_frsp,   do_illegal, do_illegal, _do_fctiwz,
-	/* 16 */   do_illegal, do_illegal, _do_fdiv,   do_illegal, _do_fsub,   _do_fadd,   do_illegal, do_illegal, do_illegal, _do_fmul,   _do_frsqrte, do_illegal, _do_fmsub,  _do_fmadd,  do_illegal, do_illegal,
+	/* 16 */   do_illegal, do_illegal, _do_fdiv,   do_illegal, _do_fsub,   _do_fadd,   do_illegal, do_illegal, do_illegal, _do_fmul,   _do_frsqrte, do_illegal, _do_fmsub,  _do_fmadd,  _do_fnmsub, do_illegal,
 	/* 32 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb1, do_illegal, _do_fneg,   do_illegal, do_illegal,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 48 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,
 	/* 64 */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_mtfsb0, do_illegal, _do_fmr,    do_illegal, do_illegal,  do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,

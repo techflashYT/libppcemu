@@ -420,6 +420,19 @@ void do_frsqrte(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	(void)Rc;
 }
 
+void do_fnmsub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc) {
+	double res;
+
+	ENFORCE_MSR_FP();
+
+	res = -((get_double(state, frA) * get_double(state, frC)) - get_double(state, frB));
+	set_double(state, frD, res);
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+
 void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc) {
 	ENFORCE_MSR_FP();
 

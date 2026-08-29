@@ -146,6 +146,7 @@ extern void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB)
 extern void do_fneg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_fabs(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_frsqrte(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
+extern void do_fnmsub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc);
 extern void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc);
 
 /* memory */
