@@ -235,7 +235,9 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 	if (cacheable)
 		ppcemu_dcache_store(&state->dcache, ea, len, val);
 	else {
-		if ((state->caps & CAPS_WR_GATHER_PIPE) && (phys & ~31) == state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_WPAR)])
+		if ((state->caps & CAPS_WR_GATHER_PIPE) &&
+		    (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_WPE) &&
+		    (phys & ~31) == state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_WPAR)])
 			do_wgp_store(state, len, val);
 		else
 			state->bus_hook((struct ppcemu_state *)state, phys, len, val, true);
