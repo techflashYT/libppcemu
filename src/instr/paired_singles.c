@@ -447,7 +447,7 @@ void do_ps_sub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint R
 	u32 hid2;
 	float a0, a1, b0, b1, d0, d1;
 
-	PS_ENFORCE_CAP_IDX("ps_mul");
+	PS_ENFORCE_CAP_IDX("ps_sub");
 	a0 = ps_get_f32(state, frA, PS_LANE_0);
 	a1 = ps_get_f32(state, frA, PS_LANE_1);
 	b0 = ps_get_f32(state, frB, PS_LANE_0);
