@@ -290,6 +290,7 @@ extern void do_ps_madd(struct _ppcemu_state *state, uint frD, uint frA, uint frB
 extern void do_ps_msub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint frC, uint Rc);
 extern void do_ps_neg(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_ps_sub(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc);
+extern void do_ps_cmpo0(struct _ppcemu_state *state, uint crfD, uint frA, uint frB);
 
 /* Segment Registers */
 extern void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS);
