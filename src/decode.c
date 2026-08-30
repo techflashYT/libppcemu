@@ -217,6 +217,7 @@ static void _do_lfsux(struct _ppcemu_state *state, u32 inst) { uint rA = INST_XO
 static void _do_fneg(struct _ppcemu_state *state, u32 inst) { do_fneg(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 static void _do_fabs(struct _ppcemu_state *state, u32 inst) { do_fabs(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
 static void _do_frsqrte(struct _ppcemu_state *state, u32 inst) { do_frsqrte(state, INST_XO_frD(inst), INST_XO_frB(inst), INST_XO_Rc(inst)); }
+static void _do_fres(struct _ppcemu_state *state, u32 inst) { if (INST_A_frA(inst) || INST_A_frC(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_fres(state, INST_A_frD(inst), INST_A_frB(inst), INST_A_Rc(inst)); }
 static void _do_mffs(struct _ppcemu_state *state, u32 inst) { if (INST_XO_rA(inst) || INST_XO_rB(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_mffs(state, INST_XO_frD(inst), INST_XO_Rc(inst)); }
 
 static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
@@ -288,7 +289,7 @@ static void (*opc63_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 
 static void (*opc59_handlers[32])(struct _ppcemu_state *state, u32 inst) = {
 	/* 0  */   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal,  do_illegal,
-	/* 16 */   do_illegal, do_illegal, _do_fdivs,  do_illegal, _do_fsubs,  _do_fadds,  do_illegal, do_illegal, do_illegal, _do_fmuls,  do_illegal, do_illegal, _do_fmsubs, _do_fmadds, _do_fnmsubs, _do_fnmadds,
+	/* 16 */   do_illegal, do_illegal, _do_fdivs,  do_illegal, _do_fsubs,  _do_fadds,  do_illegal, do_illegal, _do_fres,   _do_fmuls,  do_illegal, do_illegal, _do_fmsubs, _do_fmadds, _do_fnmsubs, _do_fnmadds,
 };
 
 static void (*opc31_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {

@@ -11,6 +11,7 @@
 #include "../caps.h"
 #include "../cr.h"
 #include "../exception.h"
+#include "../fp.h"
 #include "../mem.h"
 #include "../state.h"
 
@@ -458,6 +459,37 @@ void do_fnmadd_common(struct _ppcemu_state *state, uint frD, uint frA, uint frB,
 		}
 		else
 			set_double(state, frD, (float)-((get_double(state, frA) * get_double(state, frC)) + get_double(state, frB)));
+	}
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
+void do_fres(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
+	float d0, b0;
+	double d, b;
+
+	if (paired_single_mode(state)) {
+		b0 = get_ps0(state, frB);
+		if (b0 == 0.0f) {
+			state->fpcsr |= FPSCR_ZX;
+			/* TODO: fire exception */
+			return;
+		}
+
+		d0 = 1.0f / b0;
+		set_ps(state, frD, d0, d0);
+	}
+	else {
+		b = get_double(state, frB);
+		if (b == 0.0) {
+			state->fpcsr |= FPSCR_ZX;
+			/* TODO: fire exception */
+			return;
+		}
+
+		d = 1.0 / b;
+		set_double(state, frD, d);
 	}
 
 	/* TODO: Update CR1 if Rc */

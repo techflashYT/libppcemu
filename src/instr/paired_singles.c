@@ -10,6 +10,7 @@
 #include "../caps.h"
 #include "../cr.h"
 #include "../exception.h"
+#include "../fp.h"
 #include "../log.h"
 #include "../mem.h"
 #include "../state.h"
@@ -56,16 +57,6 @@ static inline void ps_set_f32(struct _ppcemu_state *state, uint fr, enum ps_lane
 	ps_set_u32(state, fr, lane, b.u);
 }
 
-/* float32 mantissa is 23 bits wide; its MSB (bit 22) is the QNaN/SNaN marker */
-#define FRAC_MSB 0x00400000u
-#define IS_NAN(x) (((x >> 23) & 0xffu) == 0xffu && (x & 0x7fffffu) != 0u)
-#define IS_SNAN(x) (IS_NAN(x) && (x & FRAC_MSB) == 0u)
-#define IS_QNAN(x) (IS_NAN(x) && (x & FRAC_MSB) == FRAC_MSB)
-
-/* FPSCR bits */
-#define FPSCR_VXSNAN (1u << (31 - 7))
-#define FPSCR_VXVC   (1u << (31 - 12))
-#define FPSCR_VE     (1u << (31 - 24))
 
 #define PS_ENFORCE_CAP_LS(instr) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
