@@ -32,6 +32,7 @@
 #define INST_XO_rB(inst)     (((inst) & 0x0000f800) >> 11)
 #define INST_XO_frB(inst)    INST_XO_rB(inst)
 #define INST_XO_SH(inst)     INST_XO_rB(inst)
+#define INST_XO_NB(inst)     INST_XO_rB(inst)
 #define INST_XO_OE(inst)     (((inst) & 0x00000400) >> 10)
 #define INST_XO_XO(inst)     (((inst) & 0x000003fe) >> 1)
 #define INST_XO_Rc(inst)     (((inst) & 0x00000001) >> 0)

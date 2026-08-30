@@ -264,6 +264,7 @@ static inline enum virt2phys_err do_indexed_load_conditional(struct _ppcemu_stat
 	return V2P_SUCCESS;
 }
 extern void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d);
+extern void do_stswi(struct _ppcemu_state *state, uint rS, uint rA, uint NB);
 
 /* MSR */
 extern void do_mtmsr(struct _ppcemu_state *state, uint rS);
