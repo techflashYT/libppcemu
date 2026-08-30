@@ -331,3 +331,38 @@ void do_stswi(struct _ppcemu_state *state, uint rS, uint rA, uint NB) {
 		n--;
 	} while (n > 0);
 }
+
+void do_lswi(struct _ppcemu_state *state, uint rD, uint rA, uint NB) {
+	u32 ea;
+	uint r, i, n;
+	u8 val;
+
+	if (rA == 0)
+		ea = 0;
+	else
+		ea = state->gpr[rA];
+
+	if (NB == 0)
+		n = 32;
+	else
+		n = NB;
+
+	r = rD - 1;
+	i = 0;
+	do {
+		if (i == 0) {
+			r = (r + 1) % 32;
+			state->gpr[r] = 0;
+		}
+
+		_do_basic_load(state, 1, ea, &val);
+		state->gpr[r] |= ((u32)val) << (24 - i);
+		i += 8;
+
+		if (i == 32)
+			i = 0;
+
+		ea++;
+		n--;
+	} while (n > 0);
+}
