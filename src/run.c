@@ -29,6 +29,8 @@ static void ifetch_debug(const char *fmt, ...) {
 }
 #endif
 
+#define CORE_CYCLES_PER_INSTR 3
+
 static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr) {
 	u32 phys;
 	enum virt2phys_err err;
@@ -54,8 +56,8 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 
 void ppcemu_step(struct ppcemu_state *emu) {
 	struct _ppcemu_state *state;
-	u32 instr, dec;
-	u64 cycles;
+	u32 instr, dec, ticks_per_tb;
+	u64 tb_delta;
 	enum virt2phys_err err;
 
 	state = (struct _ppcemu_state *)emu;
@@ -70,48 +72,35 @@ void ppcemu_step(struct ppcemu_state *emu) {
 	}
 
 	_ppcemu_decode_exec(state, instr);
-
-	/* handle timing stuff */
 	state->instr_count++;
-	if (!(state->instr_count & 0x7fff) && state->sync_rt) {
-		cycles = ppcemu_rt_refresh((struct ppcemu_state *)state);
 
-		/* increase timebase */
-		state->tb += cycles;
-		/* SPRs determined from state->tb at runtime */
+	ticks_per_tb = 4 * state->c2b_mult;
+	state->tb_remainder += CORE_CYCLES_PER_INSTR;
+	tb_delta = 0;
+	while (state->tb_remainder >= ticks_per_tb) {
+		state->tb_remainder -= ticks_per_tb;
+		state->tb++;
+		tb_delta++;
+	}
 
-		/* decrement decrementer */
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_PMC1)] += CORE_CYCLES_PER_INSTR;
+
+	if (tb_delta > 0) {
 		dec = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)];
 		/* queue decrementer exception on underflow, if enabled */
 		if (!state->dec_exception_pending)
-			state->dec_exception_pending = ((i32)dec >= 0 && (i32)(dec - cycles) < 0);
+			state->dec_exception_pending = ((i32)dec >= 0 && (i32)(dec - tb_delta) < 0);
 
-		dec -= cycles;
-		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
-	}
-	else if (!(state->instr_count & 0x7)) {
-		/* increase timebase */
-		/*
-		 * Ugly hack: core can execute approximately 2 instructions per bus cycle, and TB is 1/4 bus clock,
-		 * so increasing it by the core multiplier every 8 instructions gets _vaguely_ close to legitimate timing.
-		 * This isn't all that accurate but it is very fast, since it's just an addition.
-		 */
-		state->tb += state->c2b_mult;
-		/* SPRs determined from state->tb at runtime */
-
-		/* decrement decrementer */
-		dec = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)];
-		/* queue decrementer exception on underflow, if enabled */
-		if (!state->dec_exception_pending)
-			state->dec_exception_pending = ((i32)dec >= 0 && (i32)(dec - state->c2b_mult) < 0);
-
-		dec -= state->c2b_mult;
+		dec -= (u32)tb_delta;
 		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DEC)] = dec;
 	}
 
-	if (state->external_interrupt_pending && state->msr & PPCEMU_MSR_EE) {
+	/* throttle if we're too fast (unlikely) */
+	if (state->sync_rt && !(state->instr_count & 0x3fff))
+		ppcemu_rt_throttle((struct ppcemu_state *)state);
+
+	if (atomic_load_explicit(&state->external_interrupt_pending, memory_order_relaxed) && state->msr & PPCEMU_MSR_EE)
 		exception_fire(state, EXCEPTION_EXT);
-	}
 	else if (state->dec_exception_pending && state->msr & PPCEMU_MSR_EE) {
 		exception_fire(state, EXCEPTION_DEC);
 		state->dec_exception_pending = false;

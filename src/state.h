@@ -8,6 +8,7 @@
 #define _LIBPPCEMU_INTERNAL_STATE_H
 
 #include <ppcemu/types.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include "cache.h"
 #include "types.h"
@@ -27,11 +28,13 @@ struct _ppcemu_state {
 	u64 tb;
 	struct cache icache;
 	struct cache dcache;
-	u64 rt_last_sync_sec;
-	u64 rt_last_sync_usec;
+	u64 rt_epoch_sec;
+	u64 rt_epoch_usec;
+	u64 rt_epoch_tb;
+	u32 tb_remainder;
 	bool sync_rt;
 	bool dec_exception_pending;
-	bool external_interrupt_pending;
+	atomic_bool external_interrupt_pending;
 	enum ppcemu_cache_mode cache_mode;
 
 	/* CPU state */
@@ -58,5 +61,6 @@ struct _ppcemu_state {
 	uint cur_wgp_idx;
 };
 
+void ppcemu_rt_throttle(struct ppcemu_state *state);
 
 #endif /* _LIBPPCEMU_INTERNAL_STATE_H */

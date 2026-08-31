@@ -139,8 +139,7 @@ void ppcemu_set_loglevel(enum ppcemu_log_source source, enum ppcemu_loglevel lev
 	}
 }
 
-uint64_t ppcemu_rt_refresh(struct ppcemu_state *state) {
-	uint64_t diff_us, bus_hz, tb_cycles_per_usec;
+static void ppcemu_rt_reseed(struct ppcemu_state *state) {
 	#ifdef USE_TIMESPEC
 	struct timespec ts;
 	#else
@@ -150,33 +149,53 @@ uint64_t ppcemu_rt_refresh(struct ppcemu_state *state) {
 
 	#ifdef USE_TIMESPEC
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	diff_us = (ts.tv_sec - s->rt_last_sync_sec) * 1000000;
-	diff_us += ((ts.tv_nsec / 1000) - s->rt_last_sync_usec);
-	s->rt_last_sync_sec = ts.tv_sec;
-	s->rt_last_sync_usec = ts.tv_nsec / 1000;
+	s->rt_epoch_sec = ts.tv_sec;
+	s->rt_epoch_usec = ts.tv_nsec / 1000;
 	#else
 	gettimeofday(&tv, NULL);
-	diff_us = (tv.tv_sec - s->rt_last_sync_sec) * 1000000;
-	diff_us += (tv.tv_usec - s->rt_last_sync_usec);
-	s->rt_last_sync_sec = tv.tv_sec;
-	s->rt_last_sync_usec = tv.tv_usec;
+	s->rt_epoch_sec = tv.tv_sec;
+	s->rt_epoch_usec = tv.tv_usec;
+	#endif
+	s->rt_epoch_tb = s->tb;
+}
+
+void ppcemu_rt_throttle(struct ppcemu_state *state) {
+	uint64_t emulated_us, real_us, tb_hz, sleep_us;
+	#ifdef USE_TIMESPEC
+	struct timespec ts;
+	#else
+	struct timeval tv;
+	#endif
+	REAL_STATE;
+
+	tb_hz = ((uint64_t)s->bus_speed_khz * 1000) / 4;
+	if (tb_hz == 0)
+		return;
+
+	emulated_us = ((s->tb - s->rt_epoch_tb) * 1000000) / tb_hz;
+
+	#ifdef USE_TIMESPEC
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	real_us = (uint64_t)(ts.tv_sec - s->rt_epoch_sec) * 1000000;
+	real_us += (ts.tv_nsec / 1000) - s->rt_epoch_usec;
+	#else
+	gettimeofday(&tv, NULL);
+	real_us = (uint64_t)(tv.tv_sec - s->rt_epoch_sec) * 1000000;
+	real_us += tv.tv_usec - s->rt_epoch_usec;
 	#endif
 
-	/*
-	 * Real nath
-	 */
-
-	/* get speed in Hz for easier calculations below */
-	bus_hz = s->bus_speed_khz * 1000;
-	/* TB ticks at 1/4th bus clock; further divide by 1000000 to get number per usec */
-	tb_cycles_per_usec = (bus_hz / 4) / 1000000;
-
-	/*
-	 * number of TB cycles passed is the number
-	 * of TB cycles per usec, multiplied by how many
-	 * usecs have passed since the last check
-	 */
-	return tb_cycles_per_usec * diff_us;
+	if (emulated_us > real_us) {
+		sleep_us = emulated_us - real_us;
+		if (sleep_us > 100000) {
+			ppcemu_rt_reseed(state);
+			return;
+		}
+		usleep(sleep_us);
+	}
+	else if (real_us > emulated_us + 250000) {
+		/* too far behind */
+		ppcemu_rt_reseed(state);
+	}
 }
 
 void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode mode) {
@@ -195,7 +214,7 @@ void ppcemu_set_timing_mode(struct ppcemu_state *state, enum ppcemu_timing_mode 
 		return;
 	}
 
-	ppcemu_rt_refresh(state);
+	ppcemu_rt_reseed(state);
 }
 
 void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook hook) {
@@ -207,7 +226,7 @@ void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook
 void ppcemu_external_interrupt(struct ppcemu_state *state, bool asserted) {
 	REAL_STATE;
 
-	s->external_interrupt_pending = asserted;
+	atomic_store_explicit(&s->external_interrupt_pending, asserted, memory_order_relaxed);
 }
 
 void ppcemu_set_cache_mode(struct ppcemu_state *state, enum ppcemu_cache_mode mode) {
