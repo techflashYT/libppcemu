@@ -122,3 +122,23 @@ void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
 	else
 		state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, zero_line, true);
 }
+
+void do_dcbt(struct _ppcemu_state *state, uint rA, uint rB) {
+	u32 b, ea, start, phys;
+	u8 dummy;
+	bool cacheable;
+	enum virt2phys_err err;
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	start = ea & ~31;
+	err = ppcemu_virt2phys(state, start, &phys, &cacheable, false, true);
+	if (err != V2P_SUCCESS) /* architecturally defined to ignore translation failure */
+		return;
+
+	ppcemu_dcache_load(&state->dcache, start, 1, &dummy);
+}
