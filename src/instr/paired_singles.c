@@ -2,6 +2,10 @@
  * libppcemu - PowerPC Instruction handling - Paired Singles
  *
  * Copyright (C) 2026 Techflash
+ *
+ * Quantization and dequantization tables adapted from Dolphin Emulator:
+ * Source/Core/Core/PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp
+ * Copyright 2008 Dolphin Emulator Project
  */
 
 #define LOG_LEVEL misc_loglevel
@@ -14,6 +18,46 @@
 #include "../log.h"
 #include "../mem.h"
 #include "../state.h"
+
+/* dequantize table */
+static const float dequantize_table[] = {
+    1.0 / (1ULL << 0),  1.0 / (1ULL << 1),  1.0 / (1ULL << 2),  1.0 / (1ULL << 3),
+    1.0 / (1ULL << 4),  1.0 / (1ULL << 5),  1.0 / (1ULL << 6),  1.0 / (1ULL << 7),
+    1.0 / (1ULL << 8),  1.0 / (1ULL << 9),  1.0 / (1ULL << 10), 1.0 / (1ULL << 11),
+    1.0 / (1ULL << 12), 1.0 / (1ULL << 13), 1.0 / (1ULL << 14), 1.0 / (1ULL << 15),
+    1.0 / (1ULL << 16), 1.0 / (1ULL << 17), 1.0 / (1ULL << 18), 1.0 / (1ULL << 19),
+    1.0 / (1ULL << 20), 1.0 / (1ULL << 21), 1.0 / (1ULL << 22), 1.0 / (1ULL << 23),
+    1.0 / (1ULL << 24), 1.0 / (1ULL << 25), 1.0 / (1ULL << 26), 1.0 / (1ULL << 27),
+    1.0 / (1ULL << 28), 1.0 / (1ULL << 29), 1.0 / (1ULL << 30), 1.0 / (1ULL << 31),
+    (1ULL << 32),       (1ULL << 31),       (1ULL << 30),       (1ULL << 29),
+    (1ULL << 28),       (1ULL << 27),       (1ULL << 26),       (1ULL << 25),
+    (1ULL << 24),       (1ULL << 23),       (1ULL << 22),       (1ULL << 21),
+    (1ULL << 20),       (1ULL << 19),       (1ULL << 18),       (1ULL << 17),
+    (1ULL << 16),       (1ULL << 15),       (1ULL << 14),       (1ULL << 13),
+    (1ULL << 12),       (1ULL << 11),       (1ULL << 10),       (1ULL << 9),
+    (1ULL << 8),        (1ULL << 7),        (1ULL << 6),        (1ULL << 5),
+    (1ULL << 4),        (1ULL << 3),        (1ULL << 2),        (1ULL << 1),
+};
+
+/* quantize table */
+static const float quantize_table[] = {
+    (1ULL << 0),        (1ULL << 1),        (1ULL << 2),        (1ULL << 3),
+    (1ULL << 4),        (1ULL << 5),        (1ULL << 6),        (1ULL << 7),
+    (1ULL << 8),        (1ULL << 9),        (1ULL << 10),       (1ULL << 11),
+    (1ULL << 12),       (1ULL << 13),       (1ULL << 14),       (1ULL << 15),
+    (1ULL << 16),       (1ULL << 17),       (1ULL << 18),       (1ULL << 19),
+    (1ULL << 20),       (1ULL << 21),       (1ULL << 22),       (1ULL << 23),
+    (1ULL << 24),       (1ULL << 25),       (1ULL << 26),       (1ULL << 27),
+    (1ULL << 28),       (1ULL << 29),       (1ULL << 30),       (1ULL << 31),
+    1.0 / (1ULL << 32), 1.0 / (1ULL << 31), 1.0 / (1ULL << 30), 1.0 / (1ULL << 29),
+    1.0 / (1ULL << 28), 1.0 / (1ULL << 27), 1.0 / (1ULL << 26), 1.0 / (1ULL << 25),
+    1.0 / (1ULL << 24), 1.0 / (1ULL << 23), 1.0 / (1ULL << 22), 1.0 / (1ULL << 21),
+    1.0 / (1ULL << 20), 1.0 / (1ULL << 19), 1.0 / (1ULL << 18), 1.0 / (1ULL << 17),
+    1.0 / (1ULL << 16), 1.0 / (1ULL << 15), 1.0 / (1ULL << 14), 1.0 / (1ULL << 13),
+    1.0 / (1ULL << 12), 1.0 / (1ULL << 11), 1.0 / (1ULL << 10), 1.0 / (1ULL << 9),
+    1.0 / (1ULL << 8),  1.0 / (1ULL << 7),  1.0 / (1ULL << 6),  1.0 / (1ULL << 5),
+    1.0 / (1ULL << 4),  1.0 / (1ULL << 3),  1.0 / (1ULL << 2),  1.0 / (1ULL << 1),
+};
 
 /*
  * Paired Single lane access.  ps0 lives in the high 32 bits of the FPR's
@@ -96,9 +140,12 @@ static inline void ps_set_f32(struct _ppcemu_state *state, uint fr, enum ps_lane
 
 
 void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
-	u32 hid2, b, ea, gqr;
-	i16 di16;
+	u32 hid2, b, ea, gqr, ld_scale;
 	i32 di32;
+	u16 u16Val;
+	i16 di16, i16Val;
+	u8 u8Val;
+	i8 i8Val;
 	enum ppcemu_gqr_quantization_type ld_type;
 	enum virt2phys_err v2p_err;
 	union ps_bits ps0, ps1;
@@ -118,6 +165,7 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	/* determine load quantization type */
 	gqr = state->sprs[ppcemu_gqrn_to_spr_idx(PSQ)];
 	ld_type = (enum ppcemu_gqr_quantization_type)((gqr & PPCEMU_GQR_LD_TYPE) >> PPCEMU_GQR_LD_TYPE_SHIFT);
+	ld_scale = (gqr & PPCEMU_GQR_LD_SCALE) >> PPCEMU_GQR_LD_SCALE_SHIFT;
 
 	if (W) /* read unpaired */
 		ps1.f = 1.0f;
@@ -136,6 +184,86 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 
 		ps_set_u32(state, frD, PS_LANE_0, ppcemu_be32_to_cpu(ps0.u));
 		ps_set_u32(state, frD, PS_LANE_1, ps1.u);
+		state->fpr_is_ps[frD] = true;
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_U8: {
+		v2p_err = _do_basic_load(state, 1, ea, &u8Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+
+		u8Val = ppcemu_be16_to_cpu(u8Val);
+		ps0.f = ((float)u8Val) * dequantize_table[ld_scale];
+		if (!W) {
+			v2p_err = _do_basic_load(state, 1, ea + 1, &u8Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+			u8Val = ppcemu_be16_to_cpu(u8Val);
+			ps1.f = ((float)u8Val) * dequantize_table[ld_scale];
+		}
+
+		ps_set_f32(state, frD, PS_LANE_0, ps0.f);
+		ps_set_f32(state, frD, PS_LANE_1, ps1.f);
+		state->fpr_is_ps[frD] = true;
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_U16: {
+		v2p_err = _do_basic_load(state, 2, ea, &u16Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+
+		u16Val = ppcemu_be16_to_cpu(u16Val);
+		ps0.f = ((float)u16Val) * dequantize_table[ld_scale];
+		if (!W) {
+			v2p_err = _do_basic_load(state, 2, ea + 2, &u16Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+			u16Val = ppcemu_be16_to_cpu(u16Val);
+			ps1.f = ((float)u16Val) * dequantize_table[ld_scale];
+		}
+
+		ps_set_f32(state, frD, PS_LANE_0, ps0.f);
+		ps_set_f32(state, frD, PS_LANE_1, ps1.f);
+		state->fpr_is_ps[frD] = true;
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_I8: {
+		v2p_err = _do_basic_load(state, 1, ea, &i8Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+
+		i8Val = ppcemu_be16_to_cpu(i8Val);
+		ps0.f = ((float)i8Val) * dequantize_table[ld_scale];
+		if (!W) {
+			v2p_err = _do_basic_load(state, 1, ea + 1, &i8Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+			i8Val = ppcemu_be16_to_cpu(i8Val);
+			ps1.f = ((float)i8Val) * dequantize_table[ld_scale];
+		}
+
+		ps_set_f32(state, frD, PS_LANE_0, ps0.f);
+		ps_set_f32(state, frD, PS_LANE_1, ps1.f);
+		state->fpr_is_ps[frD] = true;
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_I16: {
+		v2p_err = _do_basic_load(state, 2, ea, &i16Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+
+		i16Val = ppcemu_be16_to_cpu(i16Val);
+		ps0.f = ((float)i16Val) * dequantize_table[ld_scale];
+		if (!W) {
+			v2p_err = _do_basic_load(state, 2, ea + 2, &i16Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+			i16Val = ppcemu_be16_to_cpu(i16Val);
+			ps1.f = ((float)i16Val) * dequantize_table[ld_scale];
+		}
+
+		ps_set_f32(state, frD, PS_LANE_0, ps0.f);
+		ps_set_f32(state, frD, PS_LANE_1, ps1.f);
 		state->fpr_is_ps[frD] = true;
 		break;
 	}
