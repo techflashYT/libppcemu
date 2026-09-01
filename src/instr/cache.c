@@ -4,9 +4,12 @@
  * Copyright (C) 2026 Techflash
  */
 
+#include <ppcemu/spr.h>
 #include "../cache.h"
+#include "../caps.h"
 #include "../decode.h"
 #include "../mem.h"
+#include "../spr.h"
 #include "../state.h"
 
 static bool cache_ea_is_direct_store(struct _ppcemu_state *state, u32 ea) {
@@ -119,6 +122,35 @@ void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
 
 	if (cacheable)
 		ppcemu_dcache_zero_line(&state->dcache, start);
+	else
+		state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, zero_line, true);
+}
+
+void do_dcbz_l(struct _ppcemu_state *state, uint rA, uint rB) {
+	u32 b, ea, start, phys;
+	bool cacheable;
+	enum virt2phys_err err;
+	u8 zero_line[CACHE_LINE_SIZE] = {0};
+
+	if (!(state->caps & CAPS_HID2_GEKKO) ||
+	    !(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_LCE)) {
+		exception_fire(state, EXCEPTION_PROGRAM);
+		return;
+	}
+
+	if (rA)
+		b = state->gpr[rA];
+	else
+		b = 0;
+
+	ea = b + (i32)state->gpr[rB];
+	start = ea & ~31;
+	err = ppcemu_virt2phys(state, start, &phys, &cacheable, false, true);
+	if (err != V2P_SUCCESS)
+		return;
+
+	if (cacheable)
+		ppcemu_dcache_zero_line_locked(&state->dcache, start);
 	else
 		state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, zero_line, true);
 }

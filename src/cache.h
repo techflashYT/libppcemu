@@ -16,7 +16,8 @@ struct cacheline {
 	u32 tag; /* full aligned line base address */
 	u8 valid;
 	u8 dirty; /* only meaningful for D$ */
-	u8 _pad[6];
+	u8 locked; /* only meaningful for D$: exempt from eviction */
+	u8 _pad[5];
 	u8 data[CACHE_LINE_SIZE];
 };
 
@@ -34,6 +35,7 @@ extern void ppcemu_icache_invalidate_line(struct cache *icache, u32 addr);
 extern void ppcemu_dcache_load(struct cache *dcache, u32 addr, uint size, void *out);
 extern void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in);
 extern void ppcemu_dcache_zero_line(struct cache *dcache, u32 addr);
+extern void ppcemu_dcache_zero_line_locked(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_writeback_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_invalidate_line(struct cache *dcache, u32 addr);
 extern void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u32 addr);

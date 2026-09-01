@@ -84,6 +84,7 @@ extern void do_dcbst(struct _ppcemu_state *state, uint rA, uint rB);
 extern void do_dcbi(struct _ppcemu_state *state, uint rA, uint rB);
 extern void do_icbi(struct _ppcemu_state *state, uint rA, uint rB);
 extern void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB);
+extern void do_dcbz_l(struct _ppcemu_state *state, uint rA, uint rB);
 extern void do_dcbt(struct _ppcemu_state *state, uint rA, uint rB);
 
 /* conditionals */

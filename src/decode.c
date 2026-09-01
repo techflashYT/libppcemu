@@ -139,6 +139,7 @@ static void _do_eieio(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST
 static void _do_tlbie(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rD(inst) || INST_XO_rA(inst)) { exception_fire(state, EXCEPTION_PROGRAM); }; do_tlbie(state, INST_XO_rB(inst)); }
 static void _do_dcbt(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbt(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
 #define _do_dcbtst _do_dcbt /* they do the same thing */
+static void _do_dcbz_l(struct _ppcemu_state *state, u32 inst) { NO_RC(); if (INST_XO_rS(inst)) { exception_fire(state, EXCEPTION_PROGRAM); return; }; do_dcbz_l(state, INST_XO_rA(inst), INST_XO_rB(inst)); }
 
 /* comparison wrappers */
 static void _do_cmpl(struct _ppcemu_state *state, u32 inst) {
@@ -495,7 +496,7 @@ static void (*opc4_handlers[1024])(struct _ppcemu_state *state, u32 inst) = {
 	/* 960 */  do_illegal,     do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_ps_sum0, _do_ps_sum1, _do_ps_muls0, _do_ps_muls1, _do_ps_madds0, _do_ps_madds1,
 	/* 976 */  do_illegal,     do_illegal, do_illegal, do_illegal, _do_ps_sub, _do_ps_add, do_illegal, do_illegal, do_illegal, _do_ps_mul, do_illegal,  do_illegal,  _do_ps_msub,  _do_ps_madd,  _do_ps_nmsub,  _do_ps_nmadd,
 	/* 992 */  _do_ps_cmpo0,   do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, do_illegal, _do_ps_neg, do_illegal, _do_ps_sum0, _do_ps_sum1, _do_ps_muls0, _do_ps_muls1, _do_ps_madds0, _do_ps_madds1,
-	/* 1008 */ do_illegal,     do_illegal, do_illegal, do_illegal, _do_ps_sub, _do_ps_add, do_illegal, do_illegal, do_illegal, _do_ps_mul, do_illegal,  do_illegal,  _do_ps_msub,  _do_ps_madd,  _do_ps_nmsub,  _do_ps_nmadd,
+	/* 1008 */ do_illegal,     do_illegal, do_illegal, do_illegal, _do_ps_sub, _do_ps_add, _do_dcbz_l, do_illegal, do_illegal, _do_ps_mul, do_illegal,  do_illegal,  _do_ps_msub,  _do_ps_madd,  _do_ps_nmsub,  _do_ps_nmadd,
 };
 
 

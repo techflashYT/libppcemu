@@ -71,6 +71,20 @@ static enum virt2phys_err bus_read_line(struct _ppcemu_state *state, u32 addr, v
 	return err;
 }
 
+static enum virt2phys_err bus_access_bypass(struct _ppcemu_state *state, u32 addr, uint size, void *data, bool write) {
+	u32 phys;
+	enum virt2phys_err err;
+	bool cacheable;
+
+	err = ppcemu_virt2phys(state, addr, &phys, &cacheable, false, write);
+	if (err != V2P_SUCCESS)
+		return err;
+
+	state->bus_hook((struct ppcemu_state *)state, phys, size, data, write);
+
+	return err;
+}
+
 
 /* Initialize a cache */
 static int cache_init(struct cache *c, uint cache_size, bool is_data_cache) {
@@ -139,6 +153,9 @@ static struct cacheline *cache_get_line(struct cache *c, u64 line_base) {
 	if (line->valid && line->tag == line_base)
 		return line; /* hit */
 
+	if (line->valid && line->locked)
+		return NULL; /* set is pinned by a locked line: caller must bypass */
+
 	/* miss: evict old line if needed */
 	if (line->valid)
 		cache_writeback_slot_if_needed(c, line);
@@ -148,6 +165,7 @@ static struct cacheline *cache_get_line(struct cache *c, u64 line_base) {
 	line->tag = line_base;
 	line->valid = 1;
 	line->dirty = 0;
+	line->locked = 0;
 
 	return line;
 }
@@ -169,6 +187,7 @@ void ppcemu_icache_fetch(struct cache *icache, u32 addr, u32 *out) {
 	assert(offset + 4 <= CACHE_LINE_SIZE);
 
 	line = cache_get_line(icache, line_base);
+	assert(line); /* I$ lines are never locked */
 	*out = *(u32 *)&line->data[offset];
 }
 
@@ -205,7 +224,10 @@ void ppcemu_dcache_load(struct cache *dcache, u32 addr, uint size, void *out) {
 
 	if (offset + size <= CACHE_LINE_SIZE) {
 		line = cache_get_line(dcache, line_base);
-		memcpy(out, &line->data[offset], size);
+		if (line)
+			memcpy(out, &line->data[offset], size);
+		else
+			bus_access_bypass(dcache->ppcemu_state, addr, size, out, false);
 	} else {
 		/* Crosses a 32-byte boundary: split into two accesses */
 		n1 = CACHE_LINE_SIZE - offset;
@@ -214,8 +236,15 @@ void ppcemu_dcache_load(struct cache *dcache, u32 addr, uint size, void *out) {
 		line = cache_get_line(dcache, line_base);
 		line2 = cache_get_line(dcache, line_base + CACHE_LINE_SIZE);
 
-		memcpy(out, &line->data[offset], n1);
-		memcpy(((u8 *)out) + n1, &line2->data[0], n2);
+		if (line)
+			memcpy(out, &line->data[offset], n1);
+		else
+			bus_access_bypass(dcache->ppcemu_state, addr, n1, out, false);
+
+		if (line2)
+			memcpy(((u8 *)out) + n1, &line2->data[0], n2);
+		else
+			bus_access_bypass(dcache->ppcemu_state, line_base + CACHE_LINE_SIZE, n2, ((u8 *)out) + n1, false);
 	}
 }
 
@@ -233,8 +262,12 @@ void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in
 
 	if (offset + size <= CACHE_LINE_SIZE) {
 		line = cache_get_line(dcache, line_base);
-		memcpy(&line->data[offset], in, size);
-		line->dirty = 1;
+		if (line) {
+			memcpy(&line->data[offset], in, size);
+			line->dirty = 1;
+		}
+		else
+			bus_access_bypass(dcache->ppcemu_state, addr, size, in, true);
 	} else {
 		/* Crosses a 32-byte boundary: split into two stores */
 		n1 = CACHE_LINE_SIZE - offset;
@@ -243,23 +276,38 @@ void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in
 		line = cache_get_line(dcache, line_base);
 		line2 = cache_get_line(dcache, line_base + CACHE_LINE_SIZE);
 
-		memcpy(&line->data[offset], in, n1);
-		memcpy(&line2->data[0], ((u8 *)in) + n1, n2);
+		if (line) {
+			memcpy(&line->data[offset], in, n1);
+			line->dirty = 1;
+		}
+		else
+			bus_access_bypass(dcache->ppcemu_state, addr, n1, in, true);
 
-		line->dirty = 1;
-		line2->dirty = 1;
+		if (line2) {
+			memcpy(&line2->data[0], ((u8 *)in) + n1, n2);
+			line2->dirty = 1;
+		}
+		else
+			bus_access_bypass(dcache->ppcemu_state, line_base + CACHE_LINE_SIZE, n2, ((u8 *)in) + n1, true);
 	}
 }
 
 void ppcemu_dcache_zero_line(struct cache *dcache, u32 addr) {
 	u32 line_base;
 	struct cacheline *line;
+	u8 zero_line[CACHE_LINE_SIZE] = {0};
 
 	assert(dcache);
 	assert(dcache->is_data_cache);
 
 	line_base = cache_line_base(addr);
 	line = cache_lookup_slot(dcache, line_base);
+
+	if (line->valid && line->locked && line->tag != line_base) {
+		/* set is pinned by a locked line: zero the block on the bus instead */
+		bus_write_line(dcache->ppcemu_state, line_base, zero_line);
+		return;
+	}
 
 	if (!(line->valid && line->tag == line_base)) {
 		if (line->valid)
@@ -271,6 +319,36 @@ void ppcemu_dcache_zero_line(struct cache *dcache, u32 addr) {
 
 	memset(line->data, 0, CACHE_LINE_SIZE);
 	line->dirty = 1;
+}
+
+/* for dcbz_l */
+void ppcemu_dcache_zero_line_locked(struct cache *dcache, u32 addr) {
+	u32 line_base;
+	struct cacheline *line;
+
+	assert(dcache);
+	assert(dcache->is_data_cache);
+
+	line_base = cache_line_base(addr);
+	line = cache_lookup_slot(dcache, line_base);
+
+	if (line->valid && line->locked && line->tag != line_base) {
+		/* the set already holds a different locked line: nothing we can do */
+		warn("dcbz_l: 0x%08x: set already locked by line 0x%08x, ignoring\r\n", addr, line->tag);
+		return;
+	}
+
+	if (!(line->valid && line->tag == line_base)) {
+		if (line->valid)
+			cache_writeback_slot_if_needed(dcache, line);
+
+		line->tag = line_base;
+		line->valid = 1;
+	}
+
+	memset(line->data, 0, CACHE_LINE_SIZE);
+	line->dirty = 1;
+	line->locked = 1;
 }
 
 void ppcemu_dcache_writeback_line(struct cache *dcache, u32 addr) {
@@ -307,6 +385,7 @@ void ppcemu_dcache_invalidate_line(struct cache *dcache, u32 addr) {
 		/* plain invalidate: discard without writeback */
 		line->valid = 0;
 		line->dirty = 0;
+		line->locked = 0;
 	}
 }
 
@@ -328,6 +407,7 @@ void ppcemu_dcache_writeback_invalidate_line(struct cache *dcache, u32 addr) {
 
 		line->valid = 0;
 		line->dirty = 0;
+		line->locked = 0;
 	}
 }
 
@@ -358,5 +438,6 @@ void ppcemu_cache_invalidate_all(struct cache *cache) {
 		line = &cache->lines[i];
 		line->valid = 0;
 		line->dirty = 0;
+		line->locked = 0;
 	}
 }
