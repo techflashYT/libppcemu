@@ -103,41 +103,44 @@ static inline void ps_set_f32(struct _ppcemu_state *state, uint fr, enum ps_lane
 }
 
 
-#define PS_ENFORCE_CAP_LS(instr) \
+#define PS_ENFORCE_CAP_LS_RET(instr, ret) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
 		exception_fire(state, EXCEPTION_FP_UNAV); \
-		return; \
+		ret; \
 	} \
 	if (!(state->caps & CAPS_PS_LD_ST)) { \
 		warn(instr " on CPU w/o PS Load/Store support"); \
 		exception_fire(state, EXCEPTION_PROGRAM); \
-		return; \
+		ret; \
 	} \
 	if (state->caps & CAPS_HID2_GEKKO) { \
 		hid2 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)]; \
 		if ((u32)(hid2 & (PPCEMU_HID2_PSE | PPCEMU_HID2_BW_LSQE)) != (u32)(PPCEMU_HID2_PSE | PPCEMU_HID2_BW_LSQE)) { \
 			exception_fire(state, EXCEPTION_PROGRAM); \
-			return; \
+			ret; \
 		} \
 	}
 
-#define PS_ENFORCE_CAP_IDX(instr) \
+#define PS_ENFORCE_CAP_IDX_RET(instr, ret) \
 	if (!(state->msr & PPCEMU_MSR_FP)) { \
 		exception_fire(state, EXCEPTION_FP_UNAV); \
-		return; \
+		ret; \
 	} \
 	if (!(state->caps & CAPS_PS_IDX)) { \
 		warn(instr " on CPU w/o PS Indexed support"); \
 		exception_fire(state, EXCEPTION_PROGRAM); \
-		return; \
+		ret; \
 	} \
 	if (state->caps & CAPS_HID2_GEKKO) { \
 		hid2 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)]; \
 		if (!(hid2 & PPCEMU_HID2_PSE)) { \
 			exception_fire(state, EXCEPTION_PROGRAM); \
-			return; \
+			ret; \
 		} \
 	}
+
+#define PS_ENFORCE_CAP_IDX(instr) PS_ENFORCE_CAP_IDX_RET(instr, return)
+#define PS_ENFORCE_CAP_LS(instr) PS_ENFORCE_CAP_LS_RET(instr, return)
 
 
 void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
@@ -276,7 +279,7 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	}
 }
 
-void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d) {
+u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d) {
 	u32 hid2, b, ea, gqr, st_scale;
 	i32 di32;
 	u16 u16Val;
@@ -287,7 +290,7 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 	enum virt2phys_err v2p_err;
 	union ps_bits ps0, ps1;
 
-	PS_ENFORCE_CAP_LS("psq_st");
+	PS_ENFORCE_CAP_LS_RET("psq_st", return 0);
 	di16 = (i16)(d << 4);
 	di16 >>= 4; /* sign extend 12->16 bit */
 	di32 = (i32)di16; /* sign-extend 16->32 bit */
@@ -312,11 +315,11 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 
 		v2p_err = _do_basic_store(state, 4, ea, &ps0.u);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 		if (!W) {
 			v2p_err = _do_basic_store(state, 4, ea + 4, &ps1.u);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 		}
 
 		break;
@@ -343,12 +346,12 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 
 		v2p_err = _do_basic_store(state, 1, ea, &u8Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 		if (!W) {
 			u8Val = (u8)ps1.f;
 			v2p_err = _do_basic_store(state, 1, ea + 1, &u8Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 		}
 
 		break;
@@ -375,12 +378,12 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 
 		v2p_err = _do_basic_store(state, 1, ea, &i8Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 		if (!W) {
 			i8Val = (i8)ps1.f;
 			v2p_err = _do_basic_store(state, 1, ea + 1, &i8Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 		}
 
 		break;
@@ -407,12 +410,12 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 
 		v2p_err = _do_basic_store(state, 2, ea, &u16Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 		if (!W) {
 			u16Val = (u16)ps1.f;
 			v2p_err = _do_basic_store(state, 2, ea + 2, &u16Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 		}
 
 		break;
@@ -439,12 +442,12 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 
 		v2p_err = _do_basic_store(state, 2, ea, &i16Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 		if (!W) {
 			i16Val = (i16)ps1.f;
 			v2p_err = _do_basic_store(state, 2, ea + 2, &i16Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 		}
 
 		break;
@@ -455,6 +458,8 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 		break;
 	}
 	}
+
+	return ea;
 }
 
 void do_ps_mr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
