@@ -9,6 +9,7 @@
  */
 
 #define LOG_LEVEL misc_loglevel
+#include <limits.h>
 #include <ppcemu/endian.h>
 #include <ppcemu/spr.h>
 #include "../caps.h"
@@ -276,9 +277,12 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 }
 
 void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d) {
-	u32 hid2, b, ea, gqr;
-	i16 di16;
+	u32 hid2, b, ea, gqr, st_scale;
 	i32 di32;
+	u16 u16Val;
+	i16 di16, i16Val;
+	u8 u8Val;
+	i8 i8Val;
 	enum ppcemu_gqr_quantization_type st_type;
 	enum virt2phys_err v2p_err;
 	union ps_bits ps0, ps1;
@@ -298,6 +302,7 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 	/* determine load quantization type */
 	gqr = state->sprs[ppcemu_gqrn_to_spr_idx(PSQ)];
 	st_type = (enum ppcemu_gqr_quantization_type)((gqr & PPCEMU_GQR_ST_TYPE) >> PPCEMU_GQR_ST_TYPE_SHIFT);
+	st_scale = (gqr & PPCEMU_GQR_ST_SCALE) >> PPCEMU_GQR_ST_SCALE_SHIFT;
 
 	switch (st_type) {
 	case PPCEMU_GQR_QUANTIZATION_SINGLE: {
@@ -310,6 +315,134 @@ void do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ,
 			return;
 		if (!W) {
 			v2p_err = _do_basic_store(state, 4, ea + 4, &ps1.u);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+		}
+
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_U8: {
+		ps0.f = ps_get_f32(state, frS, PS_LANE_0);
+		ps0.f *= quantize_table[st_scale];
+
+		if (ps0.f > UCHAR_MAX)
+			ps0.f = (float)UCHAR_MAX;
+		if (ps0.f < 0.0f)
+			ps0.f = 0.0f;
+
+		u8Val = (u8)ps0.f;
+		if (!W) {
+			ps1.f = ps_get_f32(state, frS, PS_LANE_1);
+			ps1.f *= quantize_table[st_scale];
+
+			if (ps1.f > UCHAR_MAX)
+				ps1.f = (float)UCHAR_MAX;
+			if (ps1.f < 0.0f)
+				ps1.f = 0.0f;
+		}
+
+		v2p_err = _do_basic_store(state, 1, ea, &u8Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+		if (!W) {
+			u8Val = (u8)ps1.f;
+			v2p_err = _do_basic_store(state, 1, ea + 1, &u8Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+		}
+
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_I8: {
+		ps0.f = ps_get_f32(state, frS, PS_LANE_0);
+		ps0.f *= quantize_table[st_scale];
+
+		if (ps0.f > SCHAR_MAX)
+			ps0.f = (float)SCHAR_MAX;
+		if (ps0.f < SCHAR_MIN)
+			ps0.f = SCHAR_MIN;
+
+		i8Val = (i8)ps0.f;
+		if (!W) {
+			ps1.f = ps_get_f32(state, frS, PS_LANE_1);
+			ps1.f *= quantize_table[st_scale];
+
+			if (ps1.f > SCHAR_MAX)
+				ps1.f = (float)SCHAR_MAX;
+			if (ps1.f < SCHAR_MIN)
+				ps1.f = (float)SCHAR_MIN;
+		}
+
+		v2p_err = _do_basic_store(state, 1, ea, &i8Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+		if (!W) {
+			i8Val = (i8)ps1.f;
+			v2p_err = _do_basic_store(state, 1, ea + 1, &i8Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+		}
+
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_U16: {
+		ps0.f = ps_get_f32(state, frS, PS_LANE_0);
+		ps0.f *= quantize_table[st_scale];
+
+		if (ps0.f > USHRT_MAX)
+			ps0.f = (float)USHRT_MAX;
+		if (ps0.f < 0.0f)
+			ps0.f = 0.0f;
+
+		u16Val = (u16)ps0.f;
+		if (!W) {
+			ps1.f = ps_get_f32(state, frS, PS_LANE_1);
+			ps1.f *= quantize_table[st_scale];
+
+			if (ps1.f > USHRT_MAX)
+				ps1.f = (float)USHRT_MAX;
+			if (ps1.f < 0.0f)
+				ps1.f = 0.0f;
+		}
+
+		v2p_err = _do_basic_store(state, 2, ea, &u16Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+		if (!W) {
+			u16Val = (u16)ps1.f;
+			v2p_err = _do_basic_store(state, 2, ea + 2, &u16Val);
+			if (v2p_err != V2P_SUCCESS)
+				return;
+		}
+
+		break;
+	}
+	case PPCEMU_GQR_QUANTIZATION_I16: {
+		ps0.f = ps_get_f32(state, frS, PS_LANE_0);
+		ps0.f *= quantize_table[st_scale];
+
+		if (ps0.f > SHRT_MAX)
+			ps0.f = (float)SHRT_MAX;
+		if (ps0.f < SHRT_MIN)
+			ps0.f = SHRT_MIN;
+
+		i16Val = (i16)ps0.f;
+		if (!W) {
+			ps1.f = ps_get_f32(state, frS, PS_LANE_1);
+			ps1.f *= quantize_table[st_scale];
+
+			if (ps1.f > SHRT_MAX)
+				ps1.f = (float)SHRT_MAX;
+			if (ps1.f < SHRT_MIN)
+				ps1.f = (float)SHRT_MIN;
+		}
+
+		v2p_err = _do_basic_store(state, 2, ea, &i16Val);
+		if (v2p_err != V2P_SUCCESS)
+			return;
+		if (!W) {
+			i16Val = (i16)ps1.f;
+			v2p_err = _do_basic_store(state, 2, ea + 2, &i16Val);
 			if (v2p_err != V2P_SUCCESS)
 				return;
 		}
