@@ -469,6 +469,8 @@ void do_fres(struct _ppcemu_state *state, uint frD, uint frB, uint Rc) {
 	float d0, b0;
 	double d, b;
 
+	ENFORCE_MSR_FP();
+
 	if (paired_single_mode(state)) {
 		b0 = get_ps0(state, frB);
 		if (b0 == 0.0f) {

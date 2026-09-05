@@ -196,13 +196,11 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 		if (v2p_err != V2P_SUCCESS)
 			return;
 
-		u8Val = ppcemu_be16_to_cpu(u8Val);
 		ps0.f = ((float)u8Val) * dequantize_table[ld_scale];
 		if (!W) {
 			v2p_err = _do_basic_load(state, 1, ea + 1, &u8Val);
 			if (v2p_err != V2P_SUCCESS)
 				return;
-			u8Val = ppcemu_be16_to_cpu(u8Val);
 			ps1.f = ((float)u8Val) * dequantize_table[ld_scale];
 		}
 
@@ -236,13 +234,11 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 		if (v2p_err != V2P_SUCCESS)
 			return;
 
-		i8Val = ppcemu_be16_to_cpu(i8Val);
 		ps0.f = ((float)i8Val) * dequantize_table[ld_scale];
 		if (!W) {
 			v2p_err = _do_basic_load(state, 1, ea + 1, &i8Val);
 			if (v2p_err != V2P_SUCCESS)
 				return;
-			i8Val = ppcemu_be16_to_cpu(i8Val);
 			ps1.f = ((float)i8Val) * dequantize_table[ld_scale];
 		}
 
@@ -397,7 +393,7 @@ u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, 
 		if (ps0.f < 0.0f)
 			ps0.f = 0.0f;
 
-		u16Val = (u16)ps0.f;
+		u16Val = ppcemu_cpu_to_be16((u16)ps0.f);
 		if (!W) {
 			ps1.f = ps_get_f32(state, frS, PS_LANE_1);
 			ps1.f *= quantize_table[st_scale];
@@ -412,7 +408,7 @@ u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, 
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
 		if (!W) {
-			u16Val = (u16)ps1.f;
+			u16Val = ppcemu_cpu_to_be16((u16)ps1.f);
 			v2p_err = _do_basic_store(state, 2, ea + 2, &u16Val);
 			if (v2p_err != V2P_SUCCESS)
 				return 0;
@@ -429,7 +425,7 @@ u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, 
 		if (ps0.f < SHRT_MIN)
 			ps0.f = SHRT_MIN;
 
-		i16Val = (i16)ps0.f;
+		i16Val = ppcemu_cpu_to_be16((i16)ps0.f);
 		if (!W) {
 			ps1.f = ps_get_f32(state, frS, PS_LANE_1);
 			ps1.f *= quantize_table[st_scale];
@@ -444,7 +440,7 @@ u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, 
 		if (v2p_err != V2P_SUCCESS)
 			return 0;
 		if (!W) {
-			i16Val = (i16)ps1.f;
+			i16Val = ppcemu_cpu_to_be16((i16)ps1.f);
 			v2p_err = _do_basic_store(state, 2, ea + 2, &i16Val);
 			if (v2p_err != V2P_SUCCESS)
 				return 0;
