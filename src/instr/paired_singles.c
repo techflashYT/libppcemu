@@ -143,7 +143,7 @@ static inline void ps_set_f32(struct _ppcemu_state *state, uint fr, enum ps_lane
 #define PS_ENFORCE_CAP_LS(instr) PS_ENFORCE_CAP_LS_RET(instr, return)
 
 
-void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
+u32 do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d) {
 	u32 hid2, b, ea, gqr, ld_scale;
 	i32 di32;
 	u16 u16Val;
@@ -154,7 +154,7 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	enum virt2phys_err v2p_err;
 	union ps_bits ps0, ps1;
 
-	PS_ENFORCE_CAP_LS("psq_l");
+	PS_ENFORCE_CAP_LS_RET("psq_l", return 0);
 	di16 = (i16)(d << 4);
 	di16 >>= 4; /* sign extend 12->16 bit */
 	di32 = (i32)di16; /* sign-extend 16->32 bit */
@@ -178,11 +178,11 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	case PPCEMU_GQR_QUANTIZATION_SINGLE: {
 		v2p_err = _do_basic_load(state, 4, ea, &ps0.u);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 		if (!W) {
 			v2p_err = _do_basic_load(state, 4, ea + 4, &ps1.u);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 			ps1.u = ppcemu_be32_to_cpu(ps1.u);
 		}
 
@@ -194,13 +194,13 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	case PPCEMU_GQR_QUANTIZATION_U8: {
 		v2p_err = _do_basic_load(state, 1, ea, &u8Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 
 		ps0.f = ((float)u8Val) * dequantize_table[ld_scale];
 		if (!W) {
 			v2p_err = _do_basic_load(state, 1, ea + 1, &u8Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 			ps1.f = ((float)u8Val) * dequantize_table[ld_scale];
 		}
 
@@ -212,14 +212,14 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	case PPCEMU_GQR_QUANTIZATION_U16: {
 		v2p_err = _do_basic_load(state, 2, ea, &u16Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 
 		u16Val = ppcemu_be16_to_cpu(u16Val);
 		ps0.f = ((float)u16Val) * dequantize_table[ld_scale];
 		if (!W) {
 			v2p_err = _do_basic_load(state, 2, ea + 2, &u16Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 			u16Val = ppcemu_be16_to_cpu(u16Val);
 			ps1.f = ((float)u16Val) * dequantize_table[ld_scale];
 		}
@@ -232,13 +232,13 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	case PPCEMU_GQR_QUANTIZATION_I8: {
 		v2p_err = _do_basic_load(state, 1, ea, &i8Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 
 		ps0.f = ((float)i8Val) * dequantize_table[ld_scale];
 		if (!W) {
 			v2p_err = _do_basic_load(state, 1, ea + 1, &i8Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 			ps1.f = ((float)i8Val) * dequantize_table[ld_scale];
 		}
 
@@ -250,14 +250,14 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 	case PPCEMU_GQR_QUANTIZATION_I16: {
 		v2p_err = _do_basic_load(state, 2, ea, &i16Val);
 		if (v2p_err != V2P_SUCCESS)
-			return;
+			return 0;
 
 		i16Val = ppcemu_be16_to_cpu(i16Val);
 		ps0.f = ((float)i16Val) * dequantize_table[ld_scale];
 		if (!W) {
 			v2p_err = _do_basic_load(state, 2, ea + 2, &i16Val);
 			if (v2p_err != V2P_SUCCESS)
-				return;
+				return 0;
 			i16Val = ppcemu_be16_to_cpu(i16Val);
 			ps1.f = ((float)i16Val) * dequantize_table[ld_scale];
 		}
@@ -273,6 +273,8 @@ void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, 
 		break;
 	}
 	}
+
+	return ea;
 }
 
 u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d) {

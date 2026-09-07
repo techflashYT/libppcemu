@@ -735,6 +735,10 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		do_psq_l(state, INST_PS_frD(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
 		break;
 	}
+	case 57: { /* psq_lu */
+		do_psq_lu(state, INST_PS_frD(inst), INST_PS_rA(inst), INST_PS_W(inst), INST_PS_PSQ(inst), INST_PS_D(inst));
+		break;
+	}
 	case 59: { /* A form instructions */
 		verbose("A-form XO opcode: %d\r\n", INST_A_XO(inst));
 		opc59_handlers[INST_A_XO(inst)](state, inst);

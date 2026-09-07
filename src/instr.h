@@ -275,7 +275,8 @@ extern void do_mtmsr(struct _ppcemu_state *state, uint rS);
 extern void do_mfmsr(struct _ppcemu_state *state, uint rD);
 
 /* Paired Singles */
-extern void do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d);
+extern u32 do_psq_l(struct _ppcemu_state *state, uint frD, uint rA, uint W, uint PSQ, u16 d);
+#define do_psq_lu(s, D, A, W, P, d) s->gpr[A] = do_psq_l(s, D, A, W, P, d)
 extern u32 do_psq_st(struct _ppcemu_state *state, uint frS, uint rA, uint W, uint PSQ, u16 d);
 #define do_psq_stu(s, S, A, W, P, d) s->gpr[A] = do_psq_st(s, S, A, W, P, d)
 extern void do_ps_merge00(struct _ppcemu_state *state, uint frD, uint frA, uint frB, uint Rc);
