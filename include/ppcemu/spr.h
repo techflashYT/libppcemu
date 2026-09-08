@@ -235,7 +235,14 @@ enum ppcemu_sprn {
 	 *
 	 * Available in: Gekko, 750CL, Broadway, Espresso
 	 */
-	PPCEMU_SPRN_L2CR = 1017
+	PPCEMU_SPRN_L2CR = 1017,
+
+	/*
+	 * Instruction Cache Throttling Control
+	 *
+	 * Available in: 750CXe, Gekko, 750CL, Broadway, Espresso
+	 */
+	PPCEMU_SPRN_ICTC = 1019
 };
 
 /*
