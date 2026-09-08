@@ -305,6 +305,7 @@ extern void do_ps_nmadd(struct _ppcemu_state *state, uint frD, uint frA, uint fr
 extern void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS);
 #define do_mtsrin(s, rS, rB) do_mtsr(s, s->gpr[rB] >> 28, rS)
 extern void do_mfsr(struct _ppcemu_state *state, uint sreg, uint rD);
+#define do_mfsrin(s, rD, rB) do_mfsr(s, s->gpr[rB] >> 28, rD)
 
 /* SPRs */
 extern void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn);
