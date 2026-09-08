@@ -194,10 +194,21 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 		batu = state->sprs[bat_to_spr_idx(i, ifetch, true)];
 		batl = state->sprs[bat_to_spr_idx(i, ifetch, false)];
 
-		/* Skip inactive BATs (VS and VP bits both 0) */
+		/*
+		 * Skip BATs that do not apply to the current privilege level: Vs
+		 * validates a BAT for supervisor mode, Vp for user (problem) mode.
+		 * A BAT with both clear is simply inactive.
+		 */
 		vs = (batu & PPCEMU_BATU_VS) != 0;
 		vp = (batu & PPCEMU_BATU_VP) != 0;
-		if (!vs && !vp) continue;
+		if (state->msr & PPCEMU_MSR_PR) {
+			if (!vp)
+				continue;
+		}
+		else {
+			if (!vs)
+				continue;
+		}
 
 		/* Compute BAT block size */
 		size = bat_blocklen_to_bytes((batu & PPCEMU_BATU_BL) >> PPCEMU_BATU_BL_SHIFT);
