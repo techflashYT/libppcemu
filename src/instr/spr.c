@@ -20,6 +20,7 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
+	case PPCEMU_SPRN_SDR1:
 	case PPCEMU_SPRN_SRR0:
 	case PPCEMU_SPRN_SRR1:
 	case PPCEMU_SPRN_SPRG0:
@@ -175,6 +176,7 @@ void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
+	case PPCEMU_SPRN_SDR1:
 	case PPCEMU_SPRN_SRR0:
 	case PPCEMU_SPRN_SRR1:
 	case PPCEMU_SPRN_SPRG0:

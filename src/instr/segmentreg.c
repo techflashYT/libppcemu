@@ -4,19 +4,10 @@
  * Copyright (C) 2026 Techflash
  */
 
-#include <stdio.h>
-#define LOG_LEVEL misc_loglevel
 #include "../state.h"
-#include "../log.h"
 
 void do_mtsr(struct _ppcemu_state *state, uint sreg, uint rS) {
-	u32 val;
-
-	val = state->gpr[rS];
-	if (!(val & 0x80000000))
-		warn("Writing a non-direct-store segment (SR%u) @ PC=%08x which will not be interpreted!!!\r\n", sreg, state->pc);
-
-	state->sr[sreg] = val;
+	state->sr[sreg] = state->gpr[rS];
 }
 
 void do_mfsr(struct _ppcemu_state *state, uint sreg, uint rD) {

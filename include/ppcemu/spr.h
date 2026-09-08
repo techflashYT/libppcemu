@@ -338,6 +338,62 @@ enum ppcemu_sprn {
 #define PPCEMU_BATL_BPRN       (32767 << PPCEMU_BATL_BPRN_SHIFT)
 
 /*
+ * SDR1 bits (page table base address)
+ */
+#define PPCEMU_SDR1_HTABMASK_SHIFT 0
+#define PPCEMU_SDR1_HTABMASK       (511u << PPCEMU_SDR1_HTABMASK_SHIFT)
+#define PPCEMU_SDR1_HTABORG_SHIFT  16
+#define PPCEMU_SDR1_HTABORG        (65535u << PPCEMU_SDR1_HTABORG_SHIFT)
+
+/*
+ * Segment register bits (non-direct-store form)
+ */
+#define PPCEMU_SR_VSID_SHIFT 0
+#define PPCEMU_SR_VSID       (0xffffffu << PPCEMU_SR_VSID_SHIFT)
+#define PPCEMU_SR_N_SHIFT    28
+#define PPCEMU_SR_N          (1u << PPCEMU_SR_N_SHIFT)
+#define PPCEMU_SR_KP_SHIFT   29
+#define PPCEMU_SR_KP         (1u << PPCEMU_SR_KP_SHIFT)
+#define PPCEMU_SR_KS_SHIFT   30
+#define PPCEMU_SR_KS         (1u << PPCEMU_SR_KS_SHIFT)
+#define PPCEMU_SR_T_SHIFT    31
+#define PPCEMU_SR_T          (1u << PPCEMU_SR_T_SHIFT)
+
+/*
+ * Hashed page table entry (PTE) bits.  Word 0 is the first 32-bit word of the
+ * 8-byte PTE ("PTE Hi"); word 1 is the second ("PTE Lo").
+ */
+#define PPCEMU_PTE_API_SHIFT   0
+#define PPCEMU_PTE_API         (63u << PPCEMU_PTE_API_SHIFT)
+#define PPCEMU_PTE_H_SHIFT     6
+#define PPCEMU_PTE_H           (1u << PPCEMU_PTE_H_SHIFT)
+#define PPCEMU_PTE_VSID_SHIFT  7
+#define PPCEMU_PTE_VSID        (0xffffffu << PPCEMU_PTE_VSID_SHIFT)
+#define PPCEMU_PTE_V_SHIFT     31
+#define PPCEMU_PTE_V           (1u << PPCEMU_PTE_V_SHIFT)
+
+#define PPCEMU_PTE_PP_SHIFT    0
+#define PPCEMU_PTE_PP          (3u << PPCEMU_PTE_PP_SHIFT)
+#define PPCEMU_PTE_PP_NA       0 /* No access when Key=1 */
+#define PPCEMU_PTE_PP_RO_KEY   1 /* Read-only when Key=1 */
+#define PPCEMU_PTE_PP_RW       2 /* Read/write */
+#define PPCEMU_PTE_PP_RO       3 /* Read-only regardless of Key */
+#define PPCEMU_PTE_G_SHIFT     3
+#define PPCEMU_PTE_G           (1u << PPCEMU_PTE_G_SHIFT)
+#define PPCEMU_PTE_M_SHIFT     4
+#define PPCEMU_PTE_M           (1u << PPCEMU_PTE_M_SHIFT)
+#define PPCEMU_PTE_I_SHIFT     5
+#define PPCEMU_PTE_I           (1u << PPCEMU_PTE_I_SHIFT)
+#define PPCEMU_PTE_W_SHIFT     6
+#define PPCEMU_PTE_W           (1u << PPCEMU_PTE_W_SHIFT)
+#define PPCEMU_PTE_C_SHIFT     7
+#define PPCEMU_PTE_C           (1u << PPCEMU_PTE_C_SHIFT)
+#define PPCEMU_PTE_R_SHIFT     8
+#define PPCEMU_PTE_R           (1u << PPCEMU_PTE_R_SHIFT)
+#define PPCEMU_PTE_RPN_SHIFT   12
+#define PPCEMU_PTE_RPN         (0xfffffu << PPCEMU_PTE_RPN_SHIFT)
+
+/*
  * GQR bits
  */
 #define PPCEMU_GQR_ST_TYPE_SHIFT   0

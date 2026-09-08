@@ -12,6 +12,7 @@
 #define LOG_LEVEL virt2phys_loglevel
 #include <stdio.h>
 #include <string.h>
+#include <ppcemu/endian.h>
 #include <ppcemu/msr.h>
 #include "cache.h"
 #include "caps.h"
@@ -53,6 +54,99 @@ static uint bat_to_spr_idx(uint batnum, bool ibat, bool upper) {
 
 	/* actually grab the index */
 	return ppcemu_sprn_to_idx(base + off);
+}
+
+#define PTEG_SIZE          64 /* 8 PTEs of 8 bytes each */
+#define PTES_PER_PTEG       8
+#define PTE_SIZE            8
+
+/* whether a page access is allowed, given the SR key, PTE PP bits, and access type */
+static bool pte_access_allowed(bool key, u32 pp, bool write) {
+	if (!key)
+		return (pp == PPCEMU_PTE_PP_RO) ? !write : true;
+
+	switch (pp) {
+	case PPCEMU_PTE_PP_NA: return false;
+	case PPCEMU_PTE_PP_RO_KEY: return !write;
+	case PPCEMU_PTE_PP_RW: return true;
+	case PPCEMU_PTE_PP_RO: return !write;
+	default: return false;
+	}
+}
+
+static void htab_read_pte(struct _ppcemu_state *state, u32 pteg_addr, uint idx, u32 *w0, u32 *w1) {
+	u32 addr = pteg_addr + idx * PTE_SIZE;
+	u32 raw0, raw1;
+
+	state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw0, false);
+	state->bus_hook((struct ppcemu_state *)state, addr + 4, 4, &raw1, false);
+	*w0 = ppcemu_be32_to_cpu(raw0);
+	*w1 = ppcemu_be32_to_cpu(raw1);
+}
+
+static void htab_write_pte1(struct _ppcemu_state *state, u32 pteg_addr, uint idx, u32 w1) {
+	u32 addr = pteg_addr + idx * PTE_SIZE + 4;
+	u32 raw = ppcemu_cpu_to_be32(w1);
+
+	state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw, true);
+}
+
+/*
+ * Walk the hashed page table (SDR1/PTEG) for a non-direct-store segment.
+ * Called only once BAT translation has missed and the segment's T bit is
+ * clear.
+ */
+static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32 sr, u32 *phys, bool *cacheable, bool write) {
+	u32 sdr1, vsid, pi, api, hpt_mask, htaborg, hash, pteg_addr, w0, w1, pp, wimg, this_hash;
+	bool key;
+	uint h, i;
+
+	sdr1 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SDR1)];
+	vsid = (sr & PPCEMU_SR_VSID) >> PPCEMU_SR_VSID_SHIFT;
+	pi = (virt >> 12) & 0xffffu;
+	api = pi >> 10;
+	key = (state->msr & PPCEMU_MSR_PR) ? ((sr & PPCEMU_SR_KP) != 0) : ((sr & PPCEMU_SR_KS) != 0);
+
+	htaborg = sdr1 & PPCEMU_SDR1_HTABORG;
+	hpt_mask = ((sdr1 & PPCEMU_SDR1_HTABMASK) << 16) | 0xffffu;
+	hash = vsid ^ pi;
+
+	for (h = 0; h < 2; h++) {
+		this_hash = h ? ~hash : hash;
+
+		pteg_addr = htaborg | ((this_hash << 6) & hpt_mask);
+
+		for (i = 0; i < PTES_PER_PTEG; i++) {
+			htab_read_pte(state, pteg_addr, i, &w0, &w1);
+
+			if (!(w0 & PPCEMU_PTE_V))
+				continue;
+			if (!!(w0 & PPCEMU_PTE_H) != (h != 0))
+				continue;
+			if (((w0 & PPCEMU_PTE_VSID) >> PPCEMU_PTE_VSID_SHIFT) != vsid)
+				continue;
+			if (((w0 & PPCEMU_PTE_API) >> PPCEMU_PTE_API_SHIFT) != api)
+				continue;
+
+			/* found the PTE */
+			pp = (w1 & PPCEMU_PTE_PP) >> PPCEMU_PTE_PP_SHIFT;
+			if (!pte_access_allowed(key, pp, write))
+				return V2P_NO_PERMS;
+
+			if (!(w1 & PPCEMU_PTE_R) || (write && !(w1 & PPCEMU_PTE_C)))
+				htab_write_pte1(state, pteg_addr, i, w1 | PPCEMU_PTE_R | (write ? PPCEMU_PTE_C : 0));
+
+			*phys = (w1 & PPCEMU_PTE_RPN) | (virt & 0xfff);
+
+			wimg = w1 & (PPCEMU_PTE_W | PPCEMU_PTE_I | PPCEMU_PTE_M | PPCEMU_PTE_G);
+			if (!(wimg & PPCEMU_PTE_I) && state->cache_mode != PPCEMU_CACHE_MODE_DISABLED)
+				*cacheable = true; /* already false from the caller */
+
+			return V2P_SUCCESS;
+		}
+	}
+
+	return V2P_NOT_MAPPED;
 }
 
 static uint bat_blocklen_to_bytes(u32 bl) {
@@ -135,17 +229,12 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 		mem_debug("MEM: It does not, continuing...\r\n");
 	}
 
-	/*
-	 * BAT translation takes precedence over segment/page translation.  Page
-	 * translation is not implemented yet, but recognize a direct-store
-	 * segment so callers do not accidentally treat it as merely unmapped.
-	 */
+	/* BAT translation takes precedence over segment/page translation */
 	sr = state->sr[virt >> 28];
-	if (sr & 0x80000000)
+	if (sr & PPCEMU_SR_T)
 		return V2P_DIRECT_STORE;
 
-	/* No matching BAT or supported segment translation */
-	return V2P_NOT_MAPPED;
+	return htab_lookup(state, virt, sr, phys, cacheable, write);
 }
 
 const char *v2p_strerror(enum virt2phys_err err) {
