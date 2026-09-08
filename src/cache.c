@@ -56,13 +56,13 @@ static enum virt2phys_err bus_write_line(struct _ppcemu_state *state, u32 addr, 
 	return err;
 }
 
-static enum virt2phys_err bus_read_line(struct _ppcemu_state *state, u32 addr, void *data) {
+static enum virt2phys_err bus_read_line(struct _ppcemu_state *state, u32 addr, void *data, bool ifetch) {
 	u32 phys;
 	enum virt2phys_err err;
 	bool cacheable;
 
 	/* TODO: could probably run off the end of mapping, v2p doesn't account for this */
-	err = ppcemu_virt2phys(state, addr, &phys, &cacheable, false, false);
+	err = ppcemu_virt2phys(state, addr, &phys, &cacheable, ifetch, false);
 	if (err != V2P_SUCCESS)
 		return err;
 
@@ -161,7 +161,7 @@ static struct cacheline *cache_get_line(struct cache *c, u64 line_base) {
 		cache_writeback_slot_if_needed(c, line);
 
 	/* fill new line */
-	bus_read_line(c->ppcemu_state, line_base, line->data);
+	bus_read_line(c->ppcemu_state, line_base, line->data, !c->is_data_cache);
 	line->tag = line_base;
 	line->valid = 1;
 	line->dirty = 0;
