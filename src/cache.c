@@ -12,7 +12,6 @@
 #include <string.h>
 #include "cache.h"
 #include "log.h"
-#include "mem.h"
 #include "types.h"
 
 /*
@@ -41,48 +40,16 @@ static struct cacheline *cache_lookup_slot(struct cache *c, u32 line_base) {
 /*
  * Bus helpers
  */
-static enum virt2phys_err bus_write_line(struct _ppcemu_state *state, u32 addr, void *data) {
-	u32 phys;
-	enum virt2phys_err err;
-	bool cacheable;
-
-	/* TODO: could probably run off the end of mapping, v2p doesn't account for this */
-	err = ppcemu_virt2phys(state, addr, &phys, &cacheable, false, true);
-	if (err != V2P_SUCCESS)
-		return err;
-
+static void bus_write_line(struct _ppcemu_state *state, u32 phys, void *data) {
 	state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, data, true);
-
-	return err;
 }
 
-static enum virt2phys_err bus_read_line(struct _ppcemu_state *state, u32 addr, void *data, bool ifetch) {
-	u32 phys;
-	enum virt2phys_err err;
-	bool cacheable;
-
-	/* TODO: could probably run off the end of mapping, v2p doesn't account for this */
-	err = ppcemu_virt2phys(state, addr, &phys, &cacheable, ifetch, false);
-	if (err != V2P_SUCCESS)
-		return err;
-
+static void bus_read_line(struct _ppcemu_state *state, u32 phys, void *data) {
 	state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, data, false);
-
-	return err;
 }
 
-static enum virt2phys_err bus_access_bypass(struct _ppcemu_state *state, u32 addr, uint size, void *data, bool write) {
-	u32 phys;
-	enum virt2phys_err err;
-	bool cacheable;
-
-	err = ppcemu_virt2phys(state, addr, &phys, &cacheable, false, write);
-	if (err != V2P_SUCCESS)
-		return err;
-
+static void bus_access_bypass(struct _ppcemu_state *state, u32 phys, uint size, void *data, bool write) {
 	state->bus_hook((struct ppcemu_state *)state, phys, size, data, write);
-
-	return err;
 }
 
 
@@ -161,7 +128,7 @@ static struct cacheline *cache_get_line(struct cache *c, u64 line_base) {
 		cache_writeback_slot_if_needed(c, line);
 
 	/* fill new line */
-	bus_read_line(c->ppcemu_state, line_base, line->data, !c->is_data_cache);
+	bus_read_line(c->ppcemu_state, line_base, line->data);
 	line->tag = line_base;
 	line->valid = 1;
 	line->dirty = 0;

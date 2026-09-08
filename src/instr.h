@@ -158,11 +158,23 @@ extern void do_fres(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_mffs(struct _ppcemu_state *state, uint frD, uint Rc);
 
 /* memory */
-extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d);
-extern u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB);
+extern u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d, enum virt2phys_err *err_out);
+extern u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB, enum virt2phys_err *err_out);
 extern u32 do_indexed_store_brev(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB);
-#define do_basic_store_update(s, len, rS, rA, d) s->gpr[rA] = do_basic_store(s, len, rS, rA, d);
-#define do_indexed_store_update(s, len, rS, rA, d) s->gpr[rA] = do_indexed_store(s, len, rS, rA, d);
+static inline void do_basic_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d) {
+	enum virt2phys_err err;
+	u32 ea = do_basic_store(state, len, rS, rA, d, &err);
+
+	if (err == V2P_SUCCESS)
+		state->gpr[rA] = ea;
+}
+static inline void do_indexed_store_update(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
+	enum virt2phys_err err;
+	u32 ea = do_indexed_store(state, len, rS, rA, rB, &err);
+
+	if (err == V2P_SUCCESS)
+		state->gpr[rA] = ea;
+}
 static inline u32 do_indexed_store_conditional(struct _ppcemu_state *state, uint len, uint rS, uint rA, uint rB) {
 	u32 ea = (rA == 0 ? 0 : state->gpr[rA]) + state->gpr[rB];
 	bool success = state->reserve;
@@ -175,7 +187,7 @@ static inline u32 do_indexed_store_conditional(struct _ppcemu_state *state, uint
 	cr_set_field(state, 0, cr0);
 
 	if (success)
-		return do_indexed_store(state, len, rS, rA, rB);
+		return do_indexed_store(state, len, rS, rA, rB, NULL);
 	return ea;
 }
 extern void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d);

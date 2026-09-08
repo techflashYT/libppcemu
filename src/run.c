@@ -44,7 +44,7 @@ static enum virt2phys_err _ppcemu_fetch(struct _ppcemu_state *state, u32 *instr)
 	}
 
 	if (cacheable)
-		ppcemu_icache_fetch(&state->icache, state->pc, instr);
+		ppcemu_icache_fetch(&state->icache, phys, instr);
 	else
 		state->bus_hook((struct ppcemu_state *)state, phys, 4, instr, false);
 

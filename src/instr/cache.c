@@ -12,11 +12,10 @@
 #include "../spr.h"
 #include "../state.h"
 
-static bool cache_ea_is_direct_store(struct _ppcemu_state *state, u32 ea) {
-	u32 phys;
+static bool cache_ea_to_phys(struct _ppcemu_state *state, u32 ea, u32 *phys) {
 	bool cacheable;
 
-	return ppcemu_virt2phys(state, ea, &phys, &cacheable, false, false) == V2P_DIRECT_STORE;
+	return ppcemu_virt2phys(state, ea, phys, &cacheable, false, false) == V2P_SUCCESS;
 }
 
 
@@ -42,7 +41,7 @@ void do_tlbie(struct _ppcemu_state *state, uint rB) {
 }
 
 void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
-	u32 b, ea;
+	u32 b, ea, phys;
 
 	if (rA)
 		b = state->gpr[rA];
@@ -50,13 +49,13 @@ void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
-	if (cache_ea_is_direct_store(state, ea))
+	if (!cache_ea_to_phys(state, ea, &phys))
 		return;
-	ppcemu_dcache_writeback_invalidate_line(&state->dcache, ea);
+	ppcemu_dcache_writeback_invalidate_line(&state->dcache, phys);
 }
 
 void do_dcbst(struct _ppcemu_state *state, uint rA, uint rB) {
-	u32 b, ea;
+	u32 b, ea, phys;
 
 	if (rA)
 		b = state->gpr[rA];
@@ -64,13 +63,13 @@ void do_dcbst(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
-	if (cache_ea_is_direct_store(state, ea))
+	if (!cache_ea_to_phys(state, ea, &phys))
 		return;
-	ppcemu_dcache_writeback_line(&state->dcache, ea);
+	ppcemu_dcache_writeback_line(&state->dcache, phys);
 }
 
 void do_dcbi(struct _ppcemu_state *state, uint rA, uint rB) {
-	u32 b, ea;
+	u32 b, ea, phys;
 
 	if (rA)
 		b = state->gpr[rA];
@@ -78,13 +77,13 @@ void do_dcbi(struct _ppcemu_state *state, uint rA, uint rB) {
 		b = 0;
 
 	ea = b + (i32)state->gpr[rB];
-	if (cache_ea_is_direct_store(state, ea))
+	if (!cache_ea_to_phys(state, ea, &phys))
 		return;
-	ppcemu_dcache_invalidate_line(&state->dcache, ea);
+	ppcemu_dcache_invalidate_line(&state->dcache, phys);
 }
 
 void do_icbi(struct _ppcemu_state *state, uint rA, uint rB) {
-	u32 b, ea;
+	u32 b, ea, phys;
 
 	if (rA)
 		b = state->gpr[rA];
@@ -93,9 +92,9 @@ void do_icbi(struct _ppcemu_state *state, uint rA, uint rB) {
 
 	ea = b + (i32)state->gpr[rB];
 	/* icbi is translated and protected as a data load */
-	if (cache_ea_is_direct_store(state, ea))
+	if (!cache_ea_to_phys(state, ea, &phys))
 		return;
-	ppcemu_icache_invalidate_line(&state->icache, ea);
+	ppcemu_icache_invalidate_line(&state->icache, phys);
 }
 
 void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
@@ -121,7 +120,7 @@ void do_dcbz(struct _ppcemu_state *state, uint rA, uint rB) {
 	}
 
 	if (cacheable)
-		ppcemu_dcache_zero_line(&state->dcache, start);
+		ppcemu_dcache_zero_line(&state->dcache, phys);
 	else
 		state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, zero_line, true);
 }
@@ -150,7 +149,7 @@ void do_dcbz_l(struct _ppcemu_state *state, uint rA, uint rB) {
 		return;
 
 	if (cacheable)
-		ppcemu_dcache_zero_line_locked(&state->dcache, start);
+		ppcemu_dcache_zero_line_locked(&state->dcache, phys);
 	else
 		state->bus_hook((struct ppcemu_state *)state, phys, CACHE_LINE_SIZE, zero_line, true);
 }
@@ -172,5 +171,6 @@ void do_dcbt(struct _ppcemu_state *state, uint rA, uint rB) {
 	if (err != V2P_SUCCESS) /* architecturally defined to ignore translation failure */
 		return;
 
-	ppcemu_dcache_load(&state->dcache, start, 1, &dummy);
+	if (cacheable)
+		ppcemu_dcache_load(&state->dcache, phys, 1, &dummy);
 }

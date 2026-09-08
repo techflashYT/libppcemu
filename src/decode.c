@@ -119,9 +119,9 @@ static void _do_lwarx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_index
 static void _do_lwbrx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_brev(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), NULL); }
 static void _do_lhbrx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_load_brev(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), NULL); }
 static void _do_lswi(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_lswi(state, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_NB(inst)); }
-static void _do_stwx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
-static void _do_sthx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
-static void _do_stbx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
+static void _do_stwx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), NULL); }
+static void _do_sthx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), NULL); }
+static void _do_stbx(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst), NULL); }
 static void _do_stwux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store_update(state, 4, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_sthux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store_update(state, 2, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
 static void _do_stbux(struct _ppcemu_state *state, u32 inst) { NO_RC(); do_indexed_store_update(state, 1, INST_XO_rD(inst), INST_XO_rA(inst), INST_XO_rB(inst)); }
@@ -642,7 +642,7 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 36: { /* stw */
-		do_basic_store(state, 4, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		do_basic_store(state, 4, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst), NULL);
 		break;
 	}
 	case 37: { /* stwu */
@@ -650,7 +650,7 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 38: { /* stb */
-		do_basic_store(state, 1, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		do_basic_store(state, 1, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst), NULL);
 		break;
 	}
 	case 39: { /* stbu */
@@ -674,7 +674,7 @@ void _ppcemu_decode_exec(struct _ppcemu_state *state, u32 inst) {
 		break;
 	}
 	case 44: { /* sth */
-		do_basic_store(state, 2, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst));
+		do_basic_store(state, 2, INST_D_rS(inst), INST_D_rA(inst), INST_D_D(inst), NULL);
 		break;
 	}
 	case 45: { /* sthu */

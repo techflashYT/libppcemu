@@ -74,12 +74,24 @@ static bool pte_access_allowed(bool key, u32 pp, bool write) {
 	}
 }
 
+static bool real_mode_dcacheable(struct _ppcemu_state *state) {
+	return (state->cache_mode != PPCEMU_CACHE_MODE_DISABLED) &&
+	       (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & PPCEMU_HID0_DCE);
+}
+
 static void htab_read_pte(struct _ppcemu_state *state, u32 pteg_addr, uint idx, u32 *w0, u32 *w1) {
+	/* pteg_addr is already physical (derived from SDR1) */
 	u32 addr = pteg_addr + idx * PTE_SIZE;
 	u32 raw0, raw1;
 
-	state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw0, false);
-	state->bus_hook((struct ppcemu_state *)state, addr + 4, 4, &raw1, false);
+	if (real_mode_dcacheable(state)) {
+		ppcemu_dcache_load(&state->dcache, addr, 4, &raw0);
+		ppcemu_dcache_load(&state->dcache, addr + 4, 4, &raw1);
+	}
+	else {
+		state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw0, false);
+		state->bus_hook((struct ppcemu_state *)state, addr + 4, 4, &raw1, false);
+	}
 	*w0 = ppcemu_be32_to_cpu(raw0);
 	*w1 = ppcemu_be32_to_cpu(raw1);
 }
@@ -88,7 +100,10 @@ static void htab_write_pte1(struct _ppcemu_state *state, u32 pteg_addr, uint idx
 	u32 addr = pteg_addr + idx * PTE_SIZE + 4;
 	u32 raw = ppcemu_cpu_to_be32(w1);
 
-	state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw, true);
+	if (real_mode_dcacheable(state))
+		ppcemu_dcache_store(&state->dcache, addr, 4, &raw);
+	else
+		state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw, true);
 }
 
 /*
@@ -180,9 +195,11 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 		return V2P_SUCCESS;
 	}
 	else if (!ifetch && !(state->msr & PPCEMU_MSR_DR)) {
+		*cacheable = real_mode_dcacheable(state);
 		*phys = virt;
 		return V2P_SUCCESS;
 	}
+	*cacheable = false;
 	if (state->caps & CAPS_UPPER_BATS &&
 	    state->caps & CAPS_HID4 &&
 	    state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID4)] & PPCEMU_HID4_SBE)
@@ -333,7 +350,7 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 	}
 
 	if (cacheable)
-		ppcemu_dcache_store(&state->dcache, ea, len, val);
+		ppcemu_dcache_store(&state->dcache, phys, len, val);
 	else {
 		if ((state->caps & CAPS_WR_GATHER_PIPE) &&
 		    (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID2_GEKKO)] & PPCEMU_HID2_WPE) &&
@@ -362,7 +379,7 @@ enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea,
 	}
 
 	if (cacheable)
-		ppcemu_dcache_load(&state->dcache, ea, len, val);
+		ppcemu_dcache_load(&state->dcache, phys, len, val);
 	else
 		state->bus_hook((struct ppcemu_state *)state, phys, len, val, false);
 

@@ -19,10 +19,11 @@ static void mem_debug(const char *fmt, ...) {
 }
 #endif
 
-u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d) {
+u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 d, enum virt2phys_err *err_out) {
 	u32 b, ea, v32;
 	u16 v16;
 	u8 v8;
+	enum virt2phys_err err;
 
 	if (rA == 0)
 		b = 0;
@@ -35,32 +36,37 @@ u32 do_basic_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 
 	switch (len) {
 	case 1: {
 		v8 = (u8)state->gpr[rS];
-		_do_basic_store(state, len, ea, &v8);
+		err = _do_basic_store(state, len, ea, &v8);
 		break;
 	}
 	case 2: {
 		v16 = ppcemu_cpu_to_be16((u16)state->gpr[rS]);
-		_do_basic_store(state, len, ea, &v16);
+		err = _do_basic_store(state, len, ea, &v16);
 		break;
 	}
 	case 4: {
 		v32 = ppcemu_cpu_to_be32(state->gpr[rS]);
-		_do_basic_store(state, len, ea, &v32);
+		err = _do_basic_store(state, len, ea, &v32);
 		break;
 	}
 	default: {
 		assert(!"Unreachable");
+		err = V2P_SUCCESS;
 		break;
 	}
 	}
 
+	if (err_out)
+		*err_out = err;
+
 	return ea;
 }
 
-u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB) {
+u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u16 rB, enum virt2phys_err *err_out) {
 	u32 b, ea, v32;
 	u16 v16;
 	u8 v8;
+	enum virt2phys_err err;
 
 	if (rA == 0)
 		b = 0;
@@ -73,24 +79,28 @@ u32 do_indexed_store(struct _ppcemu_state *state, uint len, uint rS, uint rA, u1
 	switch (len) {
 	case 1: {
 		v8 = (u8)state->gpr[rS];
-		_do_basic_store(state, len, ea, &v8);
+		err = _do_basic_store(state, len, ea, &v8);
 		break;
 	}
 	case 2: {
 		v16 = ppcemu_cpu_to_be16((u16)state->gpr[rS]);
-		_do_basic_store(state, len, ea, &v16);
+		err = _do_basic_store(state, len, ea, &v16);
 		break;
 	}
 	case 4: {
 		v32 = ppcemu_cpu_to_be32(state->gpr[rS]);
-		_do_basic_store(state, len, ea, &v32);
+		err = _do_basic_store(state, len, ea, &v32);
 		break;
 	}
 	default: {
 		assert(!"Unreachable");
+		err = V2P_SUCCESS;
 		break;
 	}
 	}
+
+	if (err_out)
+		*err_out = err;
 
 	return ea;
 }

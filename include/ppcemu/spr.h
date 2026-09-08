@@ -263,6 +263,12 @@ enum ppcemu_sprn {
 #define PPCEMU_XER_COUNT    (127 << 0)
 
 /*
+ * HID0 bits
+ */
+#define PPCEMU_HID0_DCE_SHIFT  14
+#define PPCEMU_HID0_DCE        (1 << PPCEMU_HID0_DCE_SHIFT)
+
+/*
  * HID2 bits
  */
 #define PPCEMU_HID2_750CL_RSRVD0   (0xffff | (1<< 31))
