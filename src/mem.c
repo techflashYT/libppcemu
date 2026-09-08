@@ -207,7 +207,7 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 		mem_debug("MEM: Checking if vaddr 0x%08x lives in %cBAT%d (%d bytes @ 0x%08x)...\r\n", virt, ifetch ? 'I' : 'D', i, size, bepi);
 
 		/* Check if VA falls in this BAT */
-		if (virt >= bepi && virt < bepi + size) {
+		if (virt >= bepi && (virt - bepi) < size) {
 			mem_debug("MEM: It does!\r\n");
 			/* Compute physical base */
 			*phys = ((batl & PPCEMU_BATL_BPRN) & ~(size - 1)) + (virt - bepi);
