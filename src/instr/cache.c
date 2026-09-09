@@ -40,6 +40,10 @@ void do_tlbie(struct _ppcemu_state *state, uint rB) {
 	(void)rB;
 }
 
+void do_tlbsync(struct _ppcemu_state *state) {
+	(void)state;
+}
+
 void do_dcbf(struct _ppcemu_state *state, uint rA, uint rB) {
 	u32 b, ea, phys;
 
