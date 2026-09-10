@@ -376,7 +376,7 @@ void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 
 	a = get_double(state, frA);
 	b = get_double(state, frB);
-	if (a == NAN || b == NAN)
+	if (isnan(a) || isnan(b))
 		c = 1;
 	else if (a < b)
 		c = 8;
@@ -385,7 +385,7 @@ void do_fcmpu(struct _ppcemu_state *state, uint crfD, uint frA, uint frB) {
 	else
 		c = 2;
 
-	state->fpcsr &= 0x0000f000;
+	state->fpcsr &= ~0x0000f000u;
 	state->fpcsr |= ((u32)c << 12);
 	cr_set_field(state, crfD, c);
 
