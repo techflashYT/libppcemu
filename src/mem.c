@@ -296,6 +296,26 @@ void HIDDEN ppcemu_set_dsi_info(struct _ppcemu_state *state, u32 ea, enum virt2p
 	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DAR)] = ea;
 }
 
+void HIDDEN ppcemu_set_isi_info(struct _ppcemu_state *state, enum virt2phys_err err) {
+	u32 extra;
+
+	switch (err) {
+	case V2P_NOT_MAPPED:
+	case V2P_DIRECT_STORE: /* no dedicated SRR1 bit; NOPT is the closest fit */
+		extra = PPCEMU_SRR1_ISI_NOPT;
+		break;
+	case V2P_NO_PERMS:
+		extra = PPCEMU_SRR1_ISI_PROT;
+		break;
+	case V2P_SUCCESS:
+	default:
+		extra = 0;
+		break;
+	}
+
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)] |= extra;
+}
+
 static void do_wgp_flush(struct _ppcemu_state *state) {
 	u32 wpar = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_WPAR)];
 

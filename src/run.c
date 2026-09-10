@@ -66,8 +66,8 @@ void ppcemu_step(struct ppcemu_state *emu) {
 
 	err = _ppcemu_fetch(state, &instr);
 	if (err != V2P_SUCCESS) {
-		/* TODO: need to set other info? */
 		exception_fire(state, EXCEPTION_ISI);
+		ppcemu_set_isi_info(state, err);
 		return;
 	}
 

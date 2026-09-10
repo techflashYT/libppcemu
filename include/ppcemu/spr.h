@@ -253,6 +253,9 @@ enum ppcemu_sprn {
 #define PPCEMU_DSISR_DIRECT_STORE (1 << 26)
 #define PPCEMU_DSISR_STORE      (1 << 25)
 
+#define PPCEMU_SRR1_ISI_NOPT (1 << 30)
+#define PPCEMU_SRR1_ISI_PROT (1 << 27)
+
 /*
  * XER bits
  */
