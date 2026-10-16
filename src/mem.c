@@ -353,6 +353,41 @@ static void do_wgp_store(struct _ppcemu_state *state, uint len, void *_val) {
 	}
 }
 
+/*
+ * An unaligned access can span independently mapped pages. Translate both
+ * before touching data.
+ */
+static enum virt2phys_err access_page_tail(struct _ppcemu_state *state, u32 ea, uint len, u32 phys, bool cacheable, void *val, bool write) {
+	uint first = 0x1000u - (ea & 0xfffu), i;
+	u32 next_phys, addr;
+	bool next_cacheable, cached;
+	u8 *byte;
+	enum virt2phys_err err = ppcemu_virt2phys(state, ea + first, &next_phys, &next_cacheable, false, write);
+
+	if (err != V2P_SUCCESS) {
+		ppcemu_set_dsi_info(state, ea + first, err, write);
+		exception_fire(state, EXCEPTION_DSI);
+		return err;
+	}
+
+	for (i = 0; i < len; i++) {
+		addr = i < first ? phys + i : next_phys + i - first;
+		cached = i < first ? cacheable : next_cacheable;
+		byte = (u8 *)val + i;
+
+		if (cached) {
+			if (write)
+				ppcemu_dcache_store(&state->dcache, addr, 1, byte);
+			else
+				ppcemu_dcache_load(&state->dcache, addr, 1, byte);
+		}
+		else
+			state->bus_hook((struct ppcemu_state *)state, addr, 1, byte, write);
+	}
+
+	return V2P_SUCCESS;
+}
+
 enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
 	u32 phys;
@@ -368,6 +403,9 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 		exception_fire(state, EXCEPTION_DSI);
 		return err;
 	}
+
+	if ((ea & 0xfffu) + len > 0x1000u)
+		return access_page_tail(state, ea, len, phys, cacheable, val, true);
 
 	if (cacheable)
 		ppcemu_dcache_store(&state->dcache, phys, len, val);
@@ -397,6 +435,9 @@ enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea,
 		exception_fire(state, EXCEPTION_DSI);
 		return err;
 	}
+
+	if ((ea & 0xfffu) + len > 0x1000u)
+		return access_page_tail(state, ea, len, phys, cacheable, val, false);
 
 	if (cacheable)
 		ppcemu_dcache_load(&state->dcache, phys, len, val);
