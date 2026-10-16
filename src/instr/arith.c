@@ -167,6 +167,19 @@ void do_subfe(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, u
 		update_cr0(state, state->gpr[rD]);
 }
 
+void do_subfme(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
+	u32 a = ~state->gpr[rA];
+	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
+	u64 result = (u64)a + 0xffffffffu + ca;
+	state->gpr[rD] = (u32)result;
+	set_xer_ca(state, result >> 32);
+
+	if (OE)
+		set_xer_ov(state, add_overflow(a, 0xffffffffu, state->gpr[rD]));
+	if (Rc)
+		update_cr0(state, state->gpr[rD]);
+}
+
 void do_subfze(struct _ppcemu_state *state, uint rD, uint rA, uint OE, uint Rc) {
 	u32 a = ~state->gpr[rA];
 	u32 ca = !!(state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_XER)] & PPCEMU_XER_CA);
