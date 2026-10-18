@@ -27,6 +27,7 @@ extern enum ppcemu_loglevel misc_loglevel;
 #error "Please define LOG_LEVEL"
 #endif
 
+#ifdef ALLOW_WARN_ERROR
 #define DO_LOG(level) \
 	va_list va; \
 	\
@@ -36,6 +37,9 @@ extern enum ppcemu_loglevel misc_loglevel;
 	va_start(va, fmt); \
 	vprintf(fmt, va); \
 	va_end(va);
+#else
+#define DO_LOG(level) (void)fmt
+#endif
 
 static inline void debug(const char *fmt, ...) {
 	DO_LOG(PPCEMU_LOGLEVEL_DEBUG);
