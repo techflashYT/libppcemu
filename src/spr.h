@@ -9,9 +9,23 @@
 
 #include <assert.h>
 #include <ppcemu/spr.h>
+#include "types.h"
 
 #define MAX_SPR_COUNT 67
-static inline int ppcemu_sprn_to_idx_raw(int sprn) {
+
+/*
+ * One past the highest SPRN value in enum ppcemu_sprn (PPCEMU_SPRN_ICTC);
+ * sizes the idx lookup table below.
+ */
+#define PPCEMU_SPRN_TABLE_SIZE 1020
+
+/*
+ * Built once at load time by running every value through
+ * ppcemu_sprn_to_idx_switch()
+ */
+extern i8 ppcemu_sprn_to_idx_table[PPCEMU_SPRN_TABLE_SIZE];
+
+static inline int ppcemu_sprn_to_idx_switch(int sprn) {
 	switch (sprn) {
 	case PPCEMU_SPRN_XER: return 0;
 	case PPCEMU_SPRN_LR: return 1;
@@ -82,6 +96,22 @@ static inline int ppcemu_sprn_to_idx_raw(int sprn) {
 	case PPCEMU_SPRN_ICTC: return 66;
 	default: return -1;
 	}
+}
+
+/*
+ * __builtin_constant_p lets a literal PPCEMU_SPRN_* argument (the common
+ * case) still fold to a single constant via the switch above.  A genuine
+ * runtime sprn instead takes the table lookup, avoiding the switch's compare
+ * chain.
+ */
+static inline int ppcemu_sprn_to_idx_raw(int sprn) {
+	if (__builtin_constant_p(sprn))
+		return ppcemu_sprn_to_idx_switch(sprn);
+
+	if ((unsigned)sprn >= PPCEMU_SPRN_TABLE_SIZE)
+		return -1;
+
+	return ppcemu_sprn_to_idx_table[sprn];
 }
 
 static inline int ppcemu_sprn_to_idx(int sprn) {

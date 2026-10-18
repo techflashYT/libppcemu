@@ -32,28 +32,22 @@ static void mem_debug(const char *fmt, ...) {
 }
 #endif
 
+/*
+ * Equivalent to ppcemu_sprn_to_idx(IBAT0U/IBAT4U/... + off), but computed
+ * directly instead of going through ppcemu_sprn_to_idx_raw()'s switch for
+ * performance.
+ */
 static uint bat_to_spr_idx(uint batnum, bool ibat, bool upper) {
-	uint base, off;
+	uint idx;
 
-	/* calculate base BAT SPRN */
-	if (batnum <= 3) base = PPCEMU_SPRN_IBAT0U;
-	else if (batnum >= 4 && batnum <= 7) base = PPCEMU_SPRN_IBAT4U;
-	else assert(!"Unreachable");
+	if (batnum <= 3) idx = 13 + 2 * batnum;
+	else if (batnum >= 4 && batnum <= 7) idx = 29 + 2 * (batnum - 4);
+	else { assert(!"Unreachable"); return 0; }
 
-	/* calculate offset (upper/lower) */
-	if (upper) off = 0;
-	else off = 1;
+	if (!ibat) idx += 8;
+	if (!upper) idx += 1;
 
-	/* calculate offset (instr/data) */
-	if (!ibat) off += 8;
-
-	/* calculate offset (number) */
-	if (batnum <= 3) off += (2 * batnum);
-	else if (batnum >= 4 && batnum <= 7) off += (2 * (batnum - 4));
-	else assert(!"Unreachable");
-
-	/* actually grab the index */
-	return ppcemu_sprn_to_idx(base + off);
+	return idx;
 }
 
 #define PTEG_SIZE          64 /* 8 PTEs of 8 bytes each */
