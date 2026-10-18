@@ -204,6 +204,18 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 }
 
 
+void do_mtfsfi(struct _ppcemu_state *state, uint crfD, uint IMM, uint Rc) {
+	uint shift = (7 - crfD) * 4;
+
+	ENFORCE_MSR_FP();
+
+	state->fpcsr &= ~(0xfu << shift);
+	state->fpcsr |= (IMM & 0xf) << shift;
+
+	/* TODO: Update CR1 if Rc */
+	(void)Rc;
+}
+
 void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
 	u32 mask;
 

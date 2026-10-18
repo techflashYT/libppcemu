@@ -104,6 +104,10 @@
 #define INST_PS_PSQ(inst)    (((inst) & 0x00007000) >> 12)
 #define INST_PS_D(inst)      (((inst) & 0x00000fff) >> 0)
 
+/* 0..5 = Opcode; 6..8 = crfD; 9..15 = //; 16..19 = IMM; 20 = //; 21..30 = XO; 31 = Rc */
+/* TODO: is this encoding used anywhere else?  manual just calls it "X" like many others */
+#define INST_MTFSFI_IMM(inst) (((inst) & 0x0000f000) >> 12)
+
 /* 0..5 = Opcode; 6..10 = frS/frD/crfD; 11..15 = frA; 16..20 = frB; 21..25 = frC; 26..30 = XO; 31 = Rc */
 #define INST_A_frS(inst)     (((inst) & 0x03e00000) >> 21)
 #define INST_A_frD(inst)     INST_A_frS(inst)

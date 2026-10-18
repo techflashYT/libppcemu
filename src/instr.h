@@ -123,6 +123,7 @@ extern u32 do_stf_common(struct _ppcemu_state *state, uint frS, uint rA, i32 d, 
 #define do_stfiwx(s, frS, rA, rB) do_stf_common(s, frS, rA, (i32)s->gpr[rB], 4, false)
 extern void do_fmr(struct _ppcemu_state *state, uint frD, uint frB, uint Rc);
 extern void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc);
+extern void do_mtfsfi(struct _ppcemu_state *state, uint crfD, uint IMM, uint Rc);
 extern void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc);
 #define do_mtfsb0(state, crbD, Rc) do_mtfsbN(state, crbD, 0, Rc)
 #define do_mtfsb1(state, crbD, Rc) do_mtfsbN(state, crbD, 1, Rc)
