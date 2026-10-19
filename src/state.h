@@ -11,6 +11,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include "cache.h"
+#include "tlb.h"
 #include "types.h"
 #include "spr.h"
 
@@ -28,6 +29,8 @@ struct _ppcemu_state {
 	u64 tb;
 	struct cache icache;
 	struct cache dcache;
+	struct micro_tlb itlb;
+	struct micro_tlb dtlb;
 	u64 rt_epoch_sec;
 	u64 rt_epoch_usec;
 	u64 rt_epoch_tb;

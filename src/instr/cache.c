@@ -35,9 +35,7 @@ void do_eieio(struct _ppcemu_state *state) {
 }
 
 void do_tlbie(struct _ppcemu_state *state, uint rB) {
-	/* TODO: actually invalidate TLB entries */
-	(void)state;
-	(void)rB;
+	ppcemu_tlb_flush_page(state, state->gpr[rB]);
 }
 
 void do_tlbsync(struct _ppcemu_state *state) {

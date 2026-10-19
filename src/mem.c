@@ -105,7 +105,7 @@ static void htab_write_pte1(struct _ppcemu_state *state, u32 pteg_addr, uint idx
  * Called only once BAT translation has missed and the segment's T bit is
  * clear.
  */
-static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32 sr, u32 *phys, bool *cacheable, bool write) {
+static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32 sr, u32 *phys, bool *cacheable, bool write, bool *out_writable, bool *out_dirty_pending) {
 	u32 sdr1, vsid, pi, api, hpt_mask, htaborg, hash, pteg_addr, w0, w1, pp, wimg, this_hash;
 	bool key;
 	uint h, i;
@@ -142,6 +142,9 @@ static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32
 			if (!pte_access_allowed(key, pp, write))
 				return V2P_NO_PERMS;
 
+			*out_writable = pte_access_allowed(key, pp, true);
+			*out_dirty_pending = !write && !(w1 & PPCEMU_PTE_C);
+
 			if (!(w1 & PPCEMU_PTE_R) || (write && !(w1 & PPCEMU_PTE_C)))
 				htab_write_pte1(state, pteg_addr, i, w1 | PPCEMU_PTE_R | (write ? PPCEMU_PTE_C : 0));
 
@@ -159,29 +162,96 @@ static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32
 }
 
 static uint bat_blocklen_to_bytes(u32 bl) {
-	switch (bl) {
-		case PPCEMU_BATU_BL_128KB: return 128 * 1024;
-		case PPCEMU_BATU_BL_256KB: return 256 * 1024;
-		case PPCEMU_BATU_BL_512KB: return 512 * 1024;
-		case PPCEMU_BATU_BL_1MB: return 1 * 1024 * 1024;
-		case PPCEMU_BATU_BL_2MB: return 2 * 1024 * 1024;
-		case PPCEMU_BATU_BL_4MB: return 4 * 1024 * 1024;
-		case PPCEMU_BATU_BL_8MB: return 8 * 1024 * 1024;
-		case PPCEMU_BATU_BL_16MB: return 16 * 1024 * 1024;
-		case PPCEMU_BATU_BL_32MB: return 32 * 1024 * 1024;
-		case PPCEMU_BATU_BL_64MB: return 64 * 1024 * 1024;
-		case PPCEMU_BATU_BL_128MB: return 128 * 1024 * 1024;
-		case PPCEMU_BATU_BL_256MB: return 256 * 1024 * 1024;
-		default: return 0;
-	}
-	return 0;
+	if ((bl + 1) & bl)
+		return 0;
+
+	return (128 * 1024) * (bl + 1);
 }
 
+void ppcemu_tlb_flush_all(struct _ppcemu_state *state) {
+	uint i;
+
+	for (i = 0; i < MICRO_TLB_WAYS; i++) {
+		state->itlb.ways[i].valid = false;
+		state->dtlb.ways[i].valid = false;
+	}
+	state->itlb.next_way = 0;
+	state->dtlb.next_way = 0;
+}
+
+void ppcemu_tlb_flush_segment(struct _ppcemu_state *state, uint sreg) {
+	uint i;
+
+	for (i = 0; i < MICRO_TLB_WAYS; i++) {
+		if (state->itlb.ways[i].valid && (state->itlb.ways[i].vpn >> 16) == sreg)
+			state->itlb.ways[i].valid = false;
+		if (state->dtlb.ways[i].valid && (state->dtlb.ways[i].vpn >> 16) == sreg)
+			state->dtlb.ways[i].valid = false;
+	}
+}
+
+/* As ppcemu_tlb_flush_segment(), but for tlbie: invalidates just the one page named by virt. */
+void ppcemu_tlb_flush_page(struct _ppcemu_state *state, u32 virt) {
+	u32 vpn = virt >> 12;
+	uint i;
+
+	for (i = 0; i < MICRO_TLB_WAYS; i++) {
+		if (state->itlb.ways[i].valid && state->itlb.ways[i].vpn == vpn)
+			state->itlb.ways[i].valid = false;
+		if (state->dtlb.ways[i].valid && state->dtlb.ways[i].vpn == vpn)
+			state->dtlb.ways[i].valid = false;
+	}
+}
+
+static bool tlb_lookup(struct micro_tlb *tlb, u32 vpn, bool pr, bool write, u32 virt, u32 *phys, bool *cacheable) {
+	uint i;
+
+	for (i = 0; i < MICRO_TLB_WAYS; i++) {
+		struct micro_tlb_entry *e = &tlb->ways[i];
+
+		if (!e->valid || e->vpn != vpn || e->pr != pr)
+			continue;
+		if (write && (!e->writable || e->dirty_pending))
+			return false;
+
+		*phys = e->phys_base | (virt & 0xfffu);
+		*cacheable = e->cacheable;
+		return true;
+	}
+
+	return false;
+}
+
+static void tlb_insert(struct micro_tlb *tlb, u32 vpn, bool pr, u32 phys_base, bool cacheable, bool writable, bool dirty_pending) {
+	struct micro_tlb_entry *e;
+	uint i;
+
+	for (i = 0; i < MICRO_TLB_WAYS; i++) {
+		if (tlb->ways[i].valid && tlb->ways[i].vpn == vpn && tlb->ways[i].pr == pr) {
+			e = &tlb->ways[i];
+			goto fill;
+		}
+	}
+
+	e = &tlb->ways[tlb->next_way];
+	tlb->next_way = (tlb->next_way + 1) % MICRO_TLB_WAYS;
+
+fill:
+	e->valid = true;
+	e->vpn = vpn;
+	e->pr = pr;
+	e->phys_base = phys_base;
+	e->cacheable = cacheable;
+	e->writable = writable;
+	e->dirty_pending = dirty_pending;
+}
 
 enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool *cacheable, bool ifetch, bool write) {
-	u32 batu, batl, size, bepi, pp, sr, wimg;
+	u32 batu, batl, size, bepi, pp, sr, wimg, vpn, phys_base;
 	uint i, max_bat;
-	bool vs, vp;
+	bool vs, vp, pr, writable, dirty_pending;
+	struct micro_tlb *tlb;
+	enum virt2phys_err err;
 
 	*cacheable = false;
 	if (ifetch && !(state->msr & PPCEMU_MSR_IR)) {
@@ -193,6 +263,14 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 		*phys = virt;
 		return V2P_SUCCESS;
 	}
+
+	tlb = ifetch ? &state->itlb : &state->dtlb;
+	vpn = virt >> 12;
+	pr = (state->msr & PPCEMU_MSR_PR) != 0;
+
+	if (tlb_lookup(tlb, vpn, pr, write, virt, phys, cacheable))
+		return V2P_SUCCESS;
+
 	*cacheable = false;
 	if (state->caps & CAPS_UPPER_BATS &&
 	    state->caps & CAPS_HID4 &&
@@ -246,6 +324,10 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 			if (!(wimg & 0x4) && state->cache_mode != PPCEMU_CACHE_MODE_DISABLED)
 				*cacheable = true; /* already set to false above */
 
+			phys_base = *phys & ~0xfffu;
+			writable = (pp == PPCEMU_BATL_PP_RW);
+			tlb_insert(tlb, vpn, pr, phys_base, *cacheable, writable, false);
+
 			return V2P_SUCCESS;
 		}
 		mem_debug("MEM: It does not, continuing...\r\n");
@@ -256,7 +338,13 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 	if (sr & PPCEMU_SR_T)
 		return V2P_DIRECT_STORE;
 
-	return htab_lookup(state, virt, sr, phys, cacheable, write);
+	err = htab_lookup(state, virt, sr, phys, cacheable, write, &writable, &dirty_pending);
+	if (err == V2P_SUCCESS) {
+		phys_base = *phys & ~0xfffu;
+		tlb_insert(tlb, vpn, pr, phys_base, *cacheable, writable, dirty_pending);
+	}
+
+	return err;
 }
 
 const char *v2p_strerror(enum virt2phys_err err) {

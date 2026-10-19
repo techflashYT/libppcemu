@@ -25,4 +25,8 @@ void ppcemu_set_isi_info(struct _ppcemu_state *state, enum virt2phys_err err);
 enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val);
 enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea, void *val);
 
+void ppcemu_tlb_flush_all(struct _ppcemu_state *state);
+void ppcemu_tlb_flush_segment(struct _ppcemu_state *state, uint sreg);
+void ppcemu_tlb_flush_page(struct _ppcemu_state *state, u32 virt);
+
 #endif /* _LIBPPCEMU_INTERNAL_MEM_H */

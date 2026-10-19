@@ -10,6 +10,7 @@
 #include "../caps.h"
 #include "../exception.h"
 #include "../log.h"
+#include "../mem.h"
 #include "../spr.h"
 #include "../state.h"
 
@@ -20,7 +21,6 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_LR:
 	case PPCEMU_SPRN_CTR:
 	case PPCEMU_SPRN_DEC:
-	case PPCEMU_SPRN_SDR1:
 	case PPCEMU_SPRN_SRR0:
 	case PPCEMU_SPRN_SRR1:
 	case PPCEMU_SPRN_SPRG0:
@@ -33,6 +33,12 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_DABR:
 	case PPCEMU_SPRN_ICTC: {
 		state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+		break;
+	}
+	case PPCEMU_SPRN_SDR1: {
+		/* changes the hashed page table base: stale micro-TLB entries must go */
+		state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+		ppcemu_tlb_flush_all(state);
 		break;
 	}
 	case PPCEMU_SPRN_TBU_OEA:
@@ -84,6 +90,7 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_DBAT3U:
 	case PPCEMU_SPRN_DBAT3L: {
 		state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+		ppcemu_tlb_flush_all(state);
 		break;
 	}
 	case PPCEMU_SPRN_IBAT4U:
@@ -106,8 +113,10 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 			warn("Attempted to write to upper BATs on an unsupported CPU\r\n");
 			exception_fire(state, EXCEPTION_PROGRAM);
 		}
-		else
+		else {
 			state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
+			ppcemu_tlb_flush_all(state);
+		}
 
 		break;
 	}
