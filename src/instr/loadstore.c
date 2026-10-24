@@ -149,9 +149,18 @@ void do_stmw(struct _ppcemu_state *state, uint rS, uint rA, u16 d) {
 
 	ea = b + (i32)(i16)d;
 
+	/* alignment exception */
+	if ((ea & 3) || (state->msr & PPCEMU_MSR_LE)) {
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DSISR)] = (1u << 14) | (7u << 10) | (rS << 5) | rA;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DAR)] = ea;
+		exception_fire(state, EXCEPTION_ALIGN);
+		return;
+	}
+
 	for (r = rS; r <= 31; r++) {
 		val = ppcemu_cpu_to_be32(state->gpr[r]);
-		_do_basic_store(state, 4, ea, &val);
+		if (_do_basic_store(state, 4, ea, &val) != V2P_SUCCESS)
+			return;
 		ea += 4;
 	}
 }
@@ -300,6 +309,14 @@ void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d) {
 		b = state->gpr[rA];
 
 	ea = b + (i32)(i16)d;
+
+	/* alignment exception */
+	if ((ea & 3) || (state->msr & PPCEMU_MSR_LE)) {
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DSISR)] = (7u << 10) | (rD << 5) | rA;
+		state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DAR)] = ea;
+		exception_fire(state, EXCEPTION_ALIGN);
+		return;
+	}
 
 	for (r = rD; r <= 31; r++) {
 		if (_do_basic_load(state, 4, ea, &val) != V2P_SUCCESS)
