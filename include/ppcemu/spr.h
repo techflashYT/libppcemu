@@ -270,6 +270,8 @@ enum ppcemu_sprn {
  */
 #define PPCEMU_HID0_DCE_SHIFT  14
 #define PPCEMU_HID0_DCE        (1u << PPCEMU_HID0_DCE_SHIFT)
+#define PPCEMU_HID0_ICE_SHIFT  15
+#define PPCEMU_HID0_ICE        (1u << PPCEMU_HID0_ICE_SHIFT)
 
 /*
  * HID2 bits
