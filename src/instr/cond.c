@@ -108,7 +108,7 @@ void do_mtcrf(struct _ppcemu_state *state, uint rS, uint crm) {
 		mask = 0;
 		for (i = 0; i < 8; i++) {
 			if (crm & (1 << i))
-				mask |= (0xf << (i * 4));
+				mask |= (0xfu << (i * 4));
 		}
 
 		state->cr &= ~mask;

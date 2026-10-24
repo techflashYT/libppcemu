@@ -19,8 +19,29 @@ override CFLAGS := $(CFLAGS) -fPIC -Iinclude
 LDFLAGS ?= -flto=auto
 DESTDIR ?= /
 
-.PHONY: all clean install
+ASAN ?= 0
+UBSAN ?= 0
+override SANFLAGS :=
+ifeq ($(ASAN),1)
+override SANFLAGS += -fsanitize=address
+endif
+ifeq ($(UBSAN),1)
+override SANFLAGS += -fsanitize=undefined -fno-sanitize-recover=undefined
+endif
+ifneq ($(strip $(SANFLAGS)),)
+override CFLAGS += $(SANFLAGS) -fno-omit-frame-pointer
+override LDFLAGS += $(SANFLAGS)
+endif
+export ASAN UBSAN
+
+.PHONY: all clean install tests run_tests
 all: $(OUT_SO) $(OUT_ST)
+
+tests: $(OUT_ST)
+	$(MAKE) -C tests all
+
+run_tests: $(OUT_ST)
+	$(MAKE) -C tests run
 
 $(OUT_SO): $(OBJ)
 	@mkdir -p $(@D)

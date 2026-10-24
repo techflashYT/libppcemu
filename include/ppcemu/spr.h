@@ -248,83 +248,83 @@ enum ppcemu_sprn {
 /*
  * DSISR bits
  */
-#define PPCEMU_DSISR_NOT_FOUND  (1 << 30)
-#define PPCEMU_DSISR_PROTECTION (1 << 27)
-#define PPCEMU_DSISR_DIRECT_STORE (1 << 26)
-#define PPCEMU_DSISR_STORE      (1 << 25)
+#define PPCEMU_DSISR_NOT_FOUND  (1u << 30)
+#define PPCEMU_DSISR_PROTECTION (1u << 27)
+#define PPCEMU_DSISR_DIRECT_STORE (1u << 26)
+#define PPCEMU_DSISR_STORE      (1u << 25)
 
-#define PPCEMU_SRR1_ISI_NOPT (1 << 30)
-#define PPCEMU_SRR1_ISI_PROT (1 << 27)
+#define PPCEMU_SRR1_ISI_NOPT (1u << 30)
+#define PPCEMU_SRR1_ISI_PROT (1u << 27)
 
 /*
  * XER bits
  */
 #define PPCEMU_XER_SO_SHIFT 31
-#define PPCEMU_XER_SO       (1 << PPCEMU_XER_SO_SHIFT)
-#define PPCEMU_XER_OV       (1 << 30)
-#define PPCEMU_XER_CA       (1 << 29)
+#define PPCEMU_XER_SO       (1u << PPCEMU_XER_SO_SHIFT)
+#define PPCEMU_XER_OV       (1u << 30)
+#define PPCEMU_XER_CA       (1u << 29)
 #define PPCEMU_XER_COUNT    (127 << 0)
 
 /*
  * HID0 bits
  */
 #define PPCEMU_HID0_DCE_SHIFT  14
-#define PPCEMU_HID0_DCE        (1 << PPCEMU_HID0_DCE_SHIFT)
+#define PPCEMU_HID0_DCE        (1u << PPCEMU_HID0_DCE_SHIFT)
 
 /*
  * HID2 bits
  */
-#define PPCEMU_HID2_750CL_RSRVD0   (0xffff | (1<< 31))
+#define PPCEMU_HID2_750CL_RSRVD0   (0xffff | (1u << 31))
 #define PPCEMU_HID2_BW_RSRVD0      0xffff
-#define PPCEMU_HID2_DQOEE          (1 << 16)
-#define PPCEMU_HID2_DCMEE          (1 << 17)
-#define PPCEMU_HID2_DNCEE          (1 << 18)
-#define PPCEMU_HID2_DCHEE          (1 << 19)
-#define PPCEMU_HID2_DQOERR         (1 << 20)
-#define PPCEMU_HID2_DCMERR         (1 << 21)
-#define PPCEMU_HID2_DNCERR         (1 << 22)
-#define PPCEMU_HID2_DCHERR         (1 << 23)
+#define PPCEMU_HID2_DQOEE          (1u << 16)
+#define PPCEMU_HID2_DCMEE          (1u << 17)
+#define PPCEMU_HID2_DNCEE          (1u << 18)
+#define PPCEMU_HID2_DCHEE          (1u << 19)
+#define PPCEMU_HID2_DQOERR         (1u << 20)
+#define PPCEMU_HID2_DCMERR         (1u << 21)
+#define PPCEMU_HID2_DNCERR         (1u << 22)
+#define PPCEMU_HID2_DCHERR         (1u << 23)
 #define PPCEMU_HID2_DMAQL          (15 << 24)
-#define PPCEMU_HID2_LCE            (1 << 28)
-#define PPCEMU_HID2_PSE            (1 << 29)
-#define PPCEMU_HID2_WPE            (1 << 30)
+#define PPCEMU_HID2_LCE            (1u << 28)
+#define PPCEMU_HID2_PSE            (1u << 29)
+#define PPCEMU_HID2_WPE            (1u << 30)
 /* reserved on 750CL, "LSQE" (Load/Store Quantized Enable?) on Broadway/Espresso */
-#define PPCEMU_HID2_BW_LSQE        (1 << 31)
+#define PPCEMU_HID2_BW_LSQE        (1u << 31)
 
 /*
  * HID4 bits
  */
-#define PPCEMU_HID4_L2CFI          (1 << 20)
-#define PPCEMU_HID4_L2MUM          (1 << 21)
-#define PPCEMU_HID4_DBP            (1 << 22)
+#define PPCEMU_HID4_L2CFI          (1u << 20)
+#define PPCEMU_HID4_L2MUM          (1u << 21)
+#define PPCEMU_HID4_DBP            (1u << 22)
 /* this is reserved on 750CL, "LPE" (?) on Broadway/Espresso */
-#define PPCEMU_HID4_BW_LPE         (1 << 23)
+#define PPCEMU_HID4_BW_LPE         (1u << 23)
 /* this is Paired-singles control bit 1 on 750CL, "ST0" (STore 0?) on Broadway/Espresso */
-#define PPCEMU_HID4_BW_ST0         (1 << 24)
-#define PPCEMU_HID4_750CL_PS1_CTL  (1 << 24)
-#define PPCEMU_HID4_SBE            (1 << 25)
+#define PPCEMU_HID4_BW_ST0         (1u << 24)
+#define PPCEMU_HID4_750CL_PS1_CTL  (1u << 24)
+#define PPCEMU_HID4_SBE            (1u << 25)
 /* this is L2 second castout buffer enable on 750CL, reserved on Broadway/Espresso */
-#define PPCEMU_HID4_750CL_BCO      (1 << 26)
+#define PPCEMU_HID4_750CL_BCO      (1u << 26)
 #define PPCEMU_HID4_BPD            (3 << 27)
 #define PPCEMU_HID4_L2FM           (3 << 29)
 
 /* reserved bits that must be 0 on Broadway/Espresso */
-#define PPCEMU_HID4_BW_RSRVD0      (0xfffff | (1 << 26))
+#define PPCEMU_HID4_BW_RSRVD0      (0xfffff | (1u << 26))
 /* reserved bits that must be 0 on 750CL */
-#define PPCEMU_HID4_750CL_RSRVD0   (0x7ffff | (1 << 23))
+#define PPCEMU_HID4_750CL_RSRVD0   (0x7ffff | (1u << 23))
 /* reserved bits that must be 1 on all implementations */
-#define PPCEMU_HID4_RSRVD1         (1 << 31)
+#define PPCEMU_HID4_RSRVD1         (1u << 31)
 
 
 /*
  * BATU bits
  */
 #define PPCEMU_BATU_VP_SHIFT   0
-#define PPCEMU_BATU_VP         (1 << PPCEMU_BATU_VP_SHIFT)
+#define PPCEMU_BATU_VP         (1u << PPCEMU_BATU_VP_SHIFT)
 #define PPCEMU_BATU_VS_SHIFT   1
-#define PPCEMU_BATU_VS         (1 << PPCEMU_BATU_VS_SHIFT)
+#define PPCEMU_BATU_VS         (1u << PPCEMU_BATU_VS_SHIFT)
 #define PPCEMU_BATU_BL_SHIFT   2
-#define PPCEMU_BATU_BL         (2047 << PPCEMU_BATU_BL_SHIFT)
+#define PPCEMU_BATU_BL         (2047u << PPCEMU_BATU_BL_SHIFT)
 #define PPCEMU_BATU_BL_128KB   0x000
 #define PPCEMU_BATU_BL_256KB   0x001
 #define PPCEMU_BATU_BL_512KB   0x003
@@ -338,20 +338,20 @@ enum ppcemu_sprn {
 #define PPCEMU_BATU_BL_128MB   0x3FF
 #define PPCEMU_BATU_BL_256MB   0x7FF
 #define PPCEMU_BATU_BEPI_SHIFT 17
-#define PPCEMU_BATU_BEPI       (32767 << PPCEMU_BATU_BEPI_SHIFT)
+#define PPCEMU_BATU_BEPI       (32767u << PPCEMU_BATU_BEPI_SHIFT)
 
 /*
  * BATL bits
  */
 #define PPCEMU_BATL_PP_SHIFT   0
-#define PPCEMU_BATL_PP         (3 << PPCEMU_BATL_PP_SHIFT)
+#define PPCEMU_BATL_PP         (3u << PPCEMU_BATL_PP_SHIFT)
 #define PPCEMU_BATL_PP___      0 /* No access */
 #define PPCEMU_BATL_PP_R_      1 /* Read-only */
 #define PPCEMU_BATL_PP_RW      2 /* Read-write */
 #define PPCEMU_BATL_WIMG_SHIFT 3
-#define PPCEMU_BATL_WIMG       (15 << PPCEMU_BATL_WIMG_SHIFT)
+#define PPCEMU_BATL_WIMG       (15u << PPCEMU_BATL_WIMG_SHIFT)
 #define PPCEMU_BATL_BPRN_SHIFT 17
-#define PPCEMU_BATL_BPRN       (32767 << PPCEMU_BATL_BPRN_SHIFT)
+#define PPCEMU_BATL_BPRN       (32767u << PPCEMU_BATL_BPRN_SHIFT)
 
 /*
  * SDR1 bits (page table base address)

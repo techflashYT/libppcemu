@@ -192,7 +192,7 @@ void do_mtfsf(struct _ppcemu_state *state, uint FM, uint frB, uint Rc) {
 		mask = 0;
 		for (i = 0; i < 8; i++) {
 			if (FM & (1 << i))
-				mask |= (0xf << (i * 4));
+				mask |= (0xfu << (i * 4));
 		}
 
 		state->fpcsr &= ~mask;
@@ -221,7 +221,7 @@ void do_mtfsbN(struct _ppcemu_state *state, uint crbD, uint set, uint Rc) {
 
 	ENFORCE_MSR_FP();
 
-	mask = 1 << (31 - crbD);
+	mask = 1u << (31 - crbD);
 	if (set)
 		state->fpcsr |= mask;
 	else

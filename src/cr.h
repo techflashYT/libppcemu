@@ -21,18 +21,18 @@ static inline uint cr_get_bit(struct _ppcemu_state *state, uint bit) {
 }
 
 static inline void cr_set_bit(struct _ppcemu_state *state, uint bit, bool set) {
-	u32 mask = 1 << bit;
+	u32 mask = 1u << bit;
 	state->cr = set ? (state->cr | mask) : (state->cr & ~mask);
 }
 
 static inline void cr_set_field(struct _ppcemu_state *state, uint field, u32 val) {
-	u32 mask = 15 << ((7 - field) * 4);
+	u32 mask = 15u << ((7 - field) * 4);
 	state->cr &= ~mask;
-	state->cr |= ((val & 15) << ((7 - field) * 4));
+	state->cr |= ((val & 15u) << ((7 - field) * 4));
 }
 
 static inline u32 cr_get_field(struct _ppcemu_state *state, uint field) {
-	u32 mask = 15 << ((7 - field) * 4);
+	u32 mask = 15u << ((7 - field) * 4);
 	return (state->cr & mask) >> ((7 - field) * 4);
 }
 

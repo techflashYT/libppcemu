@@ -15,7 +15,7 @@
 /* arithmetic */
 extern void generic_addi(struct _ppcemu_state *state, uint rD, uint rA, i32 simm);
 #define do_addi(s, rD, rA, simm) generic_addi(s, rD, rA, (i32)(i16)simm)
-#define do_addis(s, rD, rA, simm) generic_addi(s, rD, rA, (i32)((i16)simm << 16))
+#define do_addis(s, rD, rA, simm) generic_addi(s, rD, rA, (i32)((u32)(u16)(simm) << 16))
 extern void do_add(struct _ppcemu_state *state, uint rD, uint rA, uint rB, uint OE, uint Rc);
 extern void do_addc(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uint Rc);
 extern void do_adde(struct _ppcemu_state *state, uint rD, uint rA, u16 rB, uint OE, uint Rc);
