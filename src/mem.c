@@ -105,9 +105,9 @@ static void htab_write_pte1(struct _ppcemu_state *state, u32 pteg_addr, uint idx
  * Called only once BAT translation has missed and the segment's T bit is
  * clear.
  */
-static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32 sr, u32 *phys, bool *cacheable, bool write, bool *out_writable, bool *out_dirty_pending) {
+static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32 sr, u32 *phys, bool *cacheable, bool ifetch, bool write, bool *out_writable, bool *out_dirty_pending) {
 	u32 sdr1, vsid, pi, api, hpt_mask, htaborg, hash, pteg_addr, w0, w1, pp, wimg, this_hash;
-	bool key;
+	bool key, emu_cache_enabled, dce, ice;
 	uint h, i;
 
 	sdr1 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SDR1)];
@@ -119,6 +119,10 @@ static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32
 	htaborg = sdr1 & PPCEMU_SDR1_HTABORG;
 	hpt_mask = ((sdr1 & PPCEMU_SDR1_HTABMASK) << 16) | 0xffffu;
 	hash = vsid ^ pi;
+
+	emu_cache_enabled = state->cache_mode != PPCEMU_CACHE_MODE_DISABLED;
+	dce = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & PPCEMU_HID0_DCE;
+	ice = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & PPCEMU_HID0_ICE;
 
 	for (h = 0; h < 2; h++) {
 		this_hash = h ? ~hash : hash;
@@ -151,7 +155,7 @@ static enum virt2phys_err htab_lookup(struct _ppcemu_state *state, u32 virt, u32
 			*phys = (w1 & PPCEMU_PTE_RPN) | (virt & 0xfff);
 
 			wimg = w1 & (PPCEMU_PTE_W | PPCEMU_PTE_I | PPCEMU_PTE_M | PPCEMU_PTE_G);
-			if (!(wimg & PPCEMU_PTE_I) && state->cache_mode != PPCEMU_CACHE_MODE_DISABLED)
+			if (!(wimg & PPCEMU_PTE_I) && ((ifetch && ice) || (!ifetch && dce)) && emu_cache_enabled)
 				*cacheable = true; /* already false from the caller */
 
 			return V2P_SUCCESS;
@@ -249,7 +253,7 @@ fill:
 enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool *cacheable, bool ifetch, bool write) {
 	u32 batu, batl, size, bepi, pp, sr, wimg, vpn, phys_base;
 	uint i, max_bat;
-	bool vs, vp, pr, writable, dirty_pending;
+	bool vs, vp, pr, writable, dirty_pending, emu_cache_enabled, dce, ice;
 	struct micro_tlb *tlb;
 	enum virt2phys_err err;
 
@@ -270,6 +274,10 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 
 	if (tlb_lookup(tlb, vpn, pr, write, virt, phys, cacheable))
 		return V2P_SUCCESS;
+
+	emu_cache_enabled = state->cache_mode != PPCEMU_CACHE_MODE_DISABLED;
+	dce = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & PPCEMU_HID0_DCE;
+	ice = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & PPCEMU_HID0_ICE;
 
 	*cacheable = false;
 	if (state->caps & CAPS_UPPER_BATS &&
@@ -321,7 +329,7 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 
 			/* Determine if it can hit the cache by checking the cache inhibit bit */
 			wimg = (batl & PPCEMU_BATL_WIMG) >> PPCEMU_BATL_WIMG_SHIFT;
-			if (!(wimg & 0x4) && state->cache_mode != PPCEMU_CACHE_MODE_DISABLED)
+			if (!(wimg & 0x4) && ((ifetch && ice) || (!ifetch && dce)) && emu_cache_enabled)
 				*cacheable = true; /* already set to false above */
 
 			phys_base = *phys & ~0xfffu;
@@ -338,7 +346,7 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 	if (sr & PPCEMU_SR_T)
 		return V2P_DIRECT_STORE;
 
-	err = htab_lookup(state, virt, sr, phys, cacheable, write, &writable, &dirty_pending);
+	err = htab_lookup(state, virt, sr, phys, cacheable, ifetch, write, &writable, &dirty_pending);
 	if (err == V2P_SUCCESS) {
 		phys_base = *phys & ~0xfffu;
 		tlb_insert(tlb, vpn, pr, phys_base, *cacheable, writable, dirty_pending);
