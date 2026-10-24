@@ -39,6 +39,8 @@ struct ppcemu_state *ppcemu_init(enum ppcemu_cpu_model model, ppcemu_bus_hook bu
 	state->c2b_mult = c2b_mult;
 	state->bus_speed_khz = bus_speed_khz;
 	state->cache_mode = PPCEMU_CACHE_MODE_STANDARD;
+	state->sync_rt = false;
+	state->loadstore_hook = NULL;
 	ppcemu_reset((struct ppcemu_state *)state);
 
 	return (struct ppcemu_state *)state;
