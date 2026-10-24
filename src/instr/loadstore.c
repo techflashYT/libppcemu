@@ -7,6 +7,7 @@
 #define LOG_LEVEL loadstore_loglevel
 #include <stdio.h>
 #include <ppcemu/endian.h>
+#include "../exception.h"
 #include "../log.h"
 #include "../mem.h"
 #include "../state.h"
@@ -309,6 +310,18 @@ void do_lmw(struct _ppcemu_state *state, uint rD, uint rA, u16 d) {
 }
 
 
+/*
+ * Raise an alignment exception for a string op attempted with MSR[LE] set
+ */
+static void string_align_exception(struct _ppcemu_state *state, uint xo, uint rD, uint rA, u32 ea) {
+	u32 dsisr;
+
+	dsisr = ((xo & 0x3u) << 15) | (((xo >> 5) & 1u) << 14) | (((xo >> 6) & 0xfu) << 10) | (rD << 5) | rA;
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DSISR)] = dsisr;
+	state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_DAR)] = ea;
+	exception_fire(state, EXCEPTION_ALIGN);
+}
+
 void do_stswi(struct _ppcemu_state *state, uint rS, uint rA, uint NB) {
 	u32 ea;
 	uint r, i, n;
@@ -318,6 +331,11 @@ void do_stswi(struct _ppcemu_state *state, uint rS, uint rA, uint NB) {
 		ea = 0;
 	else
 		ea = state->gpr[rA];
+
+	if (state->msr & PPCEMU_MSR_LE) {
+		string_align_exception(state, 725, rS, rA, ea);
+		return;
+	}
 
 	if (NB == 0)
 		n = 32;
@@ -331,7 +349,8 @@ void do_stswi(struct _ppcemu_state *state, uint rS, uint rA, uint NB) {
 			r = (r + 1) % 32;
 
 		val = (u8)((state->gpr[r] >> (24 - i)) & 0xff);
-		_do_basic_store(state, 1, ea, &val);
+		if (_do_basic_store(state, 1, ea, &val) != V2P_SUCCESS)
+			return;
 		i += 8;
 
 		if (i == 32)
@@ -344,7 +363,7 @@ void do_stswi(struct _ppcemu_state *state, uint rS, uint rA, uint NB) {
 
 void do_lswi(struct _ppcemu_state *state, uint rD, uint rA, uint NB) {
 	u32 ea;
-	uint r, i, n;
+	uint r, i, n, nr;
 	u8 val;
 
 	if (rA == 0)
@@ -357,6 +376,18 @@ void do_lswi(struct _ppcemu_state *state, uint rD, uint rA, uint NB) {
 	else
 		n = NB;
 
+	/* invalid form: rA (or r0, when rA == 0) is in the range of registers to be loaded */
+	nr = (n + 3) / 4;
+	if (((rA - rD) & 31u) < nr) {
+		exception_fire(state, EXCEPTION_PROGRAM);
+		return;
+	}
+
+	if (state->msr & PPCEMU_MSR_LE) {
+		string_align_exception(state, 597, rD, rA, ea);
+		return;
+	}
+
 	r = rD - 1;
 	i = 0;
 	do {
@@ -365,7 +396,8 @@ void do_lswi(struct _ppcemu_state *state, uint rD, uint rA, uint NB) {
 			state->gpr[r] = 0;
 		}
 
-		_do_basic_load(state, 1, ea, &val);
+		if (_do_basic_load(state, 1, ea, &val) != V2P_SUCCESS)
+			return;
 		state->gpr[r] |= ((u32)val) << (24 - i);
 		i += 8;
 
