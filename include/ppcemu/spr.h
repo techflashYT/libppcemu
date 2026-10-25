@@ -242,7 +242,16 @@ enum ppcemu_sprn {
 	 *
 	 * Available in: 750CXe, Gekko, 750CL, Broadway, Espresso
 	 */
-	PPCEMU_SPRN_ICTC = 1019
+	PPCEMU_SPRN_ICTC = 1019,
+
+	/*
+	 * Thermal Assist Unit (TAU) registers
+	 *
+	 * Available in: All
+	 */
+	PPCEMU_SPRN_THRM1 = 1020,
+	PPCEMU_SPRN_THRM2 = 1021,
+	PPCEMU_SPRN_THRM3 = 1022,
 };
 
 /*

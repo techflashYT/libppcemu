@@ -11,13 +11,13 @@
 #include <ppcemu/spr.h>
 #include "types.h"
 
-#define MAX_SPR_COUNT 67
+#define MAX_SPR_COUNT 70
 
 /*
- * One past the highest SPRN value in enum ppcemu_sprn (PPCEMU_SPRN_ICTC);
+ * One past the highest SPRN value in enum ppcemu_sprn (PPCEMU_SPRN_THRM3);
  * sizes the idx lookup table below.
  */
-#define PPCEMU_SPRN_TABLE_SIZE 1020
+#define PPCEMU_SPRN_TABLE_SIZE 1023
 
 /*
  * Built once at load time by running every value through
@@ -94,6 +94,9 @@ static inline int ppcemu_sprn_to_idx_switch(int sprn) {
 	case PPCEMU_SPRN_SDR1: return 64;
 	case PPCEMU_SPRN_WPAR: return 65;
 	case PPCEMU_SPRN_ICTC: return 66;
+	case PPCEMU_SPRN_THRM1: return 67;
+	case PPCEMU_SPRN_THRM2: return 68;
+	case PPCEMU_SPRN_THRM3: return 69;
 	default: return -1;
 	}
 }

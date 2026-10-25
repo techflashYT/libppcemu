@@ -31,7 +31,10 @@ void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
 	case PPCEMU_SPRN_DSISR:
 	case PPCEMU_SPRN_DAR:
 	case PPCEMU_SPRN_DABR:
-	case PPCEMU_SPRN_ICTC: {
+	case PPCEMU_SPRN_ICTC:
+	case PPCEMU_SPRN_THRM1:
+	case PPCEMU_SPRN_THRM2:
+	case PPCEMU_SPRN_THRM3: {
 		state->sprs[ppcemu_sprn_to_idx(sprn)] = state->gpr[rS];
 		break;
 	}
@@ -198,7 +201,10 @@ void do_mfspr(struct _ppcemu_state *state, uint rD, uint sprn) {
 	case PPCEMU_SPRN_DAR:
 	case PPCEMU_SPRN_DABR:
 	case PPCEMU_SPRN_PVR:
-	case PPCEMU_SPRN_ICTC: {
+	case PPCEMU_SPRN_ICTC:
+	case PPCEMU_SPRN_THRM1:
+	case PPCEMU_SPRN_THRM2:
+	case PPCEMU_SPRN_THRM3: {
 		state->gpr[rD] = state->sprs[ppcemu_sprn_to_idx(sprn)];
 		break;
 	}
