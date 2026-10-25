@@ -12,6 +12,7 @@
 #include <ppcemu/spr.h>
 #include <ppcemu/init.h>
 #include <ppcemu/run.h>
+#include <ppcemu/snoop.h>
 #include <ppcemu/endian.h>
 #include <ppcemu/msr.h>
 

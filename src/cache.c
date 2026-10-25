@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ppcemu/snoop.h>
 #include "cache.h"
 #include "log.h"
 #include "types.h"
@@ -407,4 +408,46 @@ void ppcemu_cache_invalidate_all(struct cache *cache) {
 		line->dirty = 0;
 		line->locked = 0;
 	}
+}
+
+uint ppcemu_dcache_snoop(struct cache *dcache, uint op, u32 addr, u32 size) {
+	u32 line_base, last;
+	struct cacheline *line;
+	uint pushed = 0;
+
+	assert(dcache);
+	assert(dcache->is_data_cache);
+
+	if (!size)
+		return 0;
+
+	line_base = cache_line_base(addr);
+	last = cache_line_base(addr + size - 1);
+
+	for (;;) {
+		line = cache_lookup_slot(dcache, line_base);
+
+		if (line->valid && line->tag == line_base && !line->locked) {
+			verbose("dcache snoop %u: 0x%08x%s\r\n", op, line_base, line->dirty ? " (dirty)" : "");
+			if (op != PPCEMU_SNOOP_KILL && line->dirty) {
+				bus_write_line(dcache->ppcemu_state, line->tag, line->data);
+				pushed++;
+			}
+			line->valid = 0;
+			line->dirty = 0;
+		}
+
+		if (line_base == last)
+			break;
+
+		line_base += CACHE_LINE_SIZE;
+	}
+
+	return pushed;
+}
+
+uint ppcemu_snoop(struct ppcemu_state *emu, enum ppcemu_snoop_op op, u32 phys, u32 size) {
+	struct _ppcemu_state *state = (struct _ppcemu_state *)emu;
+
+	return ppcemu_dcache_snoop(&state->dcache, op, phys, size);
 }
