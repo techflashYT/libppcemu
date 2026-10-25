@@ -277,6 +277,9 @@ enum ppcemu_sprn {
 /*
  * HID0 bits
  */
+#define PPCEMU_HID0_DOZE       (1u << 23)
+#define PPCEMU_HID0_NAP        (1u << 22)
+#define PPCEMU_HID0_SLEEP      (1u << 21)
 #define PPCEMU_HID0_DCE_SHIFT  14
 #define PPCEMU_HID0_DCE        (1u << PPCEMU_HID0_DCE_SHIFT)
 #define PPCEMU_HID0_ICE_SHIFT  15
