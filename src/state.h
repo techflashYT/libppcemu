@@ -7,6 +7,7 @@
 #ifndef _LIBPPCEMU_INTERNAL_STATE_H
 #define _LIBPPCEMU_INTERNAL_STATE_H
 
+#include <ppcemu/state.h>
 #include <ppcemu/types.h>
 #include <stdatomic.h>
 #include <stdbool.h>
@@ -39,6 +40,8 @@ struct _ppcemu_state {
 	bool dec_exception_pending;
 	atomic_bool external_interrupt_pending;
 	enum ppcemu_cache_mode cache_mode;
+	enum ppcemu_power_state power_state;
+	uint idle_steps;
 
 	/* CPU state */
 	u32 gpr[32];

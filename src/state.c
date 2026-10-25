@@ -234,3 +234,9 @@ void ppcemu_set_cache_mode(struct ppcemu_state *state, enum ppcemu_cache_mode mo
 
 	s->cache_mode = mode;
 }
+
+enum ppcemu_power_state ppcemu_get_power_state(struct ppcemu_state *state) {
+	REAL_STATE;
+
+	return s->power_state;
+}

@@ -127,6 +127,28 @@ void ppcemu_set_loadstore_hook(struct ppcemu_state *state, ppcemu_loadstore_hook
 void ppcemu_external_interrupt(struct ppcemu_state *state, bool asserted);
 
 /*
+ * While not in the RUN state, ppcemu_step() executes no instructions, it only
+ * advances time and checks for a wake event:
+ * - DOZE: TB/DEC keep running, wakes on an enabled external interrupt or decrementer
+ *   exception, bus snooping continues to work
+ * - NAP: Same as DOZE, but bus snooping is disabled
+ * - SLEEP: TB/DEC are stopped, wakes only on an enabled external interrupt,
+ *   bus snooping is disabled
+ * ppcemu_reset() always returns to RUN
+ */
+enum ppcemu_power_state {
+	PPCEMU_POWER_STATE_RUN,
+	PPCEMU_POWER_STATE_DOZE,
+	PPCEMU_POWER_STATE_NAP,
+	PPCEMU_POWER_STATE_SLEEP
+};
+
+/*
+ * Get the current power state.
+ */
+enum ppcemu_power_state ppcemu_get_power_state(struct ppcemu_state *state);
+
+/*
  * Set the caching mode.
  */
 extern void ppcemu_set_cache_mode(struct ppcemu_state *state, enum ppcemu_cache_mode mode);

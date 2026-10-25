@@ -449,5 +449,9 @@ uint ppcemu_dcache_snoop(struct cache *dcache, uint op, u32 addr, u32 size) {
 uint ppcemu_snoop(struct ppcemu_state *emu, enum ppcemu_snoop_op op, u32 phys, u32 size) {
 	struct _ppcemu_state *state = (struct _ppcemu_state *)emu;
 
+	/* bus snooping only works in RUN and DOZE */
+	if (state->power_state == PPCEMU_POWER_STATE_NAP || state->power_state == PPCEMU_POWER_STATE_SLEEP)
+		return 0;
+
 	return ppcemu_dcache_snoop(&state->dcache, op, phys, size);
 }

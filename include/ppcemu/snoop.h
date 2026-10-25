@@ -42,6 +42,8 @@ enum ppcemu_snoop_op {
  * - 'phys': physical start address of the transaction
  * - 'size': length in bytes; every cache line overlapping [phys, phys + size) is snooped.
  *
+ * Snooping is disabled in the NAP and SLEEP power states; the call is a no-op there.
+ *
  * Returns the number of modified lines that were pushed to the bus.
  */
 extern unsigned int ppcemu_snoop(struct ppcemu_state *emu, enum ppcemu_snoop_op op, uint32_t phys, uint32_t size);
