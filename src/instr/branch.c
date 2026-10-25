@@ -31,7 +31,8 @@ void do_rfi(struct _ppcemu_state *state, u32 inst) {
 
 	state->pc = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR0)];
 	/* TODO: mask MSR */
-	srr1 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)];
+	/* MSR[POW] is not restored, or the CPU would go straight back to sleep */
+	srr1 = state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_SRR1)] & ~PPCEMU_MSR_POW;
 	/* translation on -> off */
 	if ((state->msr & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) && !(srr1 & (PPCEMU_MSR_IR | PPCEMU_MSR_DR)) &&
 	    state->cache_mode == PPCEMU_CACHE_MODE_PERMISSIVE) {
