@@ -68,9 +68,9 @@ static bool pte_access_allowed(bool key, u32 pp, bool write) {
 	}
 }
 
-static bool real_mode_dcacheable(struct _ppcemu_state *state) {
+static bool real_mode_cacheable(struct _ppcemu_state *state, bool ifetch) {
 	return (state->cache_mode != PPCEMU_CACHE_MODE_DISABLED) &&
-	       (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & PPCEMU_HID0_DCE);
+	       (state->sprs[ppcemu_sprn_to_idx(PPCEMU_SPRN_HID0)] & (ifetch ? PPCEMU_HID0_ICE : PPCEMU_HID0_DCE));
 }
 
 static void htab_read_pte(struct _ppcemu_state *state, u32 pteg_addr, uint idx, u32 *w0, u32 *w1) {
@@ -78,7 +78,7 @@ static void htab_read_pte(struct _ppcemu_state *state, u32 pteg_addr, uint idx, 
 	u32 addr = pteg_addr + idx * PTE_SIZE;
 	u32 raw0, raw1;
 
-	if (real_mode_dcacheable(state)) {
+	if (real_mode_cacheable(state, false)) {
 		ppcemu_dcache_load(&state->dcache, addr, 4, &raw0);
 		ppcemu_dcache_load(&state->dcache, addr + 4, 4, &raw1);
 	}
@@ -94,7 +94,7 @@ static void htab_write_pte1(struct _ppcemu_state *state, u32 pteg_addr, uint idx
 	u32 addr = pteg_addr + idx * PTE_SIZE + 4;
 	u32 raw = ppcemu_cpu_to_be32(w1);
 
-	if (real_mode_dcacheable(state))
+	if (real_mode_cacheable(state, false))
 		ppcemu_dcache_store(&state->dcache, addr, 4, &raw);
 	else
 		state->bus_hook((struct ppcemu_state *)state, addr, 4, &raw, true);
@@ -260,11 +260,12 @@ enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt
 	*cacheable = false;
 	if (ifetch && !(state->msr & PPCEMU_MSR_IR)) {
 		*phys = virt;
+		*cacheable = real_mode_cacheable(state, ifetch);
 		return V2P_SUCCESS;
 	}
 	else if (!ifetch && !(state->msr & PPCEMU_MSR_DR)) {
-		*cacheable = real_mode_dcacheable(state);
 		*phys = virt;
+		*cacheable = real_mode_cacheable(state, ifetch);
 		return V2P_SUCCESS;
 	}
 
