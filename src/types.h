@@ -41,4 +41,7 @@
 #define assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
 #endif
 
+#define unlikely(cond) __builtin_expect((cond), 0)
+#define likely(cond) __builtin_expect((cond), 1)
+
 #endif /* _LIBPPCEMU_INTERNAL_TYPES_H */
