@@ -28,37 +28,27 @@ extern enum ppcemu_loglevel misc_loglevel;
 #endif
 
 #ifdef ALLOW_WARN_ERROR
-#define DO_LOG(level) \
-	va_list va; \
-	\
-	if (LOG_LEVEL < level) \
-		return; \
-	\
-	va_start(va, fmt); \
-	vprintf(fmt, va); \
+static void __attribute__((noinline, cold, unused)) log_emit(const char *fmt, ...) {
+	va_list va;
+
+	va_start(va, fmt);
+	vprintf(fmt, va);
 	va_end(va);
+}
+
+#define DO_LOG(level, ...) \
+	do { \
+		if (unlikely(LOG_LEVEL >= (level))) \
+			log_emit(__VA_ARGS__); \
+	} while (0)
 #else
-#define DO_LOG(level) (void)fmt
+#define DO_LOG(level, ...) ((void)0)
 #endif
 
-static inline void debug(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOGLEVEL_DEBUG);
-}
-
-static inline void verbose(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOGLEVEL_VERBOSE);
-}
-
-static inline void info(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOGLEVEL_INFO);
-}
-
-static inline void warn(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOGLEVEL_WARN);
-}
-
-static inline void error(const char *fmt, ...) {
-	DO_LOG(PPCEMU_LOGLEVEL_ERROR);
-}
+#define debug(...)   DO_LOG(PPCEMU_LOGLEVEL_DEBUG, __VA_ARGS__)
+#define verbose(...) DO_LOG(PPCEMU_LOGLEVEL_VERBOSE, __VA_ARGS__)
+#define info(...)    DO_LOG(PPCEMU_LOGLEVEL_INFO, __VA_ARGS__)
+#define warn(...)    DO_LOG(PPCEMU_LOGLEVEL_WARN, __VA_ARGS__)
+#define error(...)   DO_LOG(PPCEMU_LOGLEVEL_ERROR, __VA_ARGS__)
 
 #endif /* _LIBPPCEMU_INTERNAL_LOG_H */
