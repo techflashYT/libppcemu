@@ -16,6 +16,10 @@
 
 /* TODO: check MSR[PR] on SPR R/W */
 void do_mtspr(struct _ppcemu_state *state, uint rS, uint sprn) {
+	/* TODO: this is probably a bit inefficient */
+	/* HID0[ICE] and friends change how the next fetch behaves */
+	ppcemu_ifetch_invalidate(state);
+
 	switch (sprn) {
 	case PPCEMU_SPRN_XER:
 	case PPCEMU_SPRN_LR:

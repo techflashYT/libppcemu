@@ -144,18 +144,18 @@ void ppcemu_icache_fetch(struct cache *icache, u32 addr, u32 *out) {
 	uint offset;
 	struct cacheline *line;
 
-	assert(icache);
-	assert(!icache->is_data_cache);
-	assert(!(addr & 0x3)); /* 4B alignment */
+	assume(icache);
+	assume(!icache->is_data_cache);
+	assume(!(addr & 0x3)); /* 4B alignment */
 
 	line_base = cache_line_base(addr);
 	offset = cache_line_offset(addr);
 
 	/* with 32-byte lines and 4-byte alignment, this should never cross a line */
-	assert(offset + 4 <= CACHE_LINE_SIZE);
+	assume(offset + 4 <= CACHE_LINE_SIZE);
 
 	line = cache_get_line(icache, line_base);
-	assert(line); /* I$ lines are never locked */
+	assume(line); /* I$ lines are never locked */
 	*out = *(u32 *)&line->data[offset];
 }
 
@@ -183,9 +183,9 @@ void ppcemu_dcache_load(struct cache *dcache, u32 addr, uint size, void *out) {
 	uint offset, n1, n2;
 	struct cacheline *line, *line2;
 
-	assert(dcache);
-	assert(dcache->is_data_cache);
-	assert(size == 1 || size == 2 || size == 4 || size == 8);
+	assume(dcache);
+	assume(dcache->is_data_cache);
+	assume(size == 1 || size == 2 || size == 4 || size == 8);
 
 	line_base = cache_line_base(addr);
 	offset = cache_line_offset(addr);
@@ -221,9 +221,9 @@ void ppcemu_dcache_store(struct cache *dcache, u32 addr, unsigned size, void *in
 	uint offset, n1, n2;
 	struct cacheline *line, *line2;
 
-	assert(dcache);
-	assert(dcache->is_data_cache);
-	assert(size == 1 || size == 2 || size == 4 || size == 8);
+	assume(dcache);
+	assume(dcache->is_data_cache);
+	assume(size == 1 || size == 2 || size == 4 || size == 8);
 
 	line_base = cache_line_base(addr);
 	offset = cache_line_offset(addr);

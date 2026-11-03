@@ -43,6 +43,16 @@ struct _ppcemu_state {
 	enum ppcemu_power_state power_state;
 	uint idle_steps;
 
+	/*
+	 * ifetch shortcut: the translation and I$ line of the 32B block
+	 * fetched last time
+	 */
+	bool ifetch_valid;
+	u32 ifetch_vbase;
+	u32 ifetch_pbase;
+	u32 ifetch_msr;
+	struct cacheline *ifetch_line;
+
 	/* CPU state */
 	u32 gpr[32];
 	union {

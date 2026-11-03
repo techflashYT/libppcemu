@@ -19,6 +19,7 @@
 #endif
 
 #include <ppcemu/state.h>
+#include "mem.h"
 #include "state.h"
 #include "spr.h"
 /* FIXME: put into state */
@@ -77,6 +78,7 @@ void ppcemu_set_spr(struct ppcemu_state *state, unsigned int sprn, uint32_t val)
 		return;
 
 	s->sprs[idx] = val;
+	ppcemu_ifetch_invalidate(s);
 }
 
 uint32_t ppcemu_get_cr(struct ppcemu_state *state) {
@@ -97,6 +99,7 @@ uint32_t ppcemu_get_msr(struct ppcemu_state *state) {
 void ppcemu_set_msr(struct ppcemu_state *state, uint32_t val) {
 	REAL_STATE;
 	s->msr = val;
+	ppcemu_ifetch_invalidate(s);
 }
 
 uint64_t ppcemu_get_tb(struct ppcemu_state *state) {
@@ -233,6 +236,7 @@ void ppcemu_set_cache_mode(struct ppcemu_state *state, enum ppcemu_cache_mode mo
 	REAL_STATE;
 
 	s->cache_mode = mode;
+	ppcemu_ifetch_invalidate(s);
 }
 
 enum ppcemu_power_state ppcemu_get_power_state(struct ppcemu_state *state) {

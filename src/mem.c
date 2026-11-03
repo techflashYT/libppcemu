@@ -175,82 +175,52 @@ static uint bat_blocklen_to_bytes(u32 bl) {
 void ppcemu_tlb_flush_all(struct _ppcemu_state *state) {
 	uint i;
 
-	for (i = 0; i < MICRO_TLB_WAYS; i++) {
-		state->itlb.ways[i].valid = false;
-		state->dtlb.ways[i].valid = false;
+	ppcemu_ifetch_invalidate(state);
+
+	for (i = 0; i < MICRO_TLB_ENTRIES; i++) {
+		state->itlb.ways[i].key = 0;
+		state->dtlb.ways[i].key = 0;
 	}
-	state->itlb.next_way = 0;
-	state->dtlb.next_way = 0;
 }
 
 void ppcemu_tlb_flush_segment(struct _ppcemu_state *state, uint sreg) {
 	uint i;
 
-	for (i = 0; i < MICRO_TLB_WAYS; i++) {
-		if (state->itlb.ways[i].valid && (state->itlb.ways[i].vpn >> 16) == sreg)
-			state->itlb.ways[i].valid = false;
-		if (state->dtlb.ways[i].valid && (state->dtlb.ways[i].vpn >> 16) == sreg)
-			state->dtlb.ways[i].valid = false;
+	ppcemu_ifetch_invalidate(state);
+
+	for (i = 0; i < MICRO_TLB_ENTRIES; i++) {
+		if (state->itlb.ways[i].key && (TLB_KEY_VPN(state->itlb.ways[i].key) >> 16) == sreg)
+			state->itlb.ways[i].key = 0;
+		if (state->dtlb.ways[i].key && (TLB_KEY_VPN(state->dtlb.ways[i].key) >> 16) == sreg)
+			state->dtlb.ways[i].key = 0;
 	}
 }
 
 /* As ppcemu_tlb_flush_segment(), but for tlbie: invalidates just the one page named by virt. */
 void ppcemu_tlb_flush_page(struct _ppcemu_state *state, u32 virt) {
 	u32 vpn = virt >> 12;
-	uint i;
+	struct micro_tlb_entry *i = &state->itlb.ways[vpn & (MICRO_TLB_ENTRIES - 1)];
+	struct micro_tlb_entry *d = &state->dtlb.ways[vpn & (MICRO_TLB_ENTRIES - 1)];
 
-	for (i = 0; i < MICRO_TLB_WAYS; i++) {
-		if (state->itlb.ways[i].valid && state->itlb.ways[i].vpn == vpn)
-			state->itlb.ways[i].valid = false;
-		if (state->dtlb.ways[i].valid && state->dtlb.ways[i].vpn == vpn)
-			state->dtlb.ways[i].valid = false;
-	}
-}
+	ppcemu_ifetch_invalidate(state);
 
-static bool tlb_lookup(struct micro_tlb *tlb, u32 vpn, bool pr, bool write, u32 virt, u32 *phys, bool *cacheable) {
-	uint i;
-
-	for (i = 0; i < MICRO_TLB_WAYS; i++) {
-		struct micro_tlb_entry *e = &tlb->ways[i];
-
-		if (!e->valid || e->vpn != vpn || e->pr != pr)
-			continue;
-		if (write && (!e->writable || e->dirty_pending))
-			return false;
-
-		*phys = e->phys_base | (virt & 0xfffu);
-		*cacheable = e->cacheable;
-		return true;
-	}
-
-	return false;
+	if (i->key && TLB_KEY_VPN(i->key) == vpn)
+		i->key = 0;
+	if (d->key && TLB_KEY_VPN(d->key) == vpn)
+		d->key = 0;
 }
 
 static void tlb_insert(struct micro_tlb *tlb, u32 vpn, bool pr, u32 phys_base, bool cacheable, bool writable, bool dirty_pending) {
-	struct micro_tlb_entry *e;
-	uint i;
+	struct micro_tlb_entry *e = &tlb->ways[vpn & (MICRO_TLB_ENTRIES - 1)];
 
-	for (i = 0; i < MICRO_TLB_WAYS; i++) {
-		if (tlb->ways[i].valid && tlb->ways[i].vpn == vpn && tlb->ways[i].pr == pr) {
-			e = &tlb->ways[i];
-			goto fill;
-		}
-	}
-
-	e = &tlb->ways[tlb->next_way];
-	tlb->next_way = (tlb->next_way + 1) % MICRO_TLB_WAYS;
-
-fill:
-	e->valid = true;
-	e->vpn = vpn;
-	e->pr = pr;
+	e->key = TLB_KEY(vpn, pr);
 	e->phys_base = phys_base;
 	e->cacheable = cacheable;
 	e->writable = writable;
 	e->dirty_pending = dirty_pending;
 }
 
-enum virt2phys_err HIDDEN ppcemu_virt2phys(struct _ppcemu_state *state, u32 virt, u32 *phys, bool *cacheable, bool ifetch, bool write) {
+enum virt2phys_err HIDDEN ppcemu_virt2phys_slow(struct _ppcemu_state *state, u32 virt, u32 *phys, bool *cacheable, bool ifetch, bool write) {
 	u32 batu, batl, size, bepi, pp, sr, wimg, vpn, phys_base;
 	uint i, max_bat;
 	bool vs, vp, pr, writable, dirty_pending, emu_cache_enabled, dce, ice;
@@ -479,13 +449,10 @@ static enum virt2phys_err access_page_tail(struct _ppcemu_state *state, u32 ea, 
 	return V2P_SUCCESS;
 }
 
-enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
+enum virt2phys_err HIDDEN _do_basic_store_nohook(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
 	u32 phys;
 	bool cacheable;
-
-	if (state->loadstore_hook)
-		state->loadstore_hook((struct ppcemu_state *)state, ea, len, val, true);
 
 	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, true);
 	if (err != V2P_SUCCESS) {
@@ -511,13 +478,10 @@ enum virt2phys_err _do_basic_store(struct _ppcemu_state *state, uint len, u32 ea
 	return err;
 }
 
-enum virt2phys_err _do_basic_load(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
+enum virt2phys_err HIDDEN _do_basic_load_nohook(struct _ppcemu_state *state, uint len, u32 ea, void *val) {
 	enum virt2phys_err err;
 	u32 phys;
 	bool cacheable;
-
-	if (state->loadstore_hook)
-		state->loadstore_hook((struct ppcemu_state *)state, ea, len, val, false);
 
 	err = ppcemu_virt2phys(state, ea, &phys, &cacheable, false, false);
 	if (err != V2P_SUCCESS) {

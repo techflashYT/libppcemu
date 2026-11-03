@@ -28,6 +28,11 @@ struct cache {
 	int is_data_cache;
 };
 
+/* the slot an address would occupy, without checking or filling it */
+static inline struct cacheline *ppcemu_icache_line(struct cache *c, u32 addr) {
+	return &c->lines[(addr >> 5) & (c->line_count - 1)];
+}
+
 extern int ppcemu_cache_init(struct _ppcemu_state *state, uint icache_size, uint dcache_size);
 extern void ppcemu_cache_destroy(struct _ppcemu_state *state);
 extern void ppcemu_icache_fetch(struct cache *icache, u32 phys, u32 *out);
