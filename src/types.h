@@ -34,4 +34,11 @@
 
 #define HIDDEN __attribute__((visibility("hidden")))
 
+#ifdef PPCEMU_CHECKED
+#include <assert.h>
+#define assume(cond) assert(cond)
+#else
+#define assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+#endif
+
 #endif /* _LIBPPCEMU_INTERNAL_TYPES_H */

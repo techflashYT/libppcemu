@@ -32,6 +32,14 @@ ifneq ($(strip $(SANFLAGS)),)
 override CFLAGS += $(SANFLAGS) -fno-omit-frame-pointer
 override LDFLAGS += $(SANFLAGS)
 endif
+# CHECKED=1 turns assume()s into real assert()s
+CHECKED ?= 0
+ifneq ($(strip $(SANFLAGS)),)
+CHECKED := 1
+endif
+ifeq ($(CHECKED),1)
+override CFLAGS += -DPPCEMU_CHECKED
+endif
 export ASAN UBSAN
 
 .PHONY: all clean install tests run_tests
