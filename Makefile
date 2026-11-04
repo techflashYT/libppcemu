@@ -16,6 +16,13 @@ override OUT_ST := bin/libppcemu.a
 CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-variadic-macros -Wno-format-nonliteral -std=gnu89 -pedantic -fno-permissive -g -O3 -flto=auto
 override CFLAGS := $(CFLAGS) -fPIC -Iinclude
 
+# GCC's -flto emits slim GIMPLE objects, which LLVM can't link against
+ifneq ($(findstring gcc,$(shell $(CC) --version 2>/dev/null | head -n1 | tr A-Z a-z)),)
+ifneq ($(findstring clang,$(shell $(CC) --version 2>/dev/null | tr A-Z a-z)),clang)
+override CFLAGS += -ffat-lto-objects
+endif
+endif
+
 LDFLAGS ?= -flto=auto
 DESTDIR ?= /
 
